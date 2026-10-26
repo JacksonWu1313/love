@@ -266,3 +266,96 @@
         if (!siteData.photoPool[pIdx]) return;
         siteData.photoPool[pIdx][field] = event.target.innerText.trim();
       };
+
+      // Secondary Interface (二级全部照片相册 & 时间轴与搜索)
+      const showAllPhotosModal = ref(false);
+      const photoSearchQuery = ref('');
+      const photoSortOrder = ref('desc');
+      const selectedMonthFilter = ref('all');
+
+      const openAllPhotosModal = () => {
+        showAllPhotosModal.value = true;
+        document.body.style.overflow = 'hidden';
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeAllPhotosModal = () => {
+        showAllPhotosModal.value = false;
+        document.body.style.overflow = '';
+      };
+
+      const togglePhotoSort = () => {
+        photoSortOrder.value = photoSortOrder.value === 'desc' ? 'asc' : 'desc';
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const resetPhotoFilters = () => {
+        photoSearchQuery.value = '';
+        selectedMonthFilter.value = 'all';
+      };
+
+      const availableMonths = computed(() => {
+        const pool = siteData.photoPool || [];
+        const monthsSet = new Set();
+        pool.forEach(p => {
+          if (p.date && p.date.length >= 7) {
+            monthsSet.add(p.date.slice(0, 7));
+          }
+        });
+        return Array.from(monthsSet).sort().reverse();
+      });
+
+      const filteredAndSortedPhotos = computed(() => {
+        let list = (siteData.photoPool || []).slice();
+
+        // Month filter
+        if (selectedMonthFilter.value !== 'all') {
+          list = list.filter(p => p.date && p.date.startsWith(selectedMonthFilter.value));
+        }
+
+        // Search query filter (title, date, uploader)
+        const q = photoSearchQuery.value.trim().toLowerCase();
+        if (q) {
+          list = list.filter(p => {
+            const t = (p.title || '').toLowerCase();
+            const d = (p.date || '').toLowerCase();
+            const u = (p.uploader || '').toLowerCase();
+            return t.includes(q) || d.includes(q) || u.includes(q);
+          });
+        }
+
+        // Sort by date
+        list.sort((a, b) => {
+          const da = a.date || '';
+          const db = b.date || '';
+          return photoSortOrder.value === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+        });
+
+        return list;
+      });
+
+      const timeGroupedPhotos = computed(() => {
+        const photos = filteredAndSortedPhotos.value;
+        const groups = {};
+        const order = [];
+        photos.forEach(p => {
+          const key = (p.date && p.date.length >= 7) ? p.date.slice(0, 7) : '更早的回忆';
+          if (!groups[key]) {
+            groups[key] = [];
+            order.push(key);
+          }
+          groups[key].push(p);
+        });
+        return order.map(k => ({ timeKey: k, photos: groups[k] }));
+      });
+
+      watch(filteredAndSortedPhotos, () => {
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      });
+
+      const removePhotoByItem = (photo) => {
+        const idx = (siteData.photoPool || []).findIndex(p => (p.id && p.id === photo.id) || p.image === photo.image);
+        if (idx !== -1) {
+          removePoolPhoto(idx);
+        }
+      };

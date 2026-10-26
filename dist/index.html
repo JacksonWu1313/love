@@ -438,9 +438,9 @@
       </div>
     </div>
 
-    <!-- Photo Pool Grid -->
+    <!-- Photo Pool Grid (Main Page: Display Top 10 Photos) -->
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
-      <div v-for="(photo, pIdx) in siteData.photoPool" :key="photo.id || pIdx" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
+      <div v-for="(photo, pIdx) in (siteData.photoPool ? siteData.photoPool.slice(0, 10) : [])" :key="photo.id || pIdx" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
         <!-- Photo Container -->
         <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
           <img :src="photo.image" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
@@ -466,6 +466,21 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- View All Photos Secondary View Trigger Button -->
+    <div class="mt-8 text-center flex flex-col items-center justify-center space-y-3">
+      <button @click="openAllPhotosModal" class="px-8 py-3.5 rounded-full bg-gradient-to-r from-clay via-blush-500 to-clay text-white text-xs md:text-sm font-medium shadow-soft hover:shadow-float hover:scale-105 transition duration-300 flex items-center space-x-2.5 group">
+        <i data-lucide="images" class="w-4 h-4 group-hover:rotate-12 transition"></i>
+        <span>查看全部回忆相册 · 时间轴与智能搜索</span>
+        <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold backdrop-blur-sm">
+          共 {{ siteData.photoPool ? siteData.photoPool.length : 0 }} 张
+        </span>
+        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition"></i>
+      </button>
+      <p class="text-[11px] text-muted">
+        主页精选展示最新 10 张 · 点击进入二级时光相册，可按时间回溯所有回忆并支持实时搜索
+      </p>
     </div>
   </section>
 
@@ -597,6 +612,149 @@
     </div>
   </div>
 
+  <!-- Secondary View: 全部回忆相册 · 时间轴与智能搜索 (Secondary Fullscreen Interface) -->
+  <div v-if="showAllPhotosModal" class="fixed inset-0 z-50 bg-[#faf8f5] overflow-y-auto flex flex-col animate-fade-in">
+    <!-- Sticky Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-warmwhite/95 backdrop-blur-md border-b border-sand/70 px-4 py-3 shadow-sm">
+      <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <!-- Back Button -->
+        <button @click="closeAllPhotosModal" class="px-4 py-2 rounded-full bg-sand/40 hover:bg-sand/70 text-ink text-xs font-medium transition flex items-center space-x-2 group">
+          <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-0.5 transition"></i>
+          <span>返回纪念馆主页</span>
+        </button>
+
+        <!-- Title & Counter -->
+        <div class="text-center">
+          <h3 class="text-serif-sc text-sm sm:text-base md:text-lg font-semibold text-ink flex items-center justify-center space-x-2">
+            <span>甜蜜时光相册 · 全部回忆</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-blush-100 text-blush-600 text-xs font-normal">
+              {{ filteredAndSortedPhotos.length }} / {{ siteData.photoPool ? siteData.photoPool.length : 0 }} 张
+            </span>
+          </h3>
+        </div>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center space-x-2">
+          <button @click="togglePhotoSort" class="px-3 py-1.5 rounded-full bg-warmwhite border border-sand hover:bg-sand/40 text-xs text-ink transition flex items-center space-x-1.5" :title="photoSortOrder === 'desc' ? '当前：最新在前' : '当前：最早在前'">
+            <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-clay"></i>
+            <span class="hidden sm:inline">{{ photoSortOrder === 'desc' ? '最新在前' : '最早在前' }}</span>
+          </button>
+          <button @click="triggerPoolUpload" class="px-3.5 py-1.5 rounded-full bg-clay text-white text-xs font-medium hover:bg-clay/90 transition shadow-sm flex items-center space-x-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">存入新照片</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div class="max-w-3xl mx-auto mt-2.5 w-full">
+        <div class="relative flex items-center">
+          <i data-lucide="search" class="w-4 h-4 text-muted absolute left-3.5 pointer-events-none"></i>
+          <input 
+            v-model="photoSearchQuery" 
+            type="text" 
+            placeholder="🔍 实时搜索：输入照片标题、日期(如 2026-08)、人物(YB/悦悦)或回忆关键词..." 
+            class="w-full pl-10 pr-9 py-2 rounded-2xl bg-white border border-sand text-xs text-ink placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-blush-300 transition shadow-sm"
+          >
+          <button v-if="photoSearchQuery" @click="photoSearchQuery = ''" class="absolute right-3 text-muted hover:text-ink">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Month Filter Pills -->
+        <div v-if="availableMonths.length > 0" class="flex items-center space-x-2 overflow-x-auto py-2 mt-1 no-scrollbar text-xs">
+          <span class="text-[11px] text-muted whitespace-nowrap">时间轴筛选:</span>
+          <button 
+            @click="selectedMonthFilter = 'all'" 
+            :class="selectedMonthFilter === 'all' ? 'bg-clay text-white font-medium' : 'bg-sand/40 text-muted hover:bg-sand/70'"
+            class="px-3 py-1 rounded-full transition whitespace-nowrap text-[11px]">
+            全部时光
+          </button>
+          <button 
+            v-for="month in availableMonths" 
+            :key="month" 
+            @click="selectedMonthFilter = month" 
+            :class="selectedMonthFilter === month ? 'bg-clay text-white font-medium' : 'bg-sand/40 text-muted hover:bg-sand/70'"
+            class="px-3 py-1 rounded-full transition whitespace-nowrap text-[11px]">
+            {{ month }}
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
+      <!-- Search Feedback -->
+      <div v-if="photoSearchQuery || selectedMonthFilter !== 'all'" class="mb-4 flex items-center justify-between text-xs text-muted px-1">
+        <span>
+          筛选：
+          <span v-if="photoSearchQuery" class="text-ink font-medium">“{{ photoSearchQuery }}”</span>
+          <span v-if="selectedMonthFilter !== 'all'" class="text-clay font-medium ml-1">[{{ selectedMonthFilter }}]</span>
+          ，共找到 <strong class="text-ink">{{ filteredAndSortedPhotos.length }}</strong> 张照片
+        </span>
+        <button @click="resetPhotoFilters" class="text-blush-500 hover:underline text-[11px]">重置筛选</button>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="filteredAndSortedPhotos.length === 0" class="py-24 text-center">
+        <div class="inline-flex p-4 rounded-3xl bg-sand/30 text-muted mb-3">
+          <i data-lucide="image-off" class="w-8 h-8 text-muted"></i>
+        </div>
+        <p class="text-sm text-ink font-medium">没有找到符合条件的甜蜜回忆</p>
+        <p class="text-xs text-muted mt-1">试试清除搜索关键词或查看全部时光</p>
+        <button @click="resetPhotoFilters" class="mt-4 px-5 py-2 rounded-full bg-sand/60 text-ink text-xs hover:bg-sand transition">
+          显示全部回忆
+        </button>
+      </div>
+
+      <!-- Time-Grouped Gallery (Timeline view) -->
+      <div v-else class="space-y-8">
+        <div v-for="group in timeGroupedPhotos" :key="group.timeKey" class="space-y-3">
+          <!-- Time Group Header -->
+          <div class="sticky top-[122px] z-20 py-1.5 px-3 rounded-xl bg-warmwhite/95 backdrop-blur-sm border-l-4 border-clay text-xs font-semibold text-ink flex items-center justify-between shadow-xs">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-clay"></i>
+              <span>{{ group.timeKey }}</span>
+            </div>
+            <span class="text-[11px] text-muted font-normal">{{ group.photos.length }} 张照片</span>
+          </div>
+
+          <!-- Photo Grid for this time group -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
+            <div v-for="photo in group.photos" :key="photo.id || photo.image" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
+              <!-- Photo Container -->
+              <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
+                <img :src="photo.image" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+                <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
+                  <span class="p-2 rounded-full bg-black/40 hover:bg-black/60"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></span>
+                </div>
+                <!-- Date badge on photo -->
+                <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/50 text-[10px] text-white/90 backdrop-blur-sm">
+                  {{ photo.date || '珍贵时光' }}
+                </span>
+              </div>
+              
+              <!-- Info & Controls -->
+              <div class="pt-2 px-1 pb-1 flex items-center justify-between text-[11px]">
+                <div class="min-w-0 flex-1 pr-1">
+                  <p class="font-medium text-ink truncate" :title="photo.title">
+                    {{ photo.title || '甜蜜瞬间' }}
+                  </p>
+                  <div class="flex items-center space-x-1 text-[10px] text-muted">
+                    <span class="text-blush-500">{{ photo.uploader || '我们' }}</span>
+                  </div>
+                </div>
+                <button @click.stop="removePhotoByItem(photo)" class="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-red-500 rounded-lg hover:bg-red-50 transition" title="移除此照片">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
   <!-- Fullscreen Lightbox Modal -->
   <div v-if="activeLightboxImg" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 cursor-zoom-out" @click="activeLightboxImg = null">
     <div class="max-w-4xl max-h-[90vh] relative" @click.stop>
@@ -637,7 +795,7 @@
 </div>
 
 <script>
-  const { createApp, ref, reactive, watch, nextTick, onMounted } = Vue;
+  const { createApp, ref, reactive, watch, nextTick, onMounted, computed } = Vue;
 
   // Default Comprehensive Initial Dataset (V4: Unlimited Photo Pool)
   const defaultSiteData = {
@@ -1462,6 +1620,100 @@
         siteData.photoPool[pIdx][field] = event.target.innerText.trim();
       };
 
+      // Secondary Interface (二级全部照片相册 & 时间轴与搜索)
+      const showAllPhotosModal = ref(false);
+      const photoSearchQuery = ref('');
+      const photoSortOrder = ref('desc');
+      const selectedMonthFilter = ref('all');
+
+      const openAllPhotosModal = () => {
+        showAllPhotosModal.value = true;
+        document.body.style.overflow = 'hidden';
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeAllPhotosModal = () => {
+        showAllPhotosModal.value = false;
+        document.body.style.overflow = '';
+      };
+
+      const togglePhotoSort = () => {
+        photoSortOrder.value = photoSortOrder.value === 'desc' ? 'asc' : 'desc';
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const resetPhotoFilters = () => {
+        photoSearchQuery.value = '';
+        selectedMonthFilter.value = 'all';
+      };
+
+      const availableMonths = computed(() => {
+        const pool = siteData.photoPool || [];
+        const monthsSet = new Set();
+        pool.forEach(p => {
+          if (p.date && p.date.length >= 7) {
+            monthsSet.add(p.date.slice(0, 7));
+          }
+        });
+        return Array.from(monthsSet).sort().reverse();
+      });
+
+      const filteredAndSortedPhotos = computed(() => {
+        let list = (siteData.photoPool || []).slice();
+
+        // Month filter
+        if (selectedMonthFilter.value !== 'all') {
+          list = list.filter(p => p.date && p.date.startsWith(selectedMonthFilter.value));
+        }
+
+        // Search query filter (title, date, uploader)
+        const q = photoSearchQuery.value.trim().toLowerCase();
+        if (q) {
+          list = list.filter(p => {
+            const t = (p.title || '').toLowerCase();
+            const d = (p.date || '').toLowerCase();
+            const u = (p.uploader || '').toLowerCase();
+            return t.includes(q) || d.includes(q) || u.includes(q);
+          });
+        }
+
+        // Sort by date
+        list.sort((a, b) => {
+          const da = a.date || '';
+          const db = b.date || '';
+          return photoSortOrder.value === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+        });
+
+        return list;
+      });
+
+      const timeGroupedPhotos = computed(() => {
+        const photos = filteredAndSortedPhotos.value;
+        const groups = {};
+        const order = [];
+        photos.forEach(p => {
+          const key = (p.date && p.date.length >= 7) ? p.date.slice(0, 7) : '更早的回忆';
+          if (!groups[key]) {
+            groups[key] = [];
+            order.push(key);
+          }
+          groups[key].push(p);
+        });
+        return order.map(k => ({ timeKey: k, photos: groups[k] }));
+      });
+
+      watch(filteredAndSortedPhotos, () => {
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      });
+
+      const removePhotoByItem = (photo) => {
+        const idx = (siteData.photoPool || []).findIndex(p => (p.id && p.id === photo.id) || p.image === photo.image);
+        if (idx !== -1) {
+          removePoolPhoto(idx);
+        }
+      };
+
+
 
       return {
         siteData,
@@ -1503,6 +1755,18 @@
         promptAddPoolLink,
         removePoolPhoto,
         onPoolItemEdit,
+        showAllPhotosModal,
+        photoSearchQuery,
+        photoSortOrder,
+        selectedMonthFilter,
+        availableMonths,
+        filteredAndSortedPhotos,
+        timeGroupedPhotos,
+        openAllPhotosModal,
+        closeAllPhotosModal,
+        togglePhotoSort,
+        resetPhotoFilters,
+        removePhotoByItem,
         toggleMusic
       };
     }
