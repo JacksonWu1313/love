@@ -224,6 +224,52 @@
       pointer-events: none;
     }
     [v-cloak] { display: none; }
+  
+    /* 3D Photo Constellation Sphere Styles */
+    .photo-sphere-stage {
+      width: 0;
+      height: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+      pointer-events: none;
+    }
+    .photo-sphere-world {
+      width: 0;
+      height: 0;
+      position: absolute;
+      transform-style: preserve-3d;
+      will-change: transform;
+      pointer-events: none;
+    }
+    .sphere-photo-card {
+      position: absolute;
+      width: 82px;
+      height: 110px;
+      margin-left: -41px;
+      margin-top: -55px;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      backface-visibility: visible;
+      will-change: transform;
+      transition: filter 0.2s ease, box-shadow 0.2s ease;
+      pointer-events: auto;
+    }
+    @media (min-width: 640px) {
+      .sphere-photo-card {
+        width: 104px;
+        height: 138px;
+        margin-left: -52px;
+        margin-top: -69px;
+      }
+    }
+    .sphere-photo-card:hover {
+      filter: brightness(1.08) drop-shadow(0 8px 16px rgba(217,93,93,0.3));
+    }
   </style>
 </head>
 <body class="selection:bg-blush-200 selection:text-ink">
@@ -613,7 +659,22 @@
         <div class="flex flex-wrap items-center gap-2">
           <!-- Map Multi-Tile Switcher -->
           <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60 mr-1">
-            <button @click="switchMapTile('autonavi')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'autonavi' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
+            <button @click="switchMapTile,
+        // 3D Photo Constellation Sphere
+        spherePhotosList,
+        sphereTransformStyle,
+        getSphereCardStyle,
+        isSphereRotating,
+        toggleSphereAutoRotate,
+        resetSphereView,
+        shuffleSpherePhotos,
+        onSphereDragStart,
+        onSphereDragMove,
+        onSphereDragEnd,
+        onSphereTouchStart,
+        onSphereTouchMove,
+        onSphereTouchEnd,
+        handleSpherePhotoClick('autonavi')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'autonavi' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
               <span>🗺️ 高德中文</span>
             </button>
             <button @click="switchMapTile('esriStreet')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'esriStreet' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
@@ -818,6 +879,107 @@
           </transition>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Section: 3D 浪漫照片星球 (3D Photo Constellation Sphere - 360° 全景旋转照片球) -->
+  <section id="sphere-section" class="py-14 px-3 sm:px-6 md:px-8 bg-gradient-to-b from-warmwhite via-sand/25 to-warmwhite border-t border-sand/60 relative overflow-hidden">
+    <div class="max-w-5xl mx-auto">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-blush-600 text-xs font-semibold tracking-wider mb-2 shadow-soft">
+          <i data-lucide="orbit" class="w-3.5 h-3.5"></i>
+          <span>3D PHOTO SPHERE · 360° 全景回忆星球</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-bold text-ink tracking-tight">
+          3D 浪漫照片星球 · 拨动时光星系
+        </h3>
+        <p class="text-xs text-muted mt-1.5 max-w-lg mx-auto">
+          轻触手指全向旋转三维照片球，360° 漫游独属于我们的回忆星系 · 点击任意照片即可大图欣赏
+        </p>
+      </div>
+
+      <!-- 3D Sphere Card Stage -->
+      <div class="relative glass-card rounded-3xl p-4 sm:p-6 border border-sand shadow-soft bg-gradient-to-b from-white/95 to-warmwhite/90">
+        
+        <!-- Top Toolbar & Status -->
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2.5 px-1">
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="px-3 py-1 rounded-full bg-sand/35 text-ink text-[11px] font-medium border border-sand/60 flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full bg-rose-500" :class="isSphereRotating ? 'animate-pulse' : ''"></span>
+              <span>星系收录：{{ spherePhotosList.length }} 张浪漫瞬间</span>
+            </span>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex items-center space-x-2 text-xs">
+            <button @click="toggleSphereAutoRotate" class="px-3 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1.5 shadow-2xs">
+              <i data-lucide="refresh-cw" class="w-3 h-3 text-clay" :class="isSphereRotating ? 'animate-spin' : ''"></i>
+              <span>{{ isSphereRotating ? '自动自转中' : '自转已暂停' }}</span>
+            </button>
+            <button @click="resetSphereView" class="px-3 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1.5 shadow-2xs">
+              <i data-lucide="compass" class="w-3 h-3 text-clay"></i>
+              <span>重置视角</span>
+            </button>
+            <button @click="shuffleSpherePhotos" class="px-3 py-1 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-[11px] font-medium transition shadow-soft flex items-center space-x-1">
+              <i data-lucide="shuffle" class="w-3 h-3"></i>
+              <span>换一批照片</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D Stage Viewport -->
+        <div class="relative w-full h-[460px] sm:h-[540px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+             style="touch-action: none;"
+             @mousedown="onSphereDragStart"
+             @mousemove="onSphereDragMove"
+             @mouseup="onSphereDragEnd"
+             @mouseleave="onSphereDragEnd"
+             @touchstart="onSphereTouchStart"
+             @touchmove="onSphereTouchMove"
+             @touchend="onSphereTouchEnd">
+
+          <!-- Center Ambient Heart Glow -->
+          <div class="absolute w-48 h-48 rounded-full bg-rose-400/15 blur-3xl pointer-events-none"></div>
+          <div class="absolute w-24 h-24 rounded-full bg-amber-400/15 blur-2xl pointer-events-none"></div>
+
+          <!-- 3D Perspective Stage -->
+          <div class="photo-sphere-stage" :style="{ perspective: '950px' }">
+            <div class="photo-sphere-world" :style="sphereTransformStyle">
+              
+              <!-- Photo Cards Distributed on 3D Sphere -->
+              <div v-for="(photo, sIdx) in spherePhotosList" :key="photo.id || sIdx"
+                   class="sphere-photo-card group"
+                   :style="getSphereCardStyle(sIdx)"
+                   @click="handleSpherePhotoClick(photo)">
+                <div class="w-full h-full p-1 sm:p-1.5 bg-white/95 rounded-xl sm:rounded-2xl shadow-md group-hover:shadow-xl transition duration-300 flex flex-col border border-white/80">
+                  <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/30">
+                    <img :src="photo.image" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" loading="lazy">
+                    <div class="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center text-white">
+                      <span class="p-1 rounded-full bg-black/40"><i data-lucide="maximize-2" class="w-3 h-3"></i></span>
+                    </div>
+                  </div>
+                  <div class="pt-1 px-0.5 text-center truncate">
+                    <p class="text-[9px] sm:text-[10px] font-medium text-ink truncate">{{ photo.title || '甜蜜瞬间' }}</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Floating Guidance Overlay -->
+          <div class="absolute bottom-3 left-4 right-4 text-center pointer-events-none">
+            <span class="px-3 py-1 rounded-full bg-white/85 backdrop-blur-md text-muted text-[11px] border border-sand/80 shadow-2xs inline-flex items-center space-x-1.5">
+              <span>🪐 任意方向滑动可 360° 旋转球体 · 点击照片放大查看</span>
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   </section>
 
@@ -1840,12 +2002,181 @@
         }
       };
 
+      // --- Scheme: 3D Photo Constellation Sphere (360° 旋转照片星球) ---
+      const sphereRotX = ref(-12);
+      const sphereRotY = ref(0);
+      const isSphereRotating = ref(true);
+      const spherePhotoPoolIndex = ref(0);
+      let sphereVelX = 0;
+      let sphereVelY = 0.22;
+      let isDraggingSphere = false;
+      let sphereLastX = 0;
+      let sphereLastY = 0;
+      let hasSphereMoved = false;
+
+      const getSphereRadius = () => {
+        if (typeof window === 'undefined') return 240;
+        return window.innerWidth < 640 ? 185 : (window.innerWidth < 1024 ? 240 : 275);
+      };
+
+      const spherePhotosList = computed(() => {
+        const all = [];
+        if (siteData.photoPool && siteData.photoPool.length > 0) {
+          all.push(...siteData.photoPool);
+        }
+        if (siteData.timeline) {
+          siteData.timeline.forEach(t => {
+            if (t.image) all.push({ image: t.image, title: t.title || '甜蜜瞬间', date: t.date });
+          });
+        }
+        if (siteData.galleryItems) {
+          siteData.galleryItems.forEach(g => {
+            if (g.image) all.push({ image: g.image, title: g.caption || '美好日常', date: '2026' });
+          });
+        }
+        const map = new Map();
+        all.forEach(p => { if (!map.has(p.image)) map.set(p.image, p); });
+        const unique = Array.from(map.values());
+        if (unique.length === 0) return [];
+
+        const N = Math.min(24, unique.length);
+        const start = (spherePhotoPoolIndex.value * 6) % unique.length;
+        const slice = [];
+        for (let i = 0; i < N; i++) {
+          slice.push(unique[(start + i) % unique.length]);
+        }
+        return slice;
+      });
+
+      const sphereCoordinates = computed(() => {
+        const N = spherePhotosList.value.length || 24;
+        const phiGolden = Math.PI * (3 - Math.sqrt(5)); // ~2.3999632 rad
+        const coords = [];
+        const r = getSphereRadius();
+        for (let i = 0; i < N; i++) {
+          const y = 1 - (i / (N - 1)) * 2; // from 1 to -1
+          const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+          const theta = phiGolden * i;
+          const x = Math.cos(theta) * radiusAtY;
+          const z = Math.sin(theta) * radiusAtY;
+
+          const latDeg = Math.asin(y) * (180 / Math.PI);
+          const lonDeg = Math.atan2(x, z) * (180 / Math.PI);
+          coords.push({ latDeg, lonDeg, r });
+        }
+        return coords;
+      });
+
+      const getSphereCardStyle = (idx) => {
+        const coord = sphereCoordinates.value[idx];
+        if (!coord) return {};
+        return {
+          transform: `rotateY(${coord.lonDeg}deg) rotateX(${-coord.latDeg}deg) translateZ(${coord.r}px)`
+        };
+      };
+
+      const sphereTransformStyle = computed(() => {
+        return {
+          transform: `rotateX(${sphereRotX.value}deg) rotateY(${sphereRotY.value}deg)`
+        };
+      });
+
+      const onSphereDragStart = (e) => {
+        isDraggingSphere = true;
+        hasSphereMoved = false;
+        sphereLastX = e.clientX;
+        sphereLastY = e.clientY;
+        sphereVelX = 0;
+        sphereVelY = 0;
+      };
+
+      const onSphereDragMove = (e) => {
+        if (!isDraggingSphere) return;
+        const dx = e.clientX - sphereLastX;
+        const dy = e.clientY - sphereLastY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasSphereMoved = true;
+        sphereRotY.value += dx * 0.35;
+        sphereRotX.value = Math.max(-80, Math.min(80, sphereRotX.value - dy * 0.35));
+        sphereVelY = dx * 0.35;
+        sphereVelX = -dy * 0.35;
+        sphereLastX = e.clientX;
+        sphereLastY = e.clientY;
+      };
+
+      const onSphereDragEnd = () => {
+        isDraggingSphere = false;
+      };
+
+      const onSphereTouchStart = (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        isDraggingSphere = true;
+        hasSphereMoved = false;
+        sphereLastX = e.touches[0].clientX;
+        sphereLastY = e.touches[0].clientY;
+        sphereVelX = 0;
+        sphereVelY = 0;
+      };
+
+      const onSphereTouchMove = (e) => {
+        if (!isDraggingSphere || !e.touches || e.touches.length === 0) return;
+        const dx = e.touches[0].clientX - sphereLastX;
+        const dy = e.touches[0].clientY - sphereLastY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasSphereMoved = true;
+        sphereRotY.value += dx * 0.4;
+        sphereRotX.value = Math.max(-80, Math.min(80, sphereRotX.value - dy * 0.4));
+        sphereVelY = dx * 0.4;
+        sphereVelX = -dy * 0.4;
+        sphereLastX = e.touches[0].clientX;
+        sphereLastY = e.touches[0].clientY;
+      };
+
+      const onSphereTouchEnd = () => {
+        isDraggingSphere = false;
+      };
+
+      const handleSpherePhotoClick = (photo) => {
+        if (hasSphereMoved) return;
+        openLightbox(photo.image);
+      };
+
+      const toggleSphereAutoRotate = () => {
+        isSphereRotating.value = !isSphereRotating.value;
+      };
+
+      const resetSphereView = () => {
+        sphereRotX.value = -12;
+        sphereRotY.value = 0;
+        sphereVelX = 0;
+        sphereVelY = 0.22;
+        isSphereRotating.value = true;
+      };
+
+      const shuffleSpherePhotos = () => {
+        spherePhotoPoolIndex.value++;
+        triggerConfetti();
+      };
+
+      const tickSphere = () => {
+        if (!isDraggingSphere) {
+          if (Math.abs(sphereVelX) > 0.02 || Math.abs(sphereVelY) > 0.02) {
+            sphereRotX.value = Math.max(-80, Math.min(80, sphereRotX.value + sphereVelX));
+            sphereRotY.value += sphereVelY;
+            sphereVelX *= 0.93;
+            sphereVelY *= 0.93;
+          } else if (isSphereRotating.value) {
+            sphereRotY.value += 0.22;
+          }
+        }
+        requestAnimationFrame(tickSphere);
+      };
+
       onMounted(() => {
         updateTimer();
         setInterval(updateTimer, 1000);
         nextTick(() => { 
           if (window.lucide) lucide.createIcons(); 
           initWorldMap();
+          tickSphere();
         });
         syncFromCloudRegistry();
         syncFootprintFromCloud();
