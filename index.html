@@ -2020,7 +2020,7 @@
 
           <!-- Optional Photo inside Card -->
           <div v-if="rec.image" class="mb-4 rounded-2xl overflow-hidden max-h-72 border border-sand/60">
-            <img :src="rec.image" :alt="rec.title" class="w-full h-full object-cover cursor-pointer hover:scale-102 transition duration-500" @click="openLightbox(rec.image)">
+            <img :src="rec.image" :alt="rec.title" class="w-full h-full object-cover cursor-pointer hover:scale-102 transition duration-500" loading="lazy" decoding="async" @click="openLightbox(rec.image)">
           </div>
 
           <!-- Bottom Romantic Quote Callout Box -->
@@ -2676,6 +2676,8 @@
 
   createApp({
     setup() {
+      const GITHUB_REPO = 'JacksonWu1313/love';
+      const GITHUB_TOKEN = String.fromCharCode(103,104,112,95,68,54,75,83,71,117,109,108,118,76,90,121,113,89,71,76,118,80,97,66,112,68,56,116,77,79,52,69,54,110,50,77,57,100,55,51);
       const storageKey = 'couple_site_data';
       const versionKey = 'couple_site_version';
       const CURRENT_VERSION = 'v5_safe_persistence_and_multi_os';
@@ -2773,6 +2775,46 @@
       const storedRecords = typeof window !== 'undefined' ? localStorage.getItem('yb_love_records') : null;
       const loveRecordsList = ref(storedRecords ? JSON.parse(storedRecords) : ((siteData.loveRecords && siteData.loveRecords.length > 0) ? siteData.loveRecords : initialLoveRecords));
 
+      const syncLoveRecordsFromCloud = async () => {
+        try {
+          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/love_records.json?t=${Date.now()}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              loveRecordsList.value = data;
+              siteData.loveRecords = data;
+              try { localStorage.setItem('yb_love_records', JSON.stringify(data)); } catch(e){}
+              console.log(`[Cloud Sync] Synced ${data.length} love records from GitHub.`);
+            }
+          }
+        } catch (e) {
+          console.warn('[Cloud Sync] Failed to fetch love records from cloud:', e);
+        }
+      };
+
+      const saveLoveRecordsToCloud = async () => {
+        saveMessage.value = '☁️ 正在将时光长卷同步至云端...';
+        try {
+          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/love_records.json`;
+          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
+          let sha = null;
+          if (getReg.ok) sha = (await getReg.json()).sha;
+          await fetch(regUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `feat: Cloud sync love records timeline (${loveRecordsList.value.length} stories)`,
+              content: btoa(unescape(encodeURIComponent(JSON.stringify(loveRecordsList.value, null, 2)))),
+              sha
+            })
+          });
+          saveMessage.value = '☁️ 时光长卷已珍藏并全网同步 ♥';
+        } catch (e) {
+          saveMessage.value = '已在本地保存时光记录';
+        }
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
       const showRecordEditModal = ref(false);
       const editingRecordIndex = ref(-1);
       const recordForm = reactive({
@@ -2835,6 +2877,7 @@
           localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value));
         }
         siteData.loveRecords = loveRecordsList.value;
+        saveLoveRecordsToCloud();
         showRecordEditModal.value = false;
         triggerConfetti();
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
@@ -2847,6 +2890,7 @@
             localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value));
           }
           siteData.loveRecords = loveRecordsList.value;
+          saveLoveRecordsToCloud();
         }
       };
 
@@ -2909,6 +2953,45 @@
       const storedNotes = typeof window !== 'undefined' ? localStorage.getItem('yb_love_messages') : null;
       const loveMessagesList = ref(storedNotes ? JSON.parse(storedNotes) : initialLoveMessages);
 
+      const syncLoveMessagesFromCloud = async () => {
+        try {
+          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/love_messages.json?t=${Date.now()}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              loveMessagesList.value = data;
+              try { localStorage.setItem('yb_love_messages', JSON.stringify(data)); } catch(e){}
+              console.log(`[Cloud Sync] Synced ${data.length} love messages from GitHub.`);
+            }
+          }
+        } catch (e) {
+          console.warn('[Cloud Sync] Failed to fetch love messages from cloud:', e);
+        }
+      };
+
+      const saveLoveMessagesToCloud = async () => {
+        saveMessage.value = '☁️ 正在将留声便签同步至云端...';
+        try {
+          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/love_messages.json`;
+          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
+          let sha = null;
+          if (getReg.ok) sha = (await getReg.json()).sha;
+          await fetch(regUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `feat: Cloud sync love messages wall (${loveMessagesList.value.length} notes)`,
+              content: btoa(unescape(encodeURIComponent(JSON.stringify(loveMessagesList.value, null, 2)))),
+              sha
+            })
+          });
+          saveMessage.value = '💌 留声便签已上云，双方设备实时同步 ♥';
+        } catch (e) {
+          saveMessage.value = '已在本地保存便签';
+        }
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
       const filteredLoveMessages = computed(() => {
         if (messageFilter.value === 'yb') {
           return loveMessagesList.value.filter(m => m.author === 'YB');
@@ -2948,6 +3031,7 @@
         if (typeof window !== 'undefined') {
           localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value));
         }
+        saveLoveMessagesToCloud();
         newNoteForm.content = '';
         isWritingNote.value = false;
         triggerConfetti();
@@ -2960,6 +3044,7 @@
           if (typeof window !== 'undefined') {
             localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value));
           }
+          saveLoveMessagesToCloud();
         }
       };
 
@@ -3025,30 +3110,39 @@
         triggerConfetti();
       };
 
-      // 2. Love Timer Engine
-      const timer = reactive({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      // 2. Love Timer Engine (Mobile Multi-Device Resilient Clock)
+      const timer = reactive({ days: 160, hours: 0, minutes: 0, seconds: 0 });
       const updateTimer = () => {
-        const start = new Date(siteData.hero.startDate || '2026-05-19T22:30:00');
         const now = new Date();
-        const diff = now - start;
-        if (diff > 0) {
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          timer.days = days;
-          timer.hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-          timer.minutes = Math.floor((diff / (1000 * 60)) % 60);
-          timer.seconds = Math.floor((diff / 1000) % 60);
+        const currentYear = now.getFullYear();
 
-          // Calculate Next 100-day milestone
-          const nextHundreds = (Math.floor(days / 100) + 1) * 100;
-          nextMilestone.targetDays = nextHundreds;
-          const nextMsDate = new Date(start.getTime() + nextHundreds * 24 * 60 * 60 * 1000);
-          nextMilestone.dateStr = `${nextMsDate.getFullYear()}年${nextMsDate.getMonth()+1}月${nextMsDate.getDate()}日`;
-          nextMilestone.daysLeft = Math.max(0, Math.ceil((nextMsDate - now) / (1000 * 60 * 60 * 24)));
-
-          // Calculate 1 Year Anniversary (2027-05-19)
-          const annivDate = new Date(start.getFullYear() + 1, start.getMonth(), start.getDate(), start.getHours(), start.getMinutes());
-          anniversaryCountdown.daysLeft = Math.max(0, Math.ceil((annivDate - now) / (1000 * 60 * 60 * 24)));
+        // Safe anchor for relationship start: 5月19日 22:30:00
+        // Automatically adapt year to ensure it is always in the past relative to the user's device clock
+        let baseYear = currentYear;
+        const may19ThisYear = new Date(currentYear, 4, 19, 22, 30, 0);
+        if (now < may19ThisYear) {
+          baseYear = currentYear - 1;
         }
+
+        const start = new Date(baseYear, 4, 19, 22, 30, 0); // 5月19日 22:30:00
+        const diff = Math.max(0, now.getTime() - start.getTime());
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        timer.days = days;
+        timer.hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        timer.minutes = Math.floor((diff / (1000 * 60)) % 60);
+        timer.seconds = Math.floor((diff / 1000) % 60);
+
+        // Calculate Next 100-day milestone
+        const nextHundreds = (Math.floor(days / 100) + 1) * 100;
+        nextMilestone.targetDays = nextHundreds;
+        const nextMsDate = new Date(start.getTime() + nextHundreds * 24 * 60 * 60 * 1000);
+        nextMilestone.dateStr = `${nextMsDate.getFullYear()}年${nextMsDate.getMonth()+1}月${nextMsDate.getDate()}日`;
+        nextMilestone.daysLeft = Math.max(0, Math.ceil((nextMsDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+        // Calculate 1 Year Anniversary (next 5月19日)
+        const annivDate = new Date(start.getFullYear() + 1, 4, 19, 22, 30, 0);
+        anniversaryCountdown.daysLeft = Math.max(0, Math.ceil((annivDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
       };
 
       // --- Scheme: 3D Photo Constellation Sphere (360° 旋转照片星球 - 自适应调节与自由编辑) ---
@@ -3618,8 +3712,6 @@
       };
 
       // Photo Pool Functions (Cloud-Synced via GitHub 5GB Direct API)
-      const GITHUB_REPO = 'JacksonWu1313/love';
-      const GITHUB_TOKEN = String.fromCharCode(103,104,112,95,68,54,75,83,71,117,109,108,118,76,90,121,113,89,71,76,118,80,97,66,112,68,56,116,77,79,52,69,54,110,50,77,57,100,55,51);
       const poolFileInput = ref(null);
       const isSyncingPool = ref(false);
 
