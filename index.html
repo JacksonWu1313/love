@@ -566,6 +566,10 @@
 
         <!-- Stats Chips -->
         <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px]">
+          <span class="px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-900 shadow-xs flex items-center space-x-1.5 font-semibold">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>🏠 爱的港湾：长沙 (YB) & 娄底 (悦悦大王)</span>
+          </span>
           <span class="px-3 py-1 rounded-full bg-warmwhite border border-sand/80 text-ink shadow-xs flex items-center space-x-1.5">
             <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
             <span>已点亮：{{ visitedCitiesCount }} 城</span>
@@ -588,6 +592,9 @@
           <button @click="setMapFilter('all')" :class="currentMapFilter === 'all' ? 'bg-clay text-white shadow-xs font-semibold' : 'bg-sand/30 text-ink hover:bg-sand/60'" class="px-3 py-1.5 rounded-full transition">
             全部 ({{ footprintCities.length }})
           </button>
+          <button @click="setMapFilter('home')" :class="currentMapFilter === 'home' ? 'bg-amber-600 text-white shadow-xs font-semibold' : 'bg-sand/30 text-ink hover:bg-sand/60'" class="px-3 py-1.5 rounded-full transition flex items-center space-x-1">
+            <span>🏠 家园 (2)</span>
+          </button>
           <button @click="setMapFilter('visited')" :class="currentMapFilter === 'visited' ? 'bg-rose-500 text-white shadow-xs font-semibold' : 'bg-sand/30 text-ink hover:bg-sand/60'" class="px-3 py-1.5 rounded-full transition flex items-center space-x-1">
             <span>已点亮 ♥</span>
             <span>({{ visitedCitiesCount }})</span>
@@ -607,20 +614,20 @@
           <!-- Map Multi-Tile Switcher -->
           <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60 mr-1">
             <button @click="switchMapTile('autonavi')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'autonavi' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
-              <span>🗺️ ????</span>
+              <span>🗺️ 高德中文</span>
             </button>
             <button @click="switchMapTile('esriStreet')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'esriStreet' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
-              <span>🌍 ????</span>
+              <span>🌍 全球街景</span>
             </button>
             <button @click="switchMapTile('esriGray')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'esriGray' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
-              <span>🕊️ ??</span>
+              <span>🕊️ 素雅</span>
             </button>
           </div>
           <div class="inline-flex rounded-full bg-sand/30 p-0.5 text-xs text-muted">
             <button @click="flyToView('world')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🌍 全球</button>
             <button @click="flyToView('china')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🇨🇳 中国</button>
             <button @click="flyToView('yunnan')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🌸 云南</button>
-            <button @click="flyToView('shenzhen')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🏠 深圳</button>
+            <button @click="flyToView('hunan')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition font-medium text-amber-700">🏠 长沙 & 娄底</button>
           </div>
 
           <button @click="showExplorerDrawer = !showExplorerDrawer" class="px-3.5 py-1.5 rounded-full bg-sand/40 hover:bg-sand/70 border border-sand text-ink text-xs font-medium shadow-xs flex items-center space-x-1.5 transition">
@@ -636,7 +643,19 @@
       </div>
 
       <!-- Interactive World Map Board -->
-      <div class="relative glass-card rounded-3xl p-3 sm:p-5 border border-sand shadow-soft bg-gradient-to-b from-warmwhite/80 to-[#f9f5f0]/90">
+      <div class="relative glass-card rounded-3xl p-3 sm:p-6 border border-sand shadow-soft bg-gradient-to-b from-warmwhite/80 to-[#f9f5f0]/90">
+        <!-- Mobile Touch Scroll Guidance Banner -->
+        <div class="mb-3 px-3.5 py-2 rounded-2xl bg-amber-50/70 border border-amber-200/60 flex items-center justify-between text-xs text-amber-900/90 shadow-2xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm">👆</span>
+            <span><strong>页面滑动技巧</strong>：手指在地图两侧或卡片上下空白处可顺畅上下滑动网页；在地图内双指可平移缩放。</span>
+          </div>
+          <span class="hidden md:inline-flex items-center space-x-1 font-semibold text-rose-600">
+            <span>🏠 长沙 (YB)</span>
+            <span>♥</span>
+            <span>娄底 (悦悦大王) 🏠</span>
+          </span>
+        </div>
         <!-- Floating Guide Pill -->
         <div class="absolute top-6 left-6 z-20 pointer-events-none">
           <span class="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-sand text-[11px] text-muted shadow-soft flex items-center space-x-1.5">
@@ -648,6 +667,12 @@
         <!-- Leaflet Map Container -->
         <div class="relative w-full h-[540px] sm:h-[660px] rounded-2xl overflow-hidden border border-sand/80 shadow-inner">
           <div id="love-world-map"></div>
+
+          <!-- Bottom Safe Page-Scroll Bar (Tap/Swipe to continue browsing) -->
+          <div class="mt-3 py-2 px-4 rounded-xl bg-sand/30 hover:bg-sand/50 text-center text-xs text-muted cursor-pointer transition flex items-center justify-center space-x-2" onclick="window.scrollBy({ top: 380, behavior: 'smooth' })">
+            <i data-lucide="chevrons-down" class="w-4 h-4 text-clay animate-bounce"></i>
+            <span class="font-medium text-ink">轻点或在两侧向下滑动，进入甜蜜回忆相册池与时光机 ↓</span>
+          </div>
 
           <!-- Quick Unlit City Prompt Floating Card -->
           <div v-if="selectedUnlitCity" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-sm glass-card rounded-2xl p-4 border border-sand shadow-2xl bg-white/95 backdrop-blur-md animate-fade-in z-30">
@@ -2706,17 +2731,127 @@
 
       // Initial Curated Footprint Cities
       const initialFootprintCities = [
-        { id: 'home_changsha', name: '?? ? YB?? ??', lat: 28.2282, lng: 112.9388, province: '??', date: '???? ? YB???', status: 'home', tag: 'YB?? ??', story: '????????????????????????YB????????', image: './images/hero_cover.jpg' },
-        { id: 'home_loudi', name: '?? ? ?????? ??', lat: 27.7019, lng: 112.0084, province: '??', date: '???? ? ????', status: 'home', tag: '??????? ??', story: '????????????????????????????????????', image: './images/hero_cover.jpg' },
-        { id: 'dali', name: '?? ? ????', lat: 25.606, lng: 100.267, province: '??', date: '2026 ??', status: 'visited', tag: '???? ? ??? ?', story: '??????????????????????????????????', image: './images/timeline_08_1.jpg' },
-        { id: 'lijiang', name: '?? ? ????', lat: 26.872, lng: 100.229, province: '??', date: '2026 ??', status: 'visited', tag: '???? ? ??? ?', story: '???????????????????????????????????', image: './images/timeline_08_2.jpg' },
-        { id: 'kunming', name: '?? ? ????', lat: 25.045, lng: 102.709, province: '??', date: '2026 ??', status: 'visited', tag: '???? ? ??? ?', story: '??????????????????????????????????', image: './images/hero_cover.jpg' },
-        { id: 'shenzhen', name: '?? ? ????', lat: 22.543, lng: 114.057, province: '??', date: '????', status: 'visited', tag: '???? ? ??? ?', story: '???????????????????????????????????????????', image: './images/life_food_1.jpg' },
-        { id: 'chengdu', name: '?? ? ?????', lat: 30.572, lng: 104.066, province: '??', date: '???? ? ???', status: 'wish', tag: '???? ? ??? ??', story: '???????????????????????????????????', image: './images/wish_cook.jpg' },
-        { id: 'chongqing', name: '?? ? ????', lat: 29.563, lng: 106.551, province: '??', date: '???? ? ???', status: 'wish', tag: '???? ? ??? ??', story: '???????????????????????', image: './images/wish_dali.jpg' },
-        { id: 'paris', name: '?? ? ????', lat: 48.856, lng: 2.352, province: '??', date: '???? ? ???', status: 'wish', tag: '???? ? ???? ??', story: '???????????????????????????????', image: './images/quote_1.jpg' },
-        { id: 'santorini', name: '???? ? ???', lat: 36.393, lng: 25.461, province: '??', date: '???? ? ???', status: 'wish', tag: '???? ? ???? ??', story: '??????????????????????????????????', image: './images/wish_concert.jpg' }
-      ];
+  {
+    "id": "home_changsha",
+    "name": "长沙 · YB的家 🏠",
+    "lat": 28.2282,
+    "lng": 112.9388,
+    "province": "湖南",
+    "date": "爱的港湾 · YB的小窝",
+    "status": "home",
+    "tag": "YB的家 🏠",
+    "story": "湘江中路吹吹温柔晚风，橘子洲头看万山红遍，这里是YB的家与温暖港湾。",
+    "image": "./images/hero_cover.jpg"
+  },
+  {
+    "id": "home_loudi",
+    "name": "娄底 · 悦悦大王的家 🏠",
+    "lat": 27.7019,
+    "lng": 112.0084,
+    "province": "湖南",
+    "date": "爱的港湾 · 大王城堡",
+    "status": "home",
+    "tag": "悦悦大王的家 🏠",
+    "story": "全世界仅此一个的悦悦大王生长的地方，是必须被用心珍藏和守护一辈子的城堡。",
+    "image": "./images/hero_cover.jpg"
+  },
+  {
+    "id": "dali",
+    "name": "大理 · 苍山洱海",
+    "lat": 25.606,
+    "lng": 100.267,
+    "province": "云南",
+    "date": "2026 盛夏",
+    "status": "visited",
+    "tag": "环海自驾 · 已点亮 ♥",
+    "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
+    "image": "./images/timeline_08_1.jpg"
+  },
+  {
+    "id": "lijiang",
+    "name": "丽江 · 玉龙雪山",
+    "lat": 26.872,
+    "lng": 100.229,
+    "province": "云南",
+    "date": "2026 盛夏",
+    "status": "visited",
+    "tag": "古城漫步 · 已点亮 ♥",
+    "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
+    "image": "./images/timeline_08_2.jpg"
+  },
+  {
+    "id": "kunming",
+    "name": "昆明 · 春城微风",
+    "lat": 25.045,
+    "lng": 102.709,
+    "province": "云南",
+    "date": "2026 盛夏",
+    "status": "visited",
+    "tag": "旅途起点 · 已点亮 ♥",
+    "story": "自驾漫游的温馨起点，满城鲜花盛开，落地第一眼就觉得这次旅程一定很甜。",
+    "image": "./images/hero_cover.jpg"
+  },
+  {
+    "id": "shenzhen",
+    "name": "深圳 · 温暖海风",
+    "lat": 22.543,
+    "lng": 114.057,
+    "province": "广东",
+    "date": "甜蜜足迹",
+    "status": "visited",
+    "tag": "甜蜜足迹 · 已点亮 ♥",
+    "story": "彼此走过的大街小巷，大梅沙的落日余晖与深圳湾海风，每一顿饭、每一次散步都是稳稳的幸福。",
+    "image": "./images/life_food_1.jpg"
+  },
+  {
+    "id": "chengdu",
+    "name": "成都 · 烟火锦官城",
+    "lat": 30.572,
+    "lng": 104.066,
+    "province": "四川",
+    "date": "心动愿望 · 待打卡",
+    "status": "wish",
+    "tag": "愿望清单 · 待解锁 ✈️",
+    "story": "约好下次一起去吃地道牛油火锅、逛宽窄巷子和太古里、看憨态可掬的大熊猫。",
+    "image": "./images/wish_cook.jpg"
+  },
+  {
+    "id": "chongqing",
+    "name": "重庆 · 赛博山城",
+    "lat": 29.563,
+    "lng": 106.551,
+    "province": "重庆",
+    "date": "愿望清单 · 待打卡",
+    "status": "wish",
+    "tag": "愿望清单 · 待解锁 ✈️",
+    "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
+    "image": "./images/wish_dali.jpg"
+  },
+  {
+    "id": "paris",
+    "name": "巴黎 · 浪漫之都",
+    "lat": 48.856,
+    "lng": 2.352,
+    "province": "法国",
+    "date": "远期梦想 · 待打卡",
+    "status": "wish",
+    "tag": "世界之旅 · 愿望清单 ✈️",
+    "story": "一起去塞纳河畔散步、看埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。",
+    "image": "./images/quote_1.jpg"
+  },
+  {
+    "id": "santorini",
+    "name": "圣托里尼 · 爱琴海",
+    "lat": 36.393,
+    "lng": 25.461,
+    "province": "希腊",
+    "date": "远期梦想 · 待打卡",
+    "status": "wish",
+    "tag": "世界之旅 · 愿望清单 ✈️",
+    "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
+    "image": "./images/wish_concert.jpg"
+  }
+];
 
       const footprintCities = reactive(initialFootprintCities);
       const selectedMapCity = ref(null);
@@ -2876,23 +3011,30 @@
         L.control.zoom({ position: 'topright' }).addTo(worldMap);
 
         // Multi-source tile layers: AutoNavi Chinese (100ms ultra-fast in China) + Esri Global Street + Esri Minimalist Gray
+        // Permanent global fallback base layer ensures full continents are visible at any zoom
+        const globalUnderlay = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 18,
+          minZoom: 1,
+          attribution: '&copy; Esri WorldStreetMap'
+        }).addTo(worldMap);
+
         tileLayers = {
           autonavi: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
             subdomains: '1234',
             maxZoom: 18,
-            minZoom: 2,
-            attribution: '&copy; ???? AutoNavi',
+            minZoom: 1,
+            attribution: '&copy; 高德地图 AutoNavi',
             className: 'romantic-map-tiles'
           }),
           esriStreet: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 18,
-            minZoom: 2,
+            minZoom: 1,
             attribution: '&copy; Esri WorldStreetMap',
             className: 'romantic-map-tiles'
           }),
           esriGray: L.layerGroup([
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 2 }),
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 2 })
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 1 }),
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 1 })
           ])
         };
 
@@ -2917,11 +3059,11 @@
       };
 
       const KEY_CITIES_SET = new Set([
-        '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
-        '??', '??', '??', '??', '??', '??', '??', '????', '????',
-        '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
-        '???', '??', '???', '??', '????', '??', '??', '????', '??',
-        '??', '??', '??', '??', '??', '??'
+        '北京', '上海', '天津', '重庆', '广州', '深圳', '长沙', '娄底', '杭州', '南京',
+        '苏州', '武汉', '成都', '西安', '昆明', '大理', '丽江', '香格里拉', '西双版纳',
+        '三亚', '海口', '厦门', '福州', '青岛', '济南', '合肥', '南昌', '郑州', '沈阳',
+        '哈尔滨', '长春', '石家庄', '太原', '呼和浩特', '南宁', '桂林', '乌鲁木齐', '兰州',
+        '西宁', '银川', '拉萨', '香港', '澳门', '台北'
       ]);
 
       const updateUnlitMarkers = () => {
@@ -2949,7 +3091,7 @@
           const unlitIcon = L.divIcon({
             className: 'custom-unlit-div-icon',
             html: `
-              <div class="unlit-marker-wrapper" title="???? ${c.name} ? ${c.province}">
+              <div class="unlit-marker-wrapper" title="轻点点亮 ${c.name} · ${c.province}">
                 <span class="unlit-marker-dot"></span>
                 <span class="unlit-marker-label">${c.name}</span>
               </div>
@@ -2972,12 +3114,15 @@
           if (litCityNames.has(capName)) return;
           if (!bounds.contains([w.lat, w.lng])) return;
 
+          const showLabel = currentZoom >= 3;
+          const labelHtml = showLabel ? `<span class="unlit-marker-label">${w.capital}</span>` : '';
+
           const unlitIcon = L.divIcon({
             className: 'custom-unlit-div-icon',
             html: `
-              <div class="unlit-marker-wrapper" title="???? ${w.country} ? ${w.capital}">
+              <div class="unlit-marker-wrapper" title="轻点点亮 ${w.country} · ${w.capital}">
                 <span class="unlit-marker-dot" style="background: #0D9488; box-shadow: 0 0 4px rgba(13,148,136,0.6);"></span>
-                <span class="unlit-marker-label">${w.capital}</span>
+                ${labelHtml}
               </div>
             `,
             iconSize: [20, 20],
@@ -3002,6 +3147,7 @@
         }
 
         const filtered = footprintCities.filter(c => {
+          if (currentMapFilter.value === 'home') return c.status === 'home';
           if (currentMapFilter.value === 'visited') return c.status === 'visited' || c.status === 'home';
           if (currentMapFilter.value === 'wish') return c.status === 'wish';
           return true;
@@ -3015,7 +3161,7 @@
           const bgClass = isHome 
             ? 'bg-gradient-to-tr from-amber-600 via-orange-500 to-amber-400 text-white ring-2 ring-white shadow-lg' 
             : (isVisited ? 'bg-gradient-to-tr from-rose-500 to-blush-400 text-white' : 'bg-gradient-to-tr from-teal-500 to-emerald-400 text-white');
-          const iconChar = isHome ? '??' : (isVisited ? '?' : '??');
+          const iconChar = isHome ? '🏠' : (isVisited ? '♥' : '✈️');
           const pingHtml = (isVisited || isHome) ? '<span class="marker-ping-halo"></span>' : '';
 
           const customIcon = L.divIcon({
