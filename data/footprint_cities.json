@@ -84,18 +84,6 @@
     "image": "./images/wish_cook.jpg"
   },
   {
-    "id": "chongqing",
-    "name": "重庆 · 赛博山城",
-    "lat": 29.563,
-    "lng": 106.551,
-    "province": "重庆",
-    "date": "愿望清单 · 待打卡",
-    "status": "wish",
-    "tag": "愿望清单 · 待解锁 ✈️",
-    "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
-    "image": "./images/wish_dali.jpg"
-  },
-  {
     "id": "paris",
     "name": "巴黎 · 浪漫之都",
     "lat": 48.856,
