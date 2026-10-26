@@ -297,16 +297,17 @@
 <body class="selection:bg-blush-200 selection:text-ink">
 <div id="app" v-cloak class="relative min-h-screen">
 
-  <!-- Floating HarmonyOS App Guide Button & Arrow Tip for 小悦悦 -->
+  <!-- Floating Multi-OS App Guide Button & Arrow Tip for 小悦悦 -->
   <div class="fixed top-4 left-4 z-40 flex flex-col items-start select-none">
     <button @click="openHarmonyGuide" class="glass-card px-3.5 py-2.5 rounded-full shadow-soft flex items-center space-x-1.5 text-xs text-ink hover:text-clay hover:shadow-float transition duration-300 group border border-sand/80 ring-2 ring-blush-200/50">
       <i data-lucide="smartphone" class="w-3.5 h-3.5 text-clay group-hover:scale-110 transition"></i>
-      <span class="font-medium text-clay hidden sm:inline">华为鸿蒙</span><span>桌面App指引</span>
+      <span class="font-medium text-clay hidden sm:inline">手机专属桌面App</span><span>指引</span>
+      <span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full font-semibold">鸿蒙7 · 澎湃4</span>
     </button>
     <!-- Bouncing Arrow Pointer for 小悦悦 -->
     <div v-if="showTopLeftTip" @click="openHarmonyGuide" class="mt-2 ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-blush-500 to-rose-400 text-white text-[11px] shadow-lg cursor-pointer transform hover:scale-105 transition active:scale-95 animate-bounce">
       <span class="text-xs font-bold">↖</span>
-      <span class="font-serif font-medium">小悦悦看这里 · 开启专属App</span>
+      <span class="font-serif font-medium">小悦悦看这里 · 开启专属App (华为鸿蒙/小米澎湃)</span>
       <button @click.stop="showTopLeftTip = false" class="ml-1 opacity-80 hover:opacity-100 text-xs leading-none">×</button>
     </div>
   </div>
@@ -366,6 +367,10 @@
         <button @click="showCmsTools = false" class="text-muted hover:text-ink"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
       </div>
       <div class="space-y-2 text-xs">
+        <button @click="openSyncModal" class="w-full py-2 px-3 rounded-2xl bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200/80 flex items-center justify-between text-ink transition">
+          <span class="flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-rose-500"></i> 跨设备口令同步</span>
+          <span class="text-[10px] text-rose-600 font-semibold">推荐</span>
+        </button>
         <button @click="exportDataBackup" class="w-full py-2 px-3 rounded-2xl bg-warmwhite hover:bg-sand/60 border border-sand flex items-center justify-between text-ink transition">
           <span class="flex items-center gap-1.5"><i data-lucide="download" class="w-3.5 h-3.5 text-blush-400"></i> 导出备份 (JSON)</span>
           <span class="text-[10px] text-muted">离线保存</span>
@@ -1592,44 +1597,98 @@
     </div>
   </div>
 
-  <!-- Huawei HarmonyOS 7 & PWA App Guide Modal -->
-  <div v-if="showHarmonyGuideModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4" @click.self="closeHarmonyGuide">
-    <div class="max-w-md w-full glass-card rounded-3xl p-6 bg-white shadow-2xl border border-sand relative animate-fade-in" @click.stop>
+  <!-- Huawei HarmonyOS 7 & Xiaomi HyperOS 4 & PWA App Guide Modal -->
+  <div v-if="showHarmonyGuideModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="closeHarmonyGuide">
+    <div class="max-w-md w-full glass-card rounded-3xl p-6 bg-white shadow-2xl border border-sand relative my-6 animate-fade-in" @click.stop>
       <button @click="closeHarmonyGuide" class="absolute top-4 right-4 p-1.5 text-muted hover:text-ink rounded-full transition">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
 
-      <div class="text-center mb-5">
-        <div class="inline-flex p-3 rounded-2xl bg-blush-100 text-blush-600 mb-2">
+      <div class="text-center mb-4">
+        <div class="inline-flex p-3 rounded-2xl bg-blush-100 text-blush-600 mb-2 shadow-soft">
           <i data-lucide="smartphone" class="w-6 h-6"></i>
         </div>
-        <h3 class="text-base font-bold text-ink">华为鸿蒙 7 · 开启专属独立 App 模式</h3>
-        <p class="text-xs text-muted mt-1">仅需 3 步，桌面立即生成专属【YB & 悦悦】App，全屏无栏启动</p>
+        <h3 class="text-base font-bold text-ink">开启专属手机独立 App 模式</h3>
+        <p class="text-xs text-muted mt-1">仅需 3 步，桌面立即生成专属【YB & 悦悦】App，全屏无栏丝滑运行</p>
       </div>
 
-      <!-- Step Cards -->
-      <div class="space-y-3 text-xs">
-        <div class="p-3 rounded-2xl bg-sand/20 border border-sand/60 flex items-start space-x-3">
-          <span class="w-5 h-5 rounded-full bg-clay text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">1</span>
+      <!-- System Selector Tabs -->
+      <div class="grid grid-cols-3 gap-1 p-1 bg-sand/30 rounded-2xl mb-4 text-xs font-semibold">
+        <button @click="guideOsTab = 'huawei'" :class="guideOsTab === 'huawei' ? 'bg-white text-rose-600 shadow-sm' : 'text-muted hover:text-ink'" class="py-2 rounded-xl transition flex items-center justify-center space-x-1">
+          <span>🔴 华为鸿蒙 7</span>
+        </button>
+        <button @click="guideOsTab = 'xiaomi'" :class="guideOsTab === 'xiaomi' ? 'bg-white text-orange-600 shadow-sm' : 'text-muted hover:text-ink'" class="py-2 rounded-xl transition flex items-center justify-center space-x-1">
+          <span>🟠 小米澎湃 4</span>
+        </button>
+        <button @click="guideOsTab = 'ios'" :class="guideOsTab === 'ios' ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'" class="py-2 rounded-xl transition flex items-center justify-center space-x-1">
+          <span>⚪ 苹果/通用</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Huawei HarmonyOS 7 (鸿蒙7系统) -->
+      <div v-if="guideOsTab === 'huawei'" class="space-y-2.5 text-xs">
+        <div class="p-3 rounded-2xl bg-rose-50/50 border border-rose-100 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">1</span>
           <div>
-            <p class="font-semibold text-ink">在【华为浏览器】中打开纪念馆</p>
-            <p class="text-muted text-[11px] mt-0.5">复制本网站网址至华为自带浏览器打开即可（支持极速离线与全屏）。</p>
+            <p class="font-semibold text-ink">在【华为自带浏览器】中打开纪念馆</p>
+            <p class="text-muted text-[11px] mt-0.5">复制网址用华为手机自带“华为浏览器”打开（支持鸿蒙微内核与 PWA 极速秒开）。</p>
           </div>
         </div>
-
-        <div class="p-3 rounded-2xl bg-sand/20 border border-sand/60 flex items-start space-x-3">
-          <span class="w-5 h-5 rounded-full bg-clay text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">2</span>
+        <div class="p-3 rounded-2xl bg-rose-50/50 border border-rose-100 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">2</span>
           <div>
             <p class="font-semibold text-ink">点击菜单【···】选择【添加到桌面】</p>
-            <p class="text-muted text-[11px] mt-0.5">点击浏览器底部四个点或右上角菜单，点击“添加到桌面”或“添加至主屏幕”。</p>
+            <p class="text-muted text-[11px] mt-0.5">点击华为浏览器底部四个点或右上角菜单，点击“添加到桌面”或“添加至主屏幕”。</p>
           </div>
         </div>
-
-        <div class="p-3 rounded-2xl bg-sand/20 border border-sand/60 flex items-start space-x-3">
-          <span class="w-5 h-5 rounded-full bg-clay text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">3</span>
+        <div class="p-3 rounded-2xl bg-rose-50/50 border border-rose-100 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">3</span>
           <div>
             <p class="font-semibold text-ink">桌面点击专属粉色爱心图标启动！</p>
             <p class="text-muted text-[11px] mt-0.5">桌面会自动生成独立图标，点开直接全屏无地址栏运行，像专属定制 App 一样丝滑！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Xiaomi HyperOS 4 (小米澎湃4系统) -->
+      <div v-if="guideOsTab === 'xiaomi'" class="space-y-2.5 text-xs">
+        <div class="p-3 rounded-2xl bg-orange-50/50 border border-orange-100 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">1</span>
+          <div>
+            <p class="font-semibold text-ink">在【小米自带浏览器】中打开纪念馆</p>
+            <p class="text-muted text-[11px] mt-0.5">在小米澎湃 4 手机自带浏览器（或手机 Chrome / Edge）打开本网址。</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-2xl bg-orange-50/50 border border-orange-100 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">2</span>
+          <div>
+            <p class="font-semibold text-ink">点击底部中间【三道杠 ≡ 菜单】</p>
+            <p class="text-muted text-[11px] mt-0.5">在弹出面板中点击【添加到桌面】（或点击【工具箱】➜【添至桌面】）。</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-2xl bg-orange-50/50 border border-orange-100 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">3</span>
+          <div>
+            <p class="font-semibold text-ink">授权快捷方式权限并从桌面启动！</p>
+            <p class="text-muted text-[11px] mt-0.5">若提示权限选择“始终允许”。小米桌面立即生成独立【YB & 悦悦】图标，秒开全屏！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: iOS / Safari / 通用 -->
+      <div v-if="guideOsTab === 'ios'" class="space-y-2.5 text-xs">
+        <div class="p-3 rounded-2xl bg-sand/20 border border-sand/60 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-clay text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">1</span>
+          <div>
+            <p class="font-semibold text-ink">在苹果自带 Safari 中打开</p>
+            <p class="text-muted text-[11px] mt-0.5">点击 Safari 屏幕底部的“分享”图标（方形带向上箭头）。</p>
+          </div>
+        </div>
+        <div class="p-3 rounded-2xl bg-sand/20 border border-sand/60 flex items-start space-x-3">
+          <span class="w-5 h-5 rounded-full bg-clay text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">2</span>
+          <div>
+            <p class="font-semibold text-ink">向上滑动找到【添加到主屏幕】</p>
+            <p class="text-muted text-[11px] mt-0.5">点击“添加到主屏幕”，右上角点击“添加”即可。</p>
           </div>
         </div>
       </div>
@@ -1638,6 +1697,48 @@
         <button @click="closeHarmonyGuide" class="w-full py-2.5 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold hover:opacity-90 transition shadow-soft flex items-center justify-center gap-1.5">
           <span>小悦悦知道啦 ♥</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: 跨设备数据同步与口令 (Sync & Backup Modal) -->
+  <div v-if="showSyncModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="showSyncModal = false">
+    <div class="max-w-lg w-full glass-card rounded-3xl p-6 bg-white shadow-2xl border border-sand relative my-6 animate-fade-in" @click.stop>
+      <button @click="showSyncModal = false" class="absolute top-4 right-4 p-1.5 text-muted hover:text-ink rounded-full transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="text-center mb-4">
+        <div class="inline-flex p-3 rounded-2xl bg-rose-100 text-rose-500 mb-2 shadow-soft">
+          <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-base font-bold text-ink">跨设备数据同步 · 备份口令</h3>
+        <p class="text-xs text-muted mt-1">在一台设备编辑后，通过复制或粘贴口令，即可无缝同步到悦悦的手机或电脑！</p>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-ink mb-1">完整回忆数据口令 (JSON 代码)</label>
+          <textarea v-model="syncCodeText" rows="6" class="w-full p-2.5 rounded-2xl bg-sand/30 border border-sand font-mono text-[11px] text-ink focus:outline-none focus:ring-2 focus:ring-rose-400 select-all" placeholder="在此粘贴另一台设备复制的完整备份口令..."></textarea>
+          <p v-if="syncStatusText" class="text-xs text-emerald-600 font-medium mt-1">{{ syncStatusText }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button @click="copySyncCodeToClipboard" class="py-2.5 px-3 rounded-2xl bg-warmwhite hover:bg-sand/60 border border-sand text-xs font-semibold text-ink flex items-center justify-center gap-1.5 transition shadow-sm">
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-rose-500"></i>
+            <span>一键复制我的备份</span>
+          </button>
+          <button @click="applyPastedSyncCode" class="py-2.5 px-3 rounded-2xl bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold hover:opacity-90 flex items-center justify-center gap-1.5 transition shadow-soft">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>应用粘贴的代码同步</span>
+          </button>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-sand/20 border border-sand/50 text-[11px] text-muted space-y-1">
+          <p class="font-medium text-ink">💡 提示：</p>
+          <p>• 你的手机或电脑编辑后，点击【一键复制我的备份】，把这段代码发给小悦悦，悦悦在她的手机点开这里粘贴并点击【应用】，就能完整看到你的所有编辑！</p>
+          <p>• 也可以把代码发给 AI 助手，AI 可以直接把它固化到网站全网主干中，这样全网所有人无论何时打开都是永久最新版！</p>
+        </div>
       </div>
     </div>
   </div>
@@ -2577,15 +2678,22 @@
     setup() {
       const storageKey = 'couple_site_data';
       const versionKey = 'couple_site_version';
-      const CURRENT_VERSION = 'v4_photo_pool_unlimited';
+      const CURRENT_VERSION = 'v5_safe_persistence_and_multi_os';
 
       const loadInitialData = () => {
         try {
           const saved = localStorage.getItem(storageKey);
-          const savedVer = localStorage.getItem(versionKey);
-          if (saved && savedVer === CURRENT_VERSION) {
+          if (saved) {
             const parsed = JSON.parse(saved);
-            return Object.assign({}, defaultSiteData, parsed);
+            // Non-destructive merge: preserve user edits, supplement missing default schema fields
+            const merged = Object.assign({}, defaultSiteData, parsed);
+            for (const key of ['photoPool', 'quotes', 'footprintCities', 'bucketList', 'timeline', 'customPhotos']) {
+              if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
+                merged[key] = parsed[key];
+              }
+            }
+            localStorage.setItem(versionKey, CURRENT_VERSION);
+            return merged;
           } else {
             localStorage.setItem(versionKey, CURRENT_VERSION);
             localStorage.setItem(storageKey, JSON.stringify(defaultSiteData));
@@ -3342,13 +3450,50 @@
         if (status) triggerConfetti();
       };
 
-      // 4. Data Import & Export Backup
+      // 4. Data Import, Export Backup & Cross-Device Sync
+      const showSyncModal = ref(false);
+      const syncCodeText = ref('');
+      const syncStatusText = ref('');
+
+      const bundleAllMemoryData = () => {
+        return {
+          version: CURRENT_VERSION,
+          bundleTime: new Date().toISOString(),
+          siteData: JSON.parse(JSON.stringify(siteData)),
+          loveRecords: JSON.parse(JSON.stringify(loveRecordsList.value || [])),
+          loveMessages: JSON.parse(JSON.stringify(loveMessagesList.value || []))
+        };
+      };
+
+      const restoreAllMemoryData = (bundled) => {
+        if (!bundled) return false;
+        if (bundled.siteData) {
+          Object.assign(siteData, bundled.siteData);
+          try { localStorage.setItem(storageKey, JSON.stringify(siteData)); } catch(e){}
+        }
+        if (Array.isArray(bundled.loveRecords) && bundled.loveRecords.length > 0) {
+          loveRecordsList.value = bundled.loveRecords;
+          siteData.loveRecords = bundled.loveRecords;
+          try { localStorage.setItem('yb_love_records', JSON.stringify(bundled.loveRecords)); } catch(e){}
+        }
+        if (Array.isArray(bundled.loveMessages) && bundled.loveMessages.length > 0) {
+          loveMessagesList.value = bundled.loveMessages;
+          try { localStorage.setItem('yb_love_messages', JSON.stringify(bundled.loveMessages)); } catch(e){}
+        }
+        saveMessage.value = '回忆数据已成功同步！';
+        setTimeout(() => { saveMessage.value = ''; }, 3000);
+        triggerConfetti();
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        return true;
+      };
+
       const exportDataBackup = () => {
-        const blob = new Blob([JSON.stringify(siteData, null, 2)], { type: 'application/json' });
+        const bundled = bundleAllMemoryData();
+        const blob = new Blob([JSON.stringify(bundled, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `couple_memory_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `YB_悦悦大王_专属纪念馆备份_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
       };
@@ -3364,15 +3509,57 @@
           reader.onload = (e) => {
             try {
               const imported = JSON.parse(e.target.result);
-              Object.assign(siteData, imported);
-              saveMessage.value = '数据备份恢复成功！';
-              setTimeout(() => { saveMessage.value = ''; }, 2500);
-              nextTick(() => { lucide.createIcons(); });
+              if (imported.siteData || imported.loveRecords || imported.loveMessages) {
+                restoreAllMemoryData(imported);
+              } else {
+                restoreAllMemoryData({ siteData: imported });
+              }
+              alert('数据备份已完美恢复！');
             } catch (err) {
               alert('备份文件格式解析失败，请确保是正确的 JSON 文件');
             }
           };
           reader.readAsText(file);
+        }
+      };
+
+      const openSyncModal = () => {
+        const bundled = bundleAllMemoryData();
+        syncCodeText.value = JSON.stringify(bundled);
+        syncStatusText.value = '';
+        showSyncModal.value = true;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const copySyncCodeToClipboard = () => {
+        if (!navigator.clipboard) {
+          syncStatusText.value = '请在文本框内手动全选复制';
+          return;
+        }
+        navigator.clipboard.writeText(syncCodeText.value).then(() => {
+          syncStatusText.value = '✓ 已成功复制完整回忆口令！发给小悦悦或AI助手即可';
+          setTimeout(() => { syncStatusText.value = ''; }, 3500);
+        }).catch(() => {
+          syncStatusText.value = '复制失败，请直接在文本框长按全选复制';
+        });
+      };
+
+      const applyPastedSyncCode = () => {
+        if (!syncCodeText.value.trim()) {
+          alert('请先粘贴回忆口令 JSON 代码~');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(syncCodeText.value.trim());
+          if (parsed.siteData || parsed.loveRecords || parsed.loveMessages || parsed.title) {
+            restoreAllMemoryData(parsed.siteData ? parsed : { siteData: parsed });
+            showSyncModal.value = false;
+            alert('数据代码导入成功！已同步至本机');
+          } else {
+            alert('未能识别有效的数据代码，请检查内容是否完整');
+          }
+        } catch(e) {
+          alert('数据代码格式有误，请确保粘贴完整的 JSON 格式代码');
         }
       };
 
@@ -3792,17 +3979,36 @@
         }
       };
 
-      // Scheme 1: Huawei HarmonyOS 7 & PWA Support
+      // Scheme 1: Huawei HarmonyOS 7 & Xiaomi HyperOS 4 & PWA Support
       const showHarmonyGuideModal = ref(false);
       const isPwaInstalled = ref(false);
+      const guideOsTab = ref('huawei'); // 'huawei' | 'xiaomi' | 'ios'
 
       const checkPwaStatus = () => {
-        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-          isPwaInstalled.value = true;
+        if (typeof window !== 'undefined') {
+          if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            isPwaInstalled.value = true;
+          }
+          const ua = (window.navigator.userAgent || '').toLowerCase();
+          if (ua.includes('xiaomi') || ua.includes('redmi') || ua.includes('miuibrowser') || ua.includes('hyperos')) {
+            guideOsTab.value = 'xiaomi';
+          } else if (ua.includes('huawei') || ua.includes('honor') || ua.includes('harmonyos')) {
+            guideOsTab.value = 'huawei';
+          } else if (ua.includes('iphone') || ua.includes('ipad') || (ua.includes('safari') && !ua.includes('chrome'))) {
+            guideOsTab.value = 'ios';
+          }
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then((reg) => {
+              console.log('[PWA] Service Worker registered:', reg.scope);
+            }).catch((err) => {
+              console.log('[PWA] Service Worker note:', err);
+            });
+          }
         }
       };
 
       const openHarmonyGuide = () => {
+        checkPwaStatus();
         showHarmonyGuideModal.value = true;
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
@@ -4875,6 +5081,13 @@
         showHarmonyGuideModal,
         openHarmonyGuide,
         closeHarmonyGuide,
+        guideOsTab,
+        showSyncModal,
+        syncCodeText,
+        syncStatusText,
+        openSyncModal,
+        copySyncCodeToClipboard,
+        applyPastedSyncCode,
         showStoryModal,
         activeStoryPhoto,
         editingStoryText,
