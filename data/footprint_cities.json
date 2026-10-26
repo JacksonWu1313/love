@@ -60,18 +60,6 @@
     "image": "./images/hero_cover.jpg"
   },
   {
-    "id": "shenzhen",
-    "name": "深圳 · 温暖海风",
-    "lat": 22.543,
-    "lng": 114.057,
-    "province": "广东",
-    "date": "甜蜜足迹",
-    "status": "visited",
-    "tag": "甜蜜足迹 · 已点亮 ♥",
-    "story": "彼此走过的大街小巷，大梅沙的落日余晖与深圳湾海风，每一顿饭、每一次散步都是稳稳的幸福。",
-    "image": "./images/life_food_1.jpg"
-  },
-  {
     "id": "paris",
     "name": "巴黎 · 浪漫之都",
     "lat": 48.856,
