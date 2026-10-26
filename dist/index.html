@@ -429,7 +429,7 @@
         </button>
         <button @click="promptAddPoolLink" class="px-5 py-2.5 rounded-full bg-warmwhite hover:bg-sand/60 border border-sand text-ink text-xs font-medium shadow-soft transition flex items-center space-x-1.5">
           <i data-lucide="link-2" class="w-3.5 h-3.5 text-clay"></i>
-          <span>输入图片网络链接</span>
+          <span>🔗 批量输入/粘贴图片链接</span>
         </button>
         <span class="px-3.5 py-2 rounded-full bg-sand/40 text-xs text-muted">
           已珍藏 <strong class="text-ink font-semibold">{{ siteData.photoPool ? siteData.photoPool.length : 0 }}</strong> 张回忆
@@ -1375,40 +1375,61 @@
       };
 
       const promptAddPoolLink = async () => {
-        const url = prompt('请输入照片或微信动图的网络链接（URL）：');
-        if (url && url.trim()) {
-          if (!siteData.photoPool) siteData.photoPool = [];
-          const newItem = {
-            id: Date.now() + Math.random(),
-            image: url.trim(),
-            title: '微信动图/精选瞬间',
-            date: new Date().toISOString().slice(0, 10),
-            uploader: '我们'
-          };
-          siteData.photoPool.unshift(newItem);
+        const input = prompt('请输入照片或微信动图的网络链接（支持批量粘贴，多条链接直接换行或用空格隔开）：');
+        if (!input || !input.trim()) return;
 
-          // sync to cloud registry
-          try {
-            const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
-            const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-            let sha = null;
-            if (getReg.ok) sha = (await getReg.json()).sha;
-            await fetch(regUrl, {
-              method: 'PUT',
-              headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: 'feat: Add external image link to pool registry',
-                content: btoa(unescape(encodeURIComponent(JSON.stringify(siteData.photoPool, null, 2)))),
-                sha
-              })
+        // Extract all valid URLs (http/https/data:image)
+        const matchedUrls = input.match(/(https?:\/\/[^\s,;"'<>]+)/gi) || input.split(/[\n\r\s,;]+/).map(s => s.trim()).filter(Boolean);
+        if (!matchedUrls || matchedUrls.length === 0) return;
+
+        if (!siteData.photoPool) siteData.photoPool = [];
+        const today = new Date().toISOString().slice(0, 10);
+        let addedCount = 0;
+
+        for (const rawUrl of matchedUrls) {
+          const cleanUrl = rawUrl.trim();
+          if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image/')) {
+            siteData.photoPool.unshift({
+              id: Date.now() + Math.random(),
+              image: cleanUrl,
+              title: cleanUrl.toLowerCase().includes('.gif') ? '微信动图瞬间' : '精选外链回忆',
+              date: today,
+              uploader: '我们'
             });
-          } catch (e) {}
-
-          triggerConfetti();
-          saveMessage.value = '☁️ 已添加并同步至云端照片池 ♥';
-          nextTick(() => { if (window.lucide) lucide.createIcons(); });
-          setTimeout(() => { saveMessage.value = ''; }, 2500);
+            addedCount++;
+          }
         }
+
+        if (addedCount === 0) {
+          alert('未能识别到有效的图片网络链接');
+          return;
+        }
+
+        saveMessage.value = `正在同步 ${addedCount} 张外链照片至云端...`;
+
+        // sync to cloud registry
+        try {
+          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
+          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
+          let sha = null;
+          if (getReg.ok) sha = (await getReg.json()).sha;
+          await fetch(regUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `feat: Batch add ${addedCount} external image links to pool registry`,
+              content: btoa(unescape(encodeURIComponent(JSON.stringify(siteData.photoPool, null, 2)))),
+              sha
+            })
+          });
+        } catch (e) {
+          console.warn('[Cloud Sync] Failed to batch save registry:', e);
+        }
+
+        triggerConfetti();
+        saveMessage.value = `☁️ 已成功批量存入 ${addedCount} 张外链照片 ♥`;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        setTimeout(() => { saveMessage.value = ''; }, 3000);
       };
 
       const removePoolPhoto = async (pIdx) => {
