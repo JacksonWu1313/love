@@ -554,106 +554,240 @@
 <script>
   const { createApp, ref, reactive, watch, nextTick, onMounted } = Vue;
 
-  // Default Comprehensive Initial Dataset
+  // Default Comprehensive Initial Dataset (V2: Real Yunnan Self-Driving & Separation Aligned)
   const defaultSiteData = {
-    hero: {
-      title1: '伍彦博',
-      title2: '悦悦大王',
-      subtitle: 'YANBO & YUEYUE · FOREVER TOGETHER',
-      coverImage: './images/hero_cover.jpg',
-      coverCaption: '定格在海风与日光里的我们 · 2026',
-      quote: '全世界仅此一个的我，尽情幸福吧。',
-      quoteAuthor: '我们的独家默契宣言',
-      startDate: '2026-04-30T18:23:10'
+  "hero": {
+    "title1": "伍彦博",
+    "title2": "悦悦大王",
+    "subtitle": "YANBO & YUEYUE · FOREVER TOGETHER",
+    "coverImage": "./images/hero_cover.jpg",
+    "coverCaption": "彩云之南 · 大理洱海与丽江自驾漫游记 · 2026盛夏",
+    "quote": "全世界仅此一个的我，尽情幸福吧。",
+    "quoteAuthor": "我们的独家默契宣言",
+    "startDate": "2026-04-30T18:23:10"
+  },
+  "stats": [
+    {
+      "number": "180",
+      "label": "连续记录天数 (天)"
     },
-    stats: [
-      { number: '180', label: '连续记录天数 (天)' },
-      { number: '2,176', label: '解密生活大图 (张)' },
-      { number: '1,348', label: '专属情侣贴纸 (次)' },
-      { number: '00:30', label: '平均最晚入睡约定 (时)' }
-    ],
-    timeline: [
-      {
-        date: '2026年4月30日',
-        tag: '心动启航',
-        title: '相伴的开篇与最初的约定',
-        desc: '从这一刻开始，两个人在彼此的宇宙里有了专属的名字。对话框亮起的每一次震动，都变成了生活里最期待的信号。',
-        quote: '照片里加了什么 我不懂 好幸福。',
-        images: ['./images/timeline_05_1.jpg', './images/timeline_05_2.jpg']
-      },
-      {
-        date: '2026年5月 ~ 6月',
-        tag: '校园步调深度嵌合',
-        title: '课表同步、外卖代取与期末打气',
-        desc: '“早十嘛”、“一上午的课”、“是我没签到到”……无论上课多忙，总记得找东门外卖代拿到敏七，在每一个日常细节里互相照顾。',
-        quote: '宝宝你看我今天的课表，一杯热美式，吃鸡块不蘸酱。',
-        images: ['./images/timeline_06_1.jpg', './images/timeline_06_2.jpg']
-      },
-      {
-        date: '2026年7月 ~ 8月',
-        tag: '暑期峰值：515张美照',
-        title: '跨越空间的依恋爆发与专属福利',
-        desc: '单月分享超过500张相片！即使暑假分隔两地，每一顿饭、每一次出门自拍都毫无保留地发给对方——“再奖励你一张嘛”、“女神一下”！',
-        quote: '我越来越离不开你了，我只想好好和你在一起。',
-        images: ['./images/timeline_08_1.jpg', './images/timeline_08_2.jpg']
-      },
-      {
-        date: '2026年9月 ~ 10月',
-        tag: '成熟磨合与温柔坚定',
-        title: '把小情绪化作更懂彼此的养分',
-        desc: '两个人在一起最珍贵的不是从不拌嘴，而是每一次有了小情绪都能被温柔接住，用极高情商让感情更加坚不可摧。',
-        quote: '我是想通过这个让我们磨合的更好，剩下的交给我。',
-        images: ['./images/timeline_10_1.jpg', './images/timeline_10_2.jpg']
-      }
-    ],
-    quotes: [
-      { text: "宝宝你看我今天的课表。", author: "日常撒娇播报", tag: "课表同步", image: "./images/quote_1.jpg" },
-      { text: "全世界仅此一个的我，尽情幸福吧。", author: "悦悦大王", tag: "默契金句", image: "./images/quote_2.jpg" },
-      { text: "我越来越离不开你了，我只想好好和你在一起。", author: "彦博深情告白", tag: "深层承诺", image: "./images/quote_3.jpg" },
-      { text: "老婆说我坏坏我可伤心了[委屈] —— 好啦不委屈，打嘴嘴好不好？", author: "两人的情绪调解", tag: "温柔哄哄", image: "./images/quote_4.jpg" },
-      { text: "再奖励你一张嘛，女神一下！", author: "悦悦大王", tag: "美照福利", image: "./images/quote_5.jpg" },
-      { text: "我是想通过这个让我们磨合的更好，剩下的交给我。", author: "彦博", tag: "担当与磨合", image: "./images/quote_6.jpg" }
-    ],
-    gallery: [
-      { title: "校园清晨与热美式", date: "2026-05", desc: "早十上课前必点的一杯热美式，开启活力满满的一天。", image: "./images/life_food_1.jpg" },
-      { title: "敏七楼下的外卖日常", date: "2026-06", desc: "找东门外卖代拿到敏七，连轻食意面都吃得格外香甜。", image: "./images/life_food_2.jpg" },
-      { title: "夏日傍晚的温柔晚风", date: "2026-07", desc: "落日余晖洒在路上，每一帧都想拍下来立刻发给你看。", image: "./images/life_food_3.jpg" },
-      { title: "盛夏八月的出游打卡", date: "2026-08", desc: "515张相片分享峰值月，手机相册里全是我们笑颜逐开的瞬间。", image: "./images/life_food_4.jpg" },
-      { title: "九月开学校园漫步", date: "2026-09", desc: "秋风渐起，重聚的喜悦洋溢在每一个对视的眼神里。", image: "./images/life_food_5.jpg" },
-      { title: "金秋十月的默契温存", date: "2026-10", desc: "半年180天，生活变成了最踏实的幸福模样。", image: "./images/life_food_6.jpg" }
-    ],
-    wishes: [
-      { text: "去一次大理双廊，看洱海日落与晚霞", tag: "浪漫旅程", done: false, image: "./images/wish_dali.jpg" },
-      { text: "拍一组穿学士服的情侣毕业专属写真", tag: "校园留念", done: false, image: "./images/wish_grad.jpg" },
-      { text: "一起看一场演唱会，在全场大合唱时拥抱", tag: "音乐之约", done: true, image: "./images/wish_concert.jpg" },
-      { text: "去余姚主场看一场精彩的篮球比赛", tag: "球场打卡", done: false, image: "./images/wish_ball.jpg" },
-      { text: "冬天一起煮一顿热气腾腾的寿喜烧", tag: "美食物语", done: true, image: "./images/wish_cook.jpg" },
-      { text: "一起公路自驾，在车里听着喜欢的歌吹风", tag: "自驾兜风", done: false, image: "./images/wish_drive.jpg" }
-    ],
-    letter: {
-      title: "致我全世界仅此一个的悦悦大王",
-      to: "亲爱的悦悦大王",
-      content: "从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。手机里存下的两千多张照片，记录了你每一次可爱的撒娇、每一杯热美式、每一次签到时的糊涂，还有你发给我的每一张自拍。\n\n谢谢你每次在我大声说话后给我的宽恕，也谢谢你让我学会如何成为一个更有担当、更能给予安全感的伴侣。就像聊天里说的那样：“我是想通过这个让我们磨合的更好，剩下的交给我。”\n\n我越来越离不开你了，我只想好好和你在一起。全世界仅此一个的你，我们要一直一直尽情幸福下去。",
-      from: "爱你的 彦博 ♥",
-      bgImage: "./images/capsule_bg.jpg"
+    {
+      "number": "2,176",
+      "label": "解密生活大图 (张)"
+    },
+    {
+      "number": "515",
+      "label": "8月云南自驾峰值 (张)"
+    },
+    {
+      "number": "00:30",
+      "label": "平均最晚入睡约定 (时)"
     }
-  };
+  ],
+  "timeline": [
+    {
+      "date": "2026年4月30日",
+      "tag": "心动启航",
+      "title": "相恋与故事的开篇",
+      "desc": "从这一天开始，两人的宇宙有了专属的频率。“全世界仅此一个的我，尽情幸福吧。” 对话框亮起的每一次震动，都是初夏最心动的回响。",
+      "quote": "照片里加了什么 我不懂 好幸福。",
+      "images": [
+        "./images/timeline_05_1.jpg",
+        "./images/timeline_05_2.jpg"
+      ]
+    },
+    {
+      "date": "2026年5月 ~ 6月",
+      "tag": "校园同频 · 日常相守",
+      "title": "早课签到、热美式与敏七外卖守护",
+      "desc": "“早十嘛”、“一上午的课”、“是我没签到到”……无论上课多忙，总记得找东门外卖代拿到敏七，一杯热美式，吃鸡块不蘸酱，把每一个日常细节都过成彼此的默契。",
+      "quote": "宝宝你看我今天的课表，一杯热美式，吃鸡块不蘸酱。",
+      "images": [
+        "./images/timeline_06_1.jpg",
+        "./images/timeline_06_2.jpg"
+      ]
+    },
+    {
+      "date": "2026年7月",
+      "tag": "暑假异地分开的一个月",
+      "title": "跨越屏幕的相思 · 每天互道早晚安与日常播报",
+      "desc": "放暑假各自回家，相隔两地整整分开了一个月。每天早起报备、互道晚安，“再奖励你一张嘛，女神一下”，每一顿饭、每一组生活自拍都毫无保留地发给对方，深夜长长的语音与视频，盛满了对见面的无限期待。",
+      "quote": "我越来越离不开你了，我只想好好和你在一起。",
+      "images": [
+        "./images/timeline_07_1.jpg",
+        "./images/timeline_07_2.jpg"
+      ]
+    },
+    {
+      "date": "2026年8月",
+      "tag": "久别重逢 · 彩云之南",
+      "title": "丽江与大理自驾漫游记 · 515张相片峰值",
+      "desc": "熬过了一个月的分开，终于在盛夏重聚，直奔云南开启浪漫自驾之旅！自驾穿梭在苍山与洱海的环海公路上，吹着傍晚清凉微甜的晚风；漫步在丽江古城光洁温润的石板街与夜色灯火中，远眺玉龙雪山的巍峨。单月产生515张相片峰值，每一个笑颜逐开的瞬间，都是久别重逢最热烈的告白！",
+      "quote": "大理的晚风太治愈了，自驾在环海路上的感觉好自由，这一路有你真好。",
+      "images": [
+        "./images/timeline_08_1.jpg",
+        "./images/timeline_08_2.jpg",
+        "./images/timeline_08_3.jpg"
+      ]
+    },
+    {
+      "date": "2026年9月 ~ 10月",
+      "tag": "秋季开学 · 成熟磨合",
+      "title": "把小情绪化作更懂彼此的养分 · 剩下的交给我",
+      "desc": "旅行归来回到校园常态，面对琐碎日常中的小情绪，展现出极高的情商与温柔担当。“好啦不委屈，打嘴嘴好不好”、“我是想通过这个让我们磨合的更好，剩下的交给我”。从初夏到金秋的180天，爱意愈发踏实与坚定。",
+      "quote": "老婆说我坏坏我可伤心了[委屈] —— 好啦不委屈，打嘴嘴好不好？",
+      "images": [
+        "./images/timeline_10_1.jpg",
+        "./images/timeline_10_2.jpg"
+      ]
+    }
+  ],
+  "quotes": [
+    {
+      "text": "宝宝你看我今天的课表。",
+      "author": "日常撒娇播报",
+      "tag": "课表打卡",
+      "image": "./images/quote_1.jpg"
+    },
+    {
+      "text": "全世界仅此一个的我，尽情幸福吧。",
+      "author": "悦悦大王",
+      "tag": "默契金句",
+      "image": "./images/quote_2.jpg"
+    },
+    {
+      "text": "再奖励你一张嘛，女神一下！",
+      "author": "7月异地美照福利",
+      "tag": "甜蜜自拍",
+      "image": "./images/quote_3.jpg"
+    },
+    {
+      "text": "自驾在洱海环海路上吹晚风，太治愈了！",
+      "author": "云南自驾原声",
+      "tag": "彩云之南",
+      "image": "./images/quote_4.jpg"
+    },
+    {
+      "text": "老婆说我坏坏我可伤心了[委屈] —— 好啦不委屈，打嘴嘴好不好？",
+      "author": "两人的情绪调解",
+      "tag": "温柔哄哄",
+      "image": "./images/quote_5.jpg"
+    },
+    {
+      "text": "我是想通过这个让我们磨合的更好，剩下的交给我。",
+      "author": "彦博成熟担当",
+      "tag": "长效契约",
+      "image": "./images/quote_6.jpg"
+    }
+  ],
+  "gallery": [
+    {
+      "title": "大理 · 洱海环海自驾",
+      "date": "2026-08",
+      "desc": "自驾穿梭在苍山洱海之间，摇下车窗吹着凉爽晚风，水天一色的蓝让人心旷神怡。",
+      "image": "./images/life_food_1.jpg"
+    },
+    {
+      "title": "丽江 · 古城石板路与灯火",
+      "date": "2026-08",
+      "desc": "牵手漫步在古城的青石板街，檐角飞扬，挂满灯笼的夜色下是我们最惬意的时光。",
+      "image": "./images/life_food_2.jpg"
+    },
+    {
+      "title": "苍山远眺 · 旅途风光",
+      "date": "2026-08",
+      "desc": "远眺巍峨的山景与郁郁葱葱的林海，自驾在路上的每一公里都是自由的滋味。",
+      "image": "./images/life_food_3.jpg"
+    },
+    {
+      "title": "七月异地 · 隔着屏幕的日常",
+      "date": "2026-07",
+      "desc": "整整分开一个月，全靠每天报备三餐与深夜视频，把生活点滴织成思念的网。",
+      "image": "./images/life_food_4.jpg"
+    },
+    {
+      "title": "校园初夏 · 早课与热美式",
+      "date": "2026-05",
+      "desc": "早十上课前必点的一杯热美式，找东门外卖代拿到敏七，最简单的陪伴也是幸福。",
+      "image": "./images/life_food_5.jpg"
+    },
+    {
+      "title": "金秋十月 · 校园漫步与默契",
+      "date": "2026-10",
+      "desc": "从云南旅行归来后的校园常态，180天的相伴，生活变成了最踏实温暖的模样。",
+      "image": "./images/life_food_6.jpg"
+    }
+  ],
+  "wishes": [
+    {
+      "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
+      "tag": "自驾漫游",
+      "done": true,
+      "image": "./images/wish_dali.jpg"
+    },
+    {
+      "text": "拍一组穿学士服的情侣毕业专属写真",
+      "tag": "校园留念",
+      "done": false,
+      "image": "./images/wish_grad.jpg"
+    },
+    {
+      "text": "一起看一场演唱会，在全场大合唱时拥抱",
+      "tag": "音乐之约",
+      "done": true,
+      "image": "./images/wish_concert.jpg"
+    },
+    {
+      "text": "去余姚主场看一场精彩的篮球比赛",
+      "tag": "球场打卡",
+      "done": false,
+      "image": "./images/wish_ball.jpg"
+    },
+    {
+      "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",
+      "tag": "美食物语",
+      "done": true,
+      "image": "./images/wish_cook.jpg"
+    },
+    {
+      "text": "再次出发：下一站海岛自驾公路之旅",
+      "tag": "自驾兜风",
+      "done": false,
+      "image": "./images/wish_drive.jpg"
+    }
+  ],
+  "letter": {
+    "title": "致我全世界仅此一个的悦悦大王",
+    "to": "亲爱的悦悦大王",
+    "content": "从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。\n\n还记得五六月份在学校里，你每天早晨发给我课表、找东门外卖代拿到敏七的一杯热美式；还记得七月份放暑假各自回家，我们相隔两地整整分开了一个月，每天靠着长长的视频通话和互发自拍熬过异地，你说“再奖励你一张嘛，女神一下”，我说“我越来越离不开你了，我只想好好和你在一起”；\n\n更难忘的是八月份我们久别重逢，一起飞往云南开启自驾之旅。在苍山洱海边的环海路上吹晚风，在丽江古城的石板路上漫步看夜市灯火，那515张照片里全是你最灿烂开心的笑脸。\n\n谢谢你每次在我大声说话后给我的温柔与宽恕，也谢谢你在每一次小情绪后愿意听我那句“剩下的交给我”。从初夏的怦然心动，到云南自驾的浪漫，再到如今校园常态里的默契温存，全世界仅此一个的你，我们要一直一直尽情幸福下去。",
+    "from": "爱你的 彦博 ♥",
+    "bgImage": "./images/capsule_bg.jpg"
+  }
+};
 
   createApp({
     setup() {
-      // 1. Reactive State with LocalStorage Persistence
+      // 1. Reactive State with LocalStorage Persistence & Version Migration
       const storageKey = 'couple_site_data';
+      const versionKey = 'couple_site_version';
+      const CURRENT_VERSION = 'v2_yunnan_aligned';
+
       const loadInitialData = () => {
         try {
           const saved = localStorage.getItem(storageKey);
-          if (saved) {
+          const savedVer = localStorage.getItem(versionKey);
+          if (saved && savedVer === CURRENT_VERSION) {
             const parsed = JSON.parse(saved);
             return Object.assign({}, defaultSiteData, parsed);
+          } else {
+            localStorage.setItem(versionKey, CURRENT_VERSION);
+            localStorage.setItem(storageKey, JSON.stringify(defaultSiteData));
+            return JSON.parse(JSON.stringify(defaultSiteData));
           }
         } catch (e) {
-          console.warn('Failed to load localStorage', e);
+          console.error('LocalStorage load error:', e);
+          return JSON.parse(JSON.stringify(defaultSiteData));
         }
-        return JSON.parse(JSON.stringify(defaultSiteData));
       };
 
       const siteData = reactive(loadInitialData());
