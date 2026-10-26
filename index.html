@@ -184,6 +184,48 @@
       animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
       z-index: -1;
     }
+    /* Unlit City Constellation Pins */
+    .unlit-marker-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .unlit-marker-wrapper:hover {
+      transform: translate(-50%, -50%) scale(1.35);
+      z-index: 1000 !important;
+    }
+    .unlit-marker-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      background: #E89582;
+      border: 1.5px solid #FFFFFF;
+      box-shadow: 0 0 8px rgba(232, 149, 130, 0.7);
+      transition: all 0.2s ease;
+    }
+    .unlit-marker-wrapper:hover .unlit-marker-dot {
+      background: #D95D5D;
+      transform: scale(1.3);
+      box-shadow: 0 0 12px rgba(217, 93, 93, 0.9);
+    }
+    .unlit-marker-label {
+      margin-top: 2px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #57534E;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(2px);
+      padding: 1px 5px;
+      border-radius: 9999px;
+      border: 1px solid rgba(244, 236, 225, 0.9);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      white-space: nowrap;
+      pointer-events: none;
+    }
     [v-cloak] { display: none; }
   </style>
 </head>
@@ -557,16 +599,37 @@
             <span>愿望 ✈️</span>
             <span>({{ wishCitiesCount }})</span>
           </button>
+          <button @click="toggleAllCityStars" class="px-2.5 py-1.5 rounded-full border border-sand hover:bg-sand/30 text-ink transition text-[11px] hidden sm:inline-flex items-center space-x-1">
+            <span class="w-2 h-2 rounded-full" :class="showAllCityStars ? 'bg-amber-500 animate-pulse' : 'bg-muted'"></span>
+            <span>{{ showAllCityStars ? '全国星光：开' : '全国星光：关' }}</span>
+          </button>
         </div>
 
         <!-- Quick Camera Perspective Fly-to & Light Up Button -->
         <div class="flex flex-wrap items-center gap-2">
+          <!-- Map Multi-Tile Switcher -->
+          <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60 mr-1">
+            <button @click="switchMapTile('autonavi')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'autonavi' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
+              <span>🗺️ ????</span>
+            </button>
+            <button @click="switchMapTile('esriStreet')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'esriStreet' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
+              <span>🌍 ????</span>
+            </button>
+            <button @click="switchMapTile('esriGray')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'esriGray' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
+              <span>🕊️ ??</span>
+            </button>
+          </div>
           <div class="inline-flex rounded-full bg-sand/30 p-0.5 text-xs text-muted">
             <button @click="flyToView('world')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🌍 全球</button>
             <button @click="flyToView('china')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🇨🇳 中国</button>
             <button @click="flyToView('yunnan')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🌸 云南</button>
             <button @click="flyToView('shenzhen')" class="px-2.5 py-1 rounded-full hover:bg-warmwhite hover:text-ink transition">🏠 深圳</button>
           </div>
+
+          <button @click="showExplorerDrawer = !showExplorerDrawer" class="px-3.5 py-1.5 rounded-full bg-sand/40 hover:bg-sand/70 border border-sand text-ink text-xs font-medium shadow-xs flex items-center space-x-1.5 transition">
+            <i data-lucide="compass" class="w-3.5 h-3.5 text-clay"></i>
+            <span>城市速查清单</span>
+          </button>
 
           <button @click="openAddCityModal" class="px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-xs font-medium shadow-soft flex items-center space-x-1.5 transition">
             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
@@ -581,15 +644,41 @@
         <div class="absolute top-6 left-6 z-20 pointer-events-none">
           <span class="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-sand text-[11px] text-muted shadow-soft flex items-center space-x-1.5">
             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
-            <span>支持触控拖动与缩放 · 点击世界任意地点即可点亮新城市</span>
+            <span>轻触中国各城市琥珀星点即可点亮 · 点击世界首都亦可点亮</span>
           </span>
         </div>
 
         <!-- Leaflet Map Container -->
-        <div class="relative w-full h-[500px] sm:h-[620px] rounded-2xl overflow-hidden border border-sand/80 shadow-inner">
+        <div class="relative w-full h-[540px] sm:h-[660px] rounded-2xl overflow-hidden border border-sand/80 shadow-inner">
           <div id="love-world-map"></div>
 
-          <!-- Floating City Detail Card -->
+          <!-- Quick Unlit City Prompt Floating Card -->
+          <div v-if="selectedUnlitCity" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-sm glass-card rounded-2xl p-4 border border-sand shadow-2xl bg-white/95 backdrop-blur-md animate-fade-in z-30">
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] text-rose-500 font-semibold px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200">
+                  发现待点亮城市
+                </span>
+                <h4 class="text-base font-bold text-ink mt-1.5">{{ selectedUnlitCity.name }} · {{ selectedUnlitCity.province || selectedUnlitCity.country }}</h4>
+              </div>
+              <button @click="selectedUnlitCity = null" class="p-1 text-muted hover:text-ink rounded-lg transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <p class="text-xs text-muted mt-2 leading-relaxed">
+              {{ selectedUnlitCity.story || '想和全世界仅此一个的悦悦大王，踏遍这里的每一寸土地。' }}
+            </p>
+            <div class="mt-3.5 pt-2.5 border-t border-sand/60 flex items-center justify-between">
+              <button @click="openCustomModalForUnlit" class="text-[11px] text-muted hover:text-ink underline">
+                编写故事便签
+              </button>
+              <button @click="confirmOneClickLightUp" class="px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-xs font-semibold shadow-soft transition flex items-center space-x-1">
+                <span>💖 立即点亮 ♥</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Floating City Detail Card (for lit cities) -->
           <div v-if="selectedMapCity" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md glass-card rounded-2xl p-4 sm:p-5 border border-sand shadow-2xl bg-white/95 backdrop-blur-md animate-fade-in z-30">
             <div class="flex items-start justify-between">
               <div class="flex items-center space-x-2">
@@ -636,6 +725,75 @@
               </div>
             </div>
           </div>
+
+          <!-- Slide-out Province & Capital Explorer Drawer -->
+          <transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0 translate-x-full" enter-to-class="opacity-100 translate-x-0" leave-active-class="transition duration-200 ease-in" leave-from-class="opacity-100 translate-x-0" leave-to-class="opacity-0 translate-x-full">
+            <div v-if="showExplorerDrawer" class="absolute top-0 right-0 bottom-0 w-80 sm:w-96 glass-card bg-white/95 backdrop-blur-md border-l border-sand shadow-2xl z-40 flex flex-col p-4">
+              <div class="flex items-center justify-between pb-3 border-b border-sand">
+                <div class="flex items-center space-x-1.5">
+                  <i data-lucide="compass" class="w-4 h-4 text-clay"></i>
+                  <h4 class="text-sm font-bold text-ink">城市足迹雷达清单</h4>
+                </div>
+                <button @click="showExplorerDrawer = false" class="p-1 text-muted hover:text-ink rounded-lg transition">
+                  <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- Drawer Tabs -->
+              <div class="flex items-center p-1 bg-sand/30 rounded-xl my-3 text-xs">
+                <button @click="explorerTab = 'china'" :class="explorerTab === 'china' ? 'bg-white text-rose-600 shadow-xs font-semibold' : 'text-muted'" class="flex-1 py-1.5 rounded-lg transition">
+                  🇨🇳 中国各省 ({{ chinaLitStats.lit }}/{{ chinaLitStats.total }})
+                </button>
+                <button @click="explorerTab = 'world'" :class="explorerTab === 'world' ? 'bg-white text-teal-700 shadow-xs font-semibold' : 'text-muted'" class="flex-1 py-1.5 rounded-lg transition">
+                  🌍 世界各国首都 ({{ worldLitStats.lit }}/{{ worldLitStats.total }})
+                </button>
+              </div>
+
+              <!-- Quick Search inside Drawer -->
+              <div class="relative mb-3">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-muted absolute left-3 top-2.5"></i>
+                <input v-model="drawerSearchQuery" type="text" placeholder="输入城市名或首都快速检索点亮..." class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-sand/20 border border-sand/70 text-xs focus:outline-none focus:border-rose-400">
+              </div>
+
+              <!-- China Cities by Province -->
+              <div v-if="explorerTab === 'china'" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                <div v-for="prov in groupedChinaCities" :key="prov.province" class="p-2.5 rounded-2xl bg-sand/15 border border-sand/60">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-ink flex items-center space-x-1">
+                      <span>{{ prov.province }}</span>
+                      <span class="text-[10px] text-muted font-normal">({{ prov.litCount }}/{{ prov.cities.length }})</span>
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button v-for="city in prov.cities" :key="city.name" @click="oneClickLightUp(city, 'china')" class="px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1" :class="city.isLit ? 'bg-rose-500 text-white font-semibold shadow-xs' : 'bg-white hover:bg-rose-50 text-ink border border-sand/70'">
+                      <span>{{ city.name }}</span>
+                      <span v-if="city.isLit">♥</span>
+                      <span v-else class="text-[9px] text-rose-500">+</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- World Capitals by Continent -->
+              <div v-if="explorerTab === 'world'" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                <div v-for="cont in groupedWorldCountries" :key="cont.continent" class="p-2.5 rounded-2xl bg-sand/15 border border-sand/60">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-ink flex items-center space-x-1">
+                      <span>{{ cont.continent }}</span>
+                      <span class="text-[10px] text-muted font-normal">({{ cont.litCount }}/{{ cont.items.length }})</span>
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button v-for="w in cont.items" :key="w.capital" @click="oneClickLightUp(w, 'world')" class="px-2 py-1 rounded-lg text-[11px] transition flex items-center space-x-1" :class="w.isLit ? 'bg-teal-600 text-white font-semibold shadow-xs' : 'bg-white hover:bg-teal-50 text-ink border border-sand/70'">
+                      <span>{{ w.country }} · {{ w.capital }}</span>
+                      <span v-if="w.isLit">✈️</span>
+                      <span v-else class="text-[9px] text-teal-600">+</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
         </div>
       </div>
     </div>
@@ -2312,10 +2470,12 @@
 
       // Scheme 3: Interactive World Footprint Map (可滑动的世界足迹地图 & 中国全域城市点亮)
       const CHINA_CITIES = [
+        // 直辖市
         { name: '北京', province: '北京', region: '华北', lat: 39.9042, lng: 116.4074 },
         { name: '上海', province: '上海', region: '华东', lat: 31.2304, lng: 121.4737 },
         { name: '天津', province: '天津', region: '华北', lat: 39.1256, lng: 117.1902 },
         { name: '重庆', province: '重庆', region: '西南', lat: 29.5630, lng: 106.5516 },
+        // 云南浪漫
         { name: '大理', province: '云南', region: '云南浪漫', lat: 25.6065, lng: 100.2676 },
         { name: '丽江', province: '云南', region: '云南浪漫', lat: 26.8721, lng: 100.2297 },
         { name: '昆明', province: '云南', region: '云南浪漫', lat: 25.0453, lng: 102.7097 },
@@ -2324,6 +2484,12 @@
         { name: '腾冲', province: '云南', region: '云南浪漫', lat: 25.0253, lng: 98.4905 },
         { name: '玉溪', province: '云南', region: '云南浪漫', lat: 24.3520, lng: 102.5465 },
         { name: '普洱', province: '云南', region: '云南浪漫', lat: 22.7872, lng: 100.9723 },
+        { name: '曲靖', province: '云南', region: '云南浪漫', lat: 25.4900, lng: 103.7962 },
+        { name: '保山', province: '云南', region: '云南浪漫', lat: 25.1119, lng: 99.1618 },
+        { name: '楚雄', province: '云南', region: '云南浪漫', lat: 25.0329, lng: 101.5460 },
+        { name: '红河(建水)', province: '云南', region: '云南浪漫', lat: 23.3668, lng: 103.3842 },
+        { name: '德宏(芒市)', province: '云南', region: '云南浪漫', lat: 24.4333, lng: 98.5784 },
+        // 广东
         { name: '深圳', province: '广东', region: '华南', lat: 22.5431, lng: 114.0579 },
         { name: '广州', province: '广东', region: '华南', lat: 23.1291, lng: 113.2644 },
         { name: '珠海', province: '广东', region: '华南', lat: 22.2707, lng: 113.5767 },
@@ -2334,6 +2500,11 @@
         { name: '惠州', province: '广东', region: '华南', lat: 23.1118, lng: 114.4162 },
         { name: '中山', province: '广东', region: '华南', lat: 22.5171, lng: 113.3928 },
         { name: '湛江', province: '广东', region: '华南', lat: 21.2707, lng: 110.3594 },
+        { name: '江门', province: '广东', region: '华南', lat: 22.5787, lng: 113.0815 },
+        { name: '肇庆', province: '广东', region: '华南', lat: 23.0472, lng: 112.4651 },
+        { name: '清远', province: '广东', region: '华南', lat: 23.6818, lng: 113.0560 },
+        { name: '韶关', province: '广东', region: '华南', lat: 24.8104, lng: 113.5975 },
+        // 四川
         { name: '成都', province: '四川', region: '西南', lat: 30.5728, lng: 104.0668 },
         { name: '乐山', province: '四川', region: '西南', lat: 29.5521, lng: 103.7656 },
         { name: '绵阳', province: '四川', region: '西南', lat: 31.4675, lng: 104.6791 },
@@ -2341,16 +2512,23 @@
         { name: '稻城亚丁', province: '四川', region: '西南', lat: 28.5200, lng: 100.3400 },
         { name: '宜宾', province: '四川', region: '西南', lat: 28.7518, lng: 104.6432 },
         { name: '攀枝花', province: '四川', region: '西南', lat: 26.5823, lng: 101.7186 },
+        { name: '泸州', province: '四川', region: '西南', lat: 28.8718, lng: 105.4423 },
+        { name: '南充', province: '四川', region: '西南', lat: 30.8378, lng: 106.1107 },
+        { name: '西昌', province: '四川', region: '西南', lat: 27.8951, lng: 102.2673 },
+        { name: '康定', province: '四川', region: '西南', lat: 30.0495, lng: 101.9625 },
+        // 浙江
         { name: '杭州', province: '浙江', region: '华东', lat: 30.2741, lng: 120.1551 },
         { name: '宁波', province: '浙江', region: '华东', lat: 29.8683, lng: 121.5440 },
         { name: '温州', province: '浙江', region: '华东', lat: 27.9943, lng: 120.6994 },
         { name: '绍兴', province: '浙江', region: '华东', lat: 30.0024, lng: 120.5822 },
-        { name: '嘉兴', province: '浙江', region: '华东', lat: 30.7460, lng: 120.7555 },
+        { name: '嘉兴(乌镇)', province: '浙江', region: '华东', lat: 30.7460, lng: 120.7555 },
         { name: '湖州', province: '浙江', region: '华东', lat: 30.8943, lng: 120.0868 },
-        { name: '金华', province: '浙江', region: '华东', lat: 29.0791, lng: 119.6474 },
-        { name: '舟山', province: '浙江', region: '华东', lat: 29.9853, lng: 122.2072 },
+        { name: '金华(横店)', province: '浙江', region: '华东', lat: 29.0791, lng: 119.6474 },
+        { name: '舟山(普陀山)', province: '浙江', region: '华东', lat: 29.9853, lng: 122.2072 },
         { name: '台州', province: '浙江', region: '华东', lat: 28.6564, lng: 121.4208 },
         { name: '丽水', province: '浙江', region: '华东', lat: 28.4677, lng: 119.9228 },
+        { name: '衢州', province: '浙江', region: '华东', lat: 28.9701, lng: 118.8758 },
+        // 江苏
         { name: '南京', province: '江苏', region: '华东', lat: 32.0603, lng: 118.7969 },
         { name: '苏州', province: '江苏', region: '华东', lat: 31.2990, lng: 120.5853 },
         { name: '无锡', province: '江苏', region: '华东', lat: 31.4912, lng: 120.3119 },
@@ -2359,100 +2537,174 @@
         { name: '扬州', province: '江苏', region: '华东', lat: 32.3942, lng: 119.4129 },
         { name: '镇江', province: '江苏', region: '华东', lat: 32.1879, lng: 119.4258 },
         { name: '徐州', province: '江苏', region: '华东', lat: 34.2048, lng: 117.2841 },
+        { name: '连云港', province: '江苏', region: '华东', lat: 34.5967, lng: 119.2216 },
+        { name: '盐城', province: '江苏', region: '华东', lat: 33.3474, lng: 120.1636 },
+        { name: '泰州', province: '江苏', region: '华东', lat: 32.4555, lng: 119.9229 },
+        { name: '淮安', province: '江苏', region: '华东', lat: 33.5511, lng: 119.0153 },
+        // 福建
         { name: '厦门', province: '福建', region: '华东', lat: 24.4798, lng: 118.0894 },
         { name: '福州', province: '福建', region: '华东', lat: 26.0745, lng: 119.2965 },
         { name: '泉州', province: '福建', region: '华东', lat: 24.9089, lng: 118.5894 },
         { name: '漳州', province: '福建', region: '华东', lat: 24.5130, lng: 117.6473 },
         { name: '武夷山', province: '福建', region: '华东', lat: 27.7554, lng: 118.0367 },
+        { name: '宁德', province: '福建', region: '华东', lat: 26.6657, lng: 119.5479 },
+        { name: '平潭', province: '福建', region: '华东', lat: 25.5037, lng: 119.7912 },
+        // 海南
         { name: '三亚', province: '海南', region: '华南', lat: 18.2528, lng: 109.5119 },
         { name: '海口', province: '海南', region: '华南', lat: 20.0440, lng: 110.1999 },
         { name: '万宁', province: '海南', region: '华南', lat: 18.7962, lng: 110.3888 },
         { name: '陵水', province: '海南', region: '华南', lat: 18.5051, lng: 110.0372 },
+        { name: '文昌', province: '海南', region: '华南', lat: 19.6100, lng: 110.7540 },
+        { name: '琼海', province: '海南', region: '华南', lat: 19.2585, lng: 110.4668 },
+        // 陕西
         { name: '西安', province: '陕西', region: '西北', lat: 34.3416, lng: 108.9398 },
         { name: '延安', province: '陕西', region: '西北', lat: 36.5854, lng: 109.4897 },
         { name: '汉中', province: '陕西', region: '西北', lat: 33.0677, lng: 107.0286 },
+        { name: '宝鸡', province: '陕西', region: '西北', lat: 34.3693, lng: 107.2373 },
+        { name: '咸阳', province: '陕西', region: '西北', lat: 34.3296, lng: 108.7090 },
+        { name: '华山(渭南)', province: '陕西', region: '西北', lat: 34.5000, lng: 109.5090 },
+        { name: '榆林', province: '陕西', region: '西北', lat: 38.2906, lng: 109.7412 },
+        // 西藏
         { name: '拉萨', province: '西藏', region: '西北', lat: 29.6525, lng: 91.1322 },
         { name: '林芝', province: '西藏', region: '西北', lat: 29.6491, lng: 94.3615 },
         { name: '日喀则', province: '西藏', region: '西北', lat: 29.2675, lng: 88.8808 },
+        { name: '阿里', province: '西藏', region: '西北', lat: 32.5012, lng: 80.1055 },
+        // 新疆
         { name: '乌鲁木齐', province: '新疆', region: '西北', lat: 43.8256, lng: 87.6168 },
         { name: '喀什', province: '新疆', region: '西北', lat: 39.4677, lng: 75.9898 },
-        { name: '伊宁', province: '新疆', region: '西北', lat: 43.9169, lng: 81.3242 },
-        { name: '阿勒泰', province: '新疆', region: '西北', lat: 47.8449, lng: 88.1396 },
+        { name: '伊宁(伊犁)', province: '新疆', region: '西北', lat: 43.9169, lng: 81.3242 },
+        { name: '阿勒泰(喀纳斯)', province: '新疆', region: '西北', lat: 47.8449, lng: 88.1396 },
+        { name: '吐鲁番', province: '新疆', region: '西北', lat: 42.9513, lng: 89.1895 },
+        { name: '库尔勒', province: '新疆', region: '西北', lat: 41.7641, lng: 86.1453 },
+        // 内蒙古
         { name: '呼伦贝尔', province: '内蒙古', region: '华北', lat: 49.2116, lng: 119.7658 },
         { name: '呼和浩特', province: '内蒙古', region: '华北', lat: 40.8427, lng: 111.7519 },
+        { name: '包头', province: '内蒙古', region: '华北', lat: 40.6574, lng: 109.8404 },
+        { name: '鄂尔多斯', province: '内蒙古', region: '华北', lat: 39.6083, lng: 109.7813 },
+        { name: '满洲里', province: '内蒙古', region: '华北', lat: 49.5978, lng: 117.4452 },
+        // 广西
         { name: '桂林', province: '广西', region: '华南', lat: 25.2736, lng: 110.2902 },
         { name: '南宁', province: '广西', region: '华南', lat: 22.8170, lng: 108.3665 },
         { name: '阳朔', province: '广西', region: '华南', lat: 24.7794, lng: 110.4947 },
         { name: '北海', province: '广西', region: '华南', lat: 21.4813, lng: 109.1193 },
+        { name: '柳州', province: '广西', region: '华南', lat: 24.3255, lng: 109.4286 },
+        // 贵州
         { name: '贵阳', province: '贵州', region: '西南', lat: 26.6477, lng: 106.6302 },
         { name: '遵义', province: '贵州', region: '西南', lat: 27.7257, lng: 106.9274 },
+        { name: '安顺(黄果树)', province: '贵州', region: '西南', lat: 26.2531, lng: 105.9462 },
         { name: '西江苗寨', province: '贵州', region: '西南', lat: 26.4950, lng: 108.1730 },
+        { name: '荔波', province: '贵州', region: '西南', lat: 25.4116, lng: 107.8859 },
+        { name: '铜仁(梵净山)', province: '贵州', region: '西南', lat: 27.7183, lng: 109.1915 },
+        // 湖南
         { name: '长沙', province: '湖南', region: '华中', lat: 28.2282, lng: 112.9388 },
         { name: '张家界', province: '湖南', region: '华中', lat: 29.1170, lng: 110.4792 },
         { name: '凤凰古城', province: '湖南', region: '华中', lat: 27.9547, lng: 109.6015 },
+        { name: '衡阳(衡山)', province: '湖南', region: '华中', lat: 26.8933, lng: 112.6077 },
+        { name: '岳阳', province: '湖南', region: '华中', lat: 29.3567, lng: 113.1329 },
+        // 湖北
         { name: '武汉', province: '湖北', region: '华中', lat: 30.5928, lng: 114.3055 },
         { name: '宜昌', province: '湖北', region: '华中', lat: 30.6920, lng: 111.2865 },
+        { name: '襄阳', province: '湖北', region: '华中', lat: 32.0090, lng: 112.1226 },
+        { name: '恩施', province: '湖北', region: '华中', lat: 30.2912, lng: 109.4869 },
+        { name: '十堰(武当山)', province: '湖北', region: '华中', lat: 32.6470, lng: 110.7980 },
+        { name: '神农架', province: '湖北', region: '华中', lat: 31.7444, lng: 110.6756 },
+        // 山东
         { name: '青岛', province: '山东', region: '华东', lat: 36.0671, lng: 120.3826 },
         { name: '济南', province: '山东', region: '华东', lat: 36.6512, lng: 117.1201 },
         { name: '烟台', province: '山东', region: '华东', lat: 37.4638, lng: 121.4479 },
         { name: '威海', province: '山东', region: '华东', lat: 37.5131, lng: 122.1205 },
+        { name: '泰安(泰山)', province: '山东', region: '华东', lat: 36.2002, lng: 117.0877 },
+        { name: '日照', province: '山东', region: '华东', lat: 35.4164, lng: 119.5269 },
+        { name: '淄博', province: '山东', region: '华东', lat: 36.8135, lng: 118.0550 },
+        // 河南
         { name: '郑州', province: '河南', region: '华中', lat: 34.7466, lng: 113.6253 },
         { name: '洛阳', province: '河南', region: '华中', lat: 34.6185, lng: 112.4540 },
+        { name: '开封', province: '河南', region: '华中', lat: 34.7972, lng: 114.3076 },
+        { name: '安阳', province: '河南', region: '华中', lat: 36.0975, lng: 114.3924 },
+        { name: '焦作(云台山)', province: '河南', region: '华中', lat: 35.2159, lng: 113.2418 },
+        // 河北
         { name: '石家庄', province: '河北', region: '华北', lat: 38.0428, lng: 114.5149 },
-        { name: '秦皇岛', province: '河北', region: '华北', lat: 39.9354, lng: 119.6005 },
+        { name: '秦皇岛(阿那亚)', province: '河北', region: '华北', lat: 39.9354, lng: 119.6005 },
+        { name: '承德', province: '河北', region: '华北', lat: 40.9540, lng: 117.9628 },
+        { name: '张家口(崇礼)', province: '河北', region: '华北', lat: 40.8105, lng: 114.8864 },
+        // 山西
         { name: '太原', province: '山西', region: '华北', lat: 37.8706, lng: 112.5489 },
         { name: '大同', province: '山西', region: '华北', lat: 40.0768, lng: 113.3001 },
+        { name: '晋中(平遥)', province: '山西', region: '华北', lat: 37.2023, lng: 112.1755 },
+        { name: '忻州(五台山)', province: '山西', region: '华北', lat: 38.4167, lng: 112.7333 },
+        // 安徽
         { name: '合肥', province: '安徽', region: '华东', lat: 31.8206, lng: 117.2272 },
         { name: '黄山', province: '安徽', region: '华东', lat: 29.7147, lng: 118.3375 },
+        { name: '宣城', province: '安徽', region: '华东', lat: 30.9407, lng: 118.7588 },
+        { name: '池州(九华山)', province: '安徽', region: '华东', lat: 30.6648, lng: 117.4916 },
+        // 江西
         { name: '南昌', province: '江西', region: '华东', lat: 28.6829, lng: 115.8582 },
         { name: '景德镇', province: '江西', region: '华东', lat: 29.2687, lng: 117.1783 },
         { name: '婺源', province: '江西', region: '华东', lat: 29.2483, lng: 117.8611 },
+        { name: '九江(庐山)', province: '江西', region: '华东', lat: 29.5630, lng: 115.9890 },
+        { name: '萍乡(武功山)', province: '江西', region: '华东', lat: 27.6229, lng: 113.8546 },
+        // 东北
         { name: '大连', province: '辽宁', region: '东北', lat: 38.9140, lng: 121.6147 },
         { name: '沈阳', province: '辽宁', region: '东北', lat: 41.8057, lng: 123.4315 },
+        { name: '丹东', province: '辽宁', region: '东北', lat: 40.1290, lng: 124.3838 },
         { name: '哈尔滨', province: '黑龙江', region: '东北', lat: 45.8038, lng: 126.5349 },
+        { name: '牡丹江(雪乡)', province: '黑龙江', region: '东北', lat: 44.5517, lng: 129.6332 },
+        { name: '漠河', province: '黑龙江', region: '东北', lat: 52.9723, lng: 122.5376 },
         { name: '长春', province: '吉林', region: '东北', lat: 43.8171, lng: 125.3235 },
+        { name: '白山(长白山)', province: '吉林', region: '东北', lat: 41.9930, lng: 128.0770 },
+        { name: '延吉', province: '吉林', region: '东北', lat: 42.9074, lng: 129.5144 },
+        // 西北
         { name: '兰州', province: '甘肃', region: '西北', lat: 36.0611, lng: 103.8343 },
         { name: '敦煌', province: '甘肃', region: '西北', lat: 40.1421, lng: 94.6619 },
+        { name: '张掖', province: '甘肃', region: '西北', lat: 38.9259, lng: 100.4498 },
+        { name: '甘南', province: '甘肃', region: '西北', lat: 34.9863, lng: 102.9112 },
         { name: '西宁', province: '青海', region: '西北', lat: 36.6171, lng: 101.7782 },
+        { name: '青海湖', province: '青海', region: '西北', lat: 36.8830, lng: 100.2000 },
+        { name: '茶卡盐湖', province: '青海', region: '西北', lat: 36.7000, lng: 99.0833 },
         { name: '银川', province: '宁夏', region: '西北', lat: 38.4872, lng: 106.2309 },
+        { name: '中卫(沙坡头)', province: '宁夏', region: '西北', lat: 37.5149, lng: 105.1896 },
+        // 港澳台
         { name: '香港', province: '香港', region: '港澳台', lat: 22.3193, lng: 114.1694 },
         { name: '澳门', province: '澳门', region: '港澳台', lat: 22.1987, lng: 113.5439 },
-        { name: '台北', province: '台湾', region: '港澳台', lat: 25.0330, lng: 121.5654 }
+        { name: '台北', province: '台湾', region: '港澳台', lat: 25.0330, lng: 121.5654 },
+        { name: '高雄', province: '台湾', region: '港澳台', lat: 22.6273, lng: 120.3014 },
+        { name: '花莲', province: '台湾', region: '港澳台', lat: 23.9912, lng: 121.6111 },
+        { name: '垦丁', province: '台湾', region: '港澳台', lat: 21.9466, lng: 120.7978 }
       ];
 
       const WORLD_COUNTRIES = [
-        { country: '法国', capital: '巴黎', continent: '欧洲浪漫', lat: 48.8566, lng: 2.3522, story: '塞纳河畔漫步、埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。' },
-        { country: '英国', capital: '伦敦', continent: '欧洲浪漫', lat: 51.5074, lng: -0.1278, story: '泰晤士河晚风、大本钟与伦敦眼，在红色双层巴士上看雨景。' },
-        { country: '意大利', capital: '罗马', continent: '欧洲浪漫', lat: 41.9028, lng: 12.4964, story: '在许愿池前投下一枚硬币，许愿我们永远幸福在一起。' },
-        { country: '希腊', capital: '雅典', continent: '欧洲浪漫', lat: 37.9838, lng: 23.7275, story: '爱琴海的碧波荡漾，在卫城落日下许下爱的诺言。' },
-        { country: '瑞士', capital: '伯尔尼', continent: '欧洲浪漫', lat: 46.9480, lng: 7.4474, story: '阿尔卑斯雪山下的纯净小镇，湖水如童话般清澈湛蓝。' },
-        { country: '冰岛', capital: '雷克雅未克', continent: '欧洲浪漫', lat: 64.1466, lng: -21.9426, story: '世界尽头的极光之境，在蓝湖温泉里并肩看漫天绿色极光。' },
-        { country: '德国', capital: '柏林', continent: '欧洲浪漫', lat: 52.5200, lng: 13.4050, story: '菩提树下大街漫步，古典与现代艺术的迷人交织。' },
-        { country: '西班牙', capital: '马德里', continent: '欧洲浪漫', lat: 40.4168, lng: -3.7038, story: '阳光明媚的普拉多大街，热烈奔放的弗拉门戈艺术。' },
-        { country: '荷兰', capital: '阿姆斯特丹', continent: '欧洲浪漫', lat: 52.3676, lng: 4.9041, story: '浪漫纵横的运河桥梁，与风车郁金香花海相伴。' },
-        { country: '奥地利', capital: '维也纳', continent: '欧洲浪漫', lat: 48.2082, lng: 16.3738, story: '金色大厅的浪漫交响乐，在多瑙河畔牵手漫步。' },
-        { country: '捷克', capital: '布拉格', continent: '欧洲浪漫', lat: 50.0755, lng: 14.4378, story: '查理大桥上的金色黄昏，红屋顶间的童话时光。' },
-        { country: '匈牙利', capital: '布达佩斯', continent: '欧洲浪漫', lat: 47.4979, lng: 19.0402, story: '多瑙河上的链子桥夜色，渔人堡上远眺国会大厦的辉煌。' },
-        { country: '挪威', capital: '奥斯陆', continent: '欧洲浪漫', lat: 59.9139, lng: 10.7522, story: '峡湾与森林的壮丽画卷，在极昼星空下相依。' },
-        { country: '俄罗斯', capital: '莫斯科', continent: '欧洲浪漫', lat: 55.7558, lng: 37.6173, story: '红场斑斓的童话城堡，冬日白雪中的纯洁世界。' },
-        { country: '日本', capital: '东京', continent: '亚洲心动', lat: 35.6762, lng: 139.6503, story: '春天赏满城浪漫樱花，在东京塔下许愿相守一生。' },
-        { country: '韩国', capital: '首尔', continent: '亚洲心动', lat: 37.5665, lng: 126.9780, story: '南山首尔塔上挂同心锁，在汉江边吹晚风吃炸鸡。' },
-        { country: '泰国', capital: '曼谷', continent: '亚洲心动', lat: 13.7563, lng: 100.5018, story: '湄南河畔的夜市烟火，尝香甜的芒果糯米饭与热带晚风。' },
-        { country: '新加坡', capital: '新加坡', continent: '亚洲心动', lat: 1.3521, lng: 103.8198, story: '滨海湾花园的超级树森林，无边泳池看城市天际线。' },
-        { country: '马来西亚', capital: '吉隆坡', continent: '亚洲心动', lat: 3.1390, lng: 101.6869, story: '双子塔夜景璀璨闪耀，热带夜市的美食与香气。' },
-        { country: '马尔代夫', capital: '马累', continent: '亚洲心动', lat: 4.1755, lng: 73.5093, story: '水上屋悬在玻璃般的蔚蓝大海上，看世界上最美的日落晚霞。' },
-        { country: '阿联酋', capital: '阿布扎比', continent: '亚洲心动', lat: 24.4539, lng: 54.3773, story: '纯白宏伟的清真寺穹顶，沙漠绿洲与现代奇迹。' },
-        { country: '土耳其', capital: '安卡拉', continent: '亚洲心动', lat: 39.9334, lng: 32.8597, story: '横跨欧亚大陆的传奇浪漫，在卡帕多奇亚坐热气球看日出。' },
-        { country: '印度尼西亚', capital: '雅加达', continent: '亚洲心动', lat: -6.2088, lng: 106.8456, story: '巴厘岛的海风与梯田，热带岛屿的温柔余晖。' },
-        { country: '越南', capital: '河内', continent: '亚洲心动', lat: 21.0285, lng: 105.8542, story: '还剑湖畔的法式风情街角，品尝浓郁纯正的滴漏咖啡。' },
-        { country: '美国', capital: '华盛顿', continent: '美洲探索', lat: 38.9072, lng: -77.0369, story: '穿越大洋彼岸的广袤大陆，自驾一号公路看太平洋惊涛。' },
-        { country: '加拿大', capital: '渥太华', continent: '美洲探索', lat: 45.4215, lng: -75.6972, story: '枫叶之国的纯美秋色，班夫国家公园的翡翠湖水。' },
-        { country: '巴西', capital: '巴西利亚', continent: '美洲探索', lat: -15.8267, lng: -47.9218, story: '热烈奔放的南美大地，热带雨林与热情的桑巴节日。' },
-        { country: '阿根廷', capital: '布宜诺斯艾利斯', continent: '美洲探索', lat: -34.6037, lng: -58.3816, story: '世界尽头乌斯怀亚的孤独灯塔，探戈舞步里的浪漫与深情。' },
-        { country: '澳大利亚', capital: '堪培拉', continent: '大洋洲海岛', lat: -35.2809, lng: 149.1300, story: '悉尼歌剧院与大堡礁海湾，与袋鼠考拉一起享受南半球阳光。' },
-        { country: '新西兰', capital: '惠灵顿', continent: '大洋洲海岛', lat: -41.2865, lng: 174.7762, story: '中土世界的纯净旷野，皇后镇的纯净星空与雪山湖泊。' },
-        { country: '埃及', capital: '开罗', continent: '非洲远方', lat: 30.0444, lng: 31.2357, story: '尼罗河畔的金字塔与千年星空，见证我们跨越时空的誓言。' },
-        { country: '摩洛哥', capital: '拉巴特', continent: '非洲远方', lat: 34.0209, lng: -6.8416, story: '撒哈拉沙漠的璀璨银河，舍夫沙万梦幻的纯蓝阶梯。' }
+        { country: '法国', capital: '巴黎', continent: '欧洲', lat: 48.8566, lng: 2.3522, story: '塞纳河畔漫步、埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。' },
+        { country: '英国', capital: '伦敦', continent: '欧洲', lat: 51.5074, lng: -0.1278, story: '泰晤士河晚风、大本钟与伦敦眼，在红色双层巴士上看雨景。' },
+        { country: '意大利', capital: '罗马', continent: '欧洲', lat: 41.9028, lng: 12.4964, story: '在许愿池前投下一枚硬币，许愿我们永远幸福在一起。' },
+        { country: '希腊', capital: '雅典', continent: '欧洲', lat: 37.9838, lng: 23.7275, story: '爱琴海的碧波荡漾，在卫城落日下许下爱的诺言。' },
+        { country: '瑞士', capital: '伯尔尼', continent: '欧洲', lat: 46.9480, lng: 7.4474, story: '阿尔卑斯雪山下的纯净小镇，湖水如童话般清澈湛蓝。' },
+        { country: '冰岛', capital: '雷克雅未克', continent: '欧洲', lat: 64.1466, lng: -21.9426, story: '世界尽头的极光之境，在蓝湖温泉里并肩看漫天绿色极光。' },
+        { country: '德国', capital: '柏林', continent: '欧洲', lat: 52.5200, lng: 13.4050, story: '菩提树下大街漫步，古典与现代艺术的迷人交织。' },
+        { country: '西班牙', capital: '马德里', continent: '欧洲', lat: 40.4168, lng: -3.7038, story: '阳光明媚的普拉多大街，热烈奔放的弗拉门戈艺术。' },
+        { country: '荷兰', capital: '阿姆斯特丹', continent: '欧洲', lat: 52.3676, lng: 4.9041, story: '浪漫纵横的运河桥梁，与风车郁金香花海相伴。' },
+        { country: '奥地利', capital: '维也纳', continent: '欧洲', lat: 48.2082, lng: 16.3738, story: '金色大厅的浪漫交响乐，在多瑙河畔牵手漫步。' },
+        { country: '捷克', capital: '布拉格', continent: '欧洲', lat: 50.0755, lng: 14.4378, story: '查理大桥上的金色黄昏，红屋顶间的童话时光。' },
+        { country: '匈牙利', capital: '布达佩斯', continent: '欧洲', lat: 47.4979, lng: 19.0402, story: '多瑙河上的链子桥夜色，渔人堡上远眺国会大厦的辉煌。' },
+        { country: '挪威', capital: '奥斯陆', continent: '欧洲', lat: 59.9139, lng: 10.7522, story: '峡湾与森林的壮丽画卷，在极昼星空下相依。' },
+        { country: '俄罗斯', capital: '莫斯科', continent: '欧洲', lat: 55.7558, lng: 37.6173, story: '红场斑斓的童话城堡，冬日白雪中的纯洁世界。' },
+        { country: '日本', capital: '东京', continent: '亚洲', lat: 35.6762, lng: 139.6503, story: '春天赏满城浪漫樱花，在东京塔下许愿相守一生。' },
+        { country: '韩国', capital: '首尔', continent: '亚洲', lat: 37.5665, lng: 126.9780, story: '南山首尔塔上挂同心锁，在汉江边吹晚风吃炸鸡。' },
+        { country: '泰国', capital: '曼谷', continent: '亚洲', lat: 13.7563, lng: 100.5018, story: '湄南河畔的夜市烟火，尝香甜的芒果糯米饭与热带晚风。' },
+        { country: '新加坡', capital: '新加坡', continent: '亚洲', lat: 1.3521, lng: 103.8198, story: '滨海湾花园的超级树森林，无边泳池看城市天际线。' },
+        { country: '马来西亚', capital: '吉隆坡', continent: '亚洲', lat: 3.1390, lng: 101.6869, story: '双子塔夜景璀璨闪耀，热带夜市的美食与香气。' },
+        { country: '马尔代夫', capital: '马累', continent: '亚洲', lat: 4.1755, lng: 73.5093, story: '水上屋悬在玻璃般的蔚蓝大海上，看世界上最美的日落晚霞。' },
+        { country: '阿联酋', capital: '阿布扎比', continent: '亚洲', lat: 24.4539, lng: 54.3773, story: '纯白宏伟的清真寺穹顶，沙漠绿洲与现代奇迹。' },
+        { country: '土耳其', capital: '安卡拉', continent: '亚洲', lat: 39.9334, lng: 32.8597, story: '横跨欧亚大陆的传奇浪漫，在卡帕多奇亚坐热气球看日出。' },
+        { country: '印度尼西亚', capital: '雅加达', continent: '亚洲', lat: -6.2088, lng: 106.8456, story: '巴厘岛的海风与梯田，热带岛屿的温柔余晖。' },
+        { country: '越南', capital: '河内', continent: '亚洲', lat: 21.0285, lng: 105.8542, story: '还剑湖畔的法式风情街角，品尝浓郁纯正的滴漏咖啡。' },
+        { country: '美国', capital: '华盛顿', continent: '美洲', lat: 38.9072, lng: -77.0369, story: '穿越大洋彼岸的广袤大陆，自驾一号公路看太平洋惊涛。' },
+        { country: '加拿大', capital: '渥太华', continent: '美洲', lat: 45.4215, lng: -75.6972, story: '枫叶之国的纯美秋色，班夫国家公园的翡翠湖水。' },
+        { country: '巴西', capital: '巴西利亚', continent: '美洲', lat: -15.8267, lng: -47.9218, story: '热烈奔放的南美大地，热带雨林与热情的桑巴节日。' },
+        { country: '阿根廷', capital: '布宜诺斯艾利斯', continent: '美洲', lat: -34.6037, lng: -58.3816, story: '世界尽头乌斯怀亚的孤独灯塔，探戈舞步里的浪漫与深情。' },
+        { country: '澳大利亚', capital: '堪培拉', continent: '大洋洲', lat: -35.2809, lng: 149.1300, story: '悉尼歌剧院与大堡礁海湾，与袋鼠考拉一起享受南半球阳光。' },
+        { country: '新西兰', capital: '惠灵顿', continent: '大洋洲', lat: -41.2865, lng: 174.7762, story: '中土世界的纯净旷野，皇后镇的纯净星空与雪山湖泊。' },
+        { country: '埃及', capital: '开罗', continent: '非洲', lat: 30.0444, lng: 31.2357, story: '尼罗河畔的金字塔与千年星空，见证我们跨越时空的誓言。' },
+        { country: '摩洛哥', capital: '拉巴特', continent: '非洲', lat: 34.0209, lng: -6.8416, story: '撒哈拉沙漠的璀璨银河，舍夫沙万梦幻的纯蓝阶梯。' }
       ];
 
       // Initial Curated Footprint Cities
@@ -2469,6 +2721,7 @@
 
       const footprintCities = reactive(initialFootprintCities);
       const selectedMapCity = ref(null);
+      const selectedUnlitCity = ref(null);
       const currentMapFilter = ref('all');
       const modalCityTab = ref('china');
       const searchChinaQuery = ref('');
@@ -2476,6 +2729,10 @@
       const searchWorldQuery = ref('');
       const selectedWorldContinent = ref('全部');
       const showAddCityModal = ref(false);
+      const showAllCityStars = ref(true);
+      const showExplorerDrawer = ref(false);
+      const explorerTab = ref('china');
+      const drawerSearchQuery = ref('');
 
       const newCityForm = reactive({
         name: '',
@@ -2498,7 +2755,7 @@
       });
 
       const chinaRegions = ['全部', '云南浪漫', '华东', '华南', '西南', '华北', '华中', '西北', '东北', '港澳台'];
-      const worldContinents = ['全部', '欧洲浪漫', '亚洲心动', '美洲探索', '大洋洲海岛', '非洲远方'];
+      const worldContinents = ['全部', '欧洲', '亚洲', '美洲', '大洋洲', '非洲'];
 
       const filteredChinaCities = computed(() => {
         return CHINA_CITIES.filter(c => {
@@ -2514,6 +2771,52 @@
           const matchQuery = !searchWorldQuery.value.trim() || w.country.includes(searchWorldQuery.value.trim()) || w.capital.includes(searchWorldQuery.value.trim());
           return matchCont && matchQuery;
         });
+      });
+
+      const groupedChinaCities = computed(() => {
+        const query = (drawerSearchQuery.value || '').trim();
+        const litNames = new Set(footprintCities.filter(c => c.status === 'visited' || c.status === 'home').map(c => c.name.split('·')[0].trim()));
+        
+        const map = {};
+        CHINA_CITIES.forEach(c => {
+          if (query && !c.name.includes(query) && !c.province.includes(query)) return;
+          if (!map[c.province]) {
+            map[c.province] = { province: c.province, region: c.region, cities: [], litCount: 0 };
+          }
+          const isLit = litNames.has(c.name.trim());
+          if (isLit) map[c.province].litCount++;
+          map[c.province].cities.push({ ...c, isLit });
+        });
+        return Object.values(map);
+      });
+
+      const groupedWorldCountries = computed(() => {
+        const query = (drawerSearchQuery.value || '').trim();
+        const litNames = new Set(footprintCities.filter(c => c.status === 'visited' || c.status === 'home').map(c => c.name.split('·')[0].trim()));
+        
+        const map = {};
+        WORLD_COUNTRIES.forEach(w => {
+          if (query && !w.country.includes(query) && !w.capital.includes(query)) return;
+          if (!map[w.continent]) {
+            map[w.continent] = { continent: w.continent, items: [], litCount: 0 };
+          }
+          const isLit = litNames.has(w.country.trim()) || litNames.has(w.capital.trim());
+          if (isLit) map[w.continent].litCount++;
+          map[w.continent].items.push({ ...w, isLit });
+        });
+        return Object.values(map);
+      });
+
+      const chinaLitStats = computed(() => {
+        const litNames = new Set(footprintCities.filter(c => c.status === 'visited' || c.status === 'home').map(c => c.name.split('·')[0].trim()));
+        const lit = CHINA_CITIES.filter(c => litNames.has(c.name.trim())).length;
+        return { lit, total: CHINA_CITIES.length };
+      });
+
+      const worldLitStats = computed(() => {
+        const litNames = new Set(footprintCities.filter(c => c.status === 'visited' || c.status === 'home').map(c => c.name.split('·')[0].trim()));
+        const lit = WORLD_COUNTRIES.filter(w => litNames.has(w.capital.trim()) || litNames.has(w.country.trim())).length;
+        return { lit, total: WORLD_COUNTRIES.length };
       });
 
       const selectPresetChinaCity = (c) => {
@@ -2536,7 +2839,22 @@
 
       let worldMap = null;
       let mapMarkersGroup = null;
+      let unlitMarkersGroup = null;
       let mapTrailLine = null;
+      let tileLayers = {};
+      const currentMapTile = ref('autonavi');
+
+      const switchMapTile = (type) => {
+        if (!worldMap || !tileLayers[type]) return;
+        currentMapTile.value = type;
+        Object.keys(tileLayers).forEach(k => {
+          if (worldMap.hasLayer(tileLayers[k])) {
+            worldMap.removeLayer(tileLayers[k]);
+          }
+        });
+        tileLayers[type].addTo(worldMap);
+        if (tileLayers[type].bringToBack) tileLayers[type].bringToBack();
+      };
 
       const initWorldMap = () => {
         if (!window.L) return;
@@ -2555,16 +2873,30 @@
 
         L.control.zoom({ position: 'topright' }).addTo(worldMap);
 
-        const baseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-          attribution: '&copy; Esri &copy; OpenStreetMap',
-          maxZoom: 16,
-          className: 'romantic-map-tiles'
-        });
-        baseLayer.on('tileerror', function(error, tile) {
-          tile.src = 'https://tile.openstreetmap.org/' + error.coords.z + '/' + error.coords.x + '/' + error.coords.y + '.png';
-        });
-        baseLayer.addTo(worldMap);
+        // Multi-source tile layers: AutoNavi Chinese (100ms ultra-fast in China) + Esri Global Street + Esri Minimalist Gray
+        tileLayers = {
+          autonavi: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+            subdomains: '1234',
+            maxZoom: 18,
+            minZoom: 2,
+            attribution: '&copy; ???? AutoNavi',
+            className: 'romantic-map-tiles'
+          }),
+          esriStreet: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18,
+            minZoom: 2,
+            attribution: '&copy; Esri WorldStreetMap',
+            className: 'romantic-map-tiles'
+          }),
+          esriGray: L.layerGroup([
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 2 }),
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 2 })
+          ])
+        };
 
+        tileLayers[currentMapTile.value].addTo(worldMap);
+
+        unlitMarkersGroup = L.layerGroup().addTo(worldMap);
         mapMarkersGroup = L.layerGroup().addTo(worldMap);
 
         renderMapMarkers();
@@ -2581,24 +2913,29 @@
       const renderMapMarkers = () => {
         if (!worldMap || !mapMarkersGroup) return;
         mapMarkersGroup.clearLayers();
+        if (unlitMarkersGroup) unlitMarkersGroup.clearLayers();
         if (mapTrailLine) {
           worldMap.removeLayer(mapTrailLine);
           mapTrailLine = null;
         }
 
+        const litCityNames = new Set();
         const filtered = footprintCities.filter(c => {
           if (currentMapFilter.value === 'visited') return c.status === 'visited' || c.status === 'home';
           if (currentMapFilter.value === 'wish') return c.status === 'wish';
           return true;
         });
 
+        // 1. Render Lit & Wish Badges
         filtered.forEach(city => {
+          const rawName = (city.name || '').split('·')[0].trim();
+          litCityNames.add(rawName);
+
           const isVisited = city.status === 'visited';
           const isHome = city.status === 'home';
           const bgClass = isVisited ? 'bg-gradient-to-tr from-rose-500 to-blush-400 text-white' : (isHome ? 'bg-gradient-to-tr from-amber-600 to-orange-400 text-white' : 'bg-gradient-to-tr from-teal-500 to-emerald-400 text-white');
           const iconChar = isVisited ? '♥' : (isHome ? '🏠' : '✈️');
           const pingHtml = isVisited ? '<span class="marker-ping-halo"></span>' : '';
-          const cleanName = (city.name || '').split('·')[0].trim();
 
           const customIcon = L.divIcon({
             className: 'custom-love-div-icon',
@@ -2608,7 +2945,7 @@
                   ${pingHtml}
                   <span style="font-size: 14px; font-weight: bold; line-height: 1;">${iconChar}</span>
                 </div>
-                <div class="love-marker-label">${cleanName}</div>
+                <div class="love-marker-label">${rawName}</div>
               </div>
             `,
             iconSize: [32, 54],
@@ -2623,6 +2960,7 @@
           mapMarkersGroup.addLayer(marker);
         });
 
+        // 2. Render Connecting Trail
         const visitedLatLngs = footprintCities
           .filter(c => c.status === 'visited' || c.status === 'home')
           .map(c => [c.lat, c.lng]);
@@ -2635,9 +2973,125 @@
             opacity: 0.7
           }).addTo(worldMap);
         }
+
+        // 3. Render Unlit Constellation Stars (Every City in China + World Capitals)
+        if (showAllCityStars.value && unlitMarkersGroup) {
+          CHINA_CITIES.forEach(c => {
+            const cityName = c.name.split('·')[0].trim();
+            if (litCityNames.has(cityName)) return;
+
+            const unlitIcon = L.divIcon({
+              className: 'custom-unlit-div-icon',
+              html: `
+                <div class="unlit-marker-wrapper" title="轻点点亮 ${c.name} · ${c.province}">
+                  <span class="unlit-marker-dot"></span>
+                  <span class="unlit-marker-label">${c.name}</span>
+                </div>
+              `,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            });
+
+            const unlitMarker = L.marker([c.lat, c.lng], { icon: unlitIcon });
+            unlitMarker.on('click', (e) => {
+              L.DomEvent.stopPropagation(e);
+              promptUnlitClick(c, 'china');
+            });
+            unlitMarkersGroup.addLayer(unlitMarker);
+          });
+
+          WORLD_COUNTRIES.forEach(w => {
+            const capName = w.capital.trim();
+            if (litCityNames.has(capName)) return;
+
+            const unlitIcon = L.divIcon({
+              className: 'custom-unlit-div-icon',
+              html: `
+                <div class="unlit-marker-wrapper" title="轻点点亮 ${w.country} · ${w.capital}">
+                  <span class="unlit-marker-dot" style="background: #0D9488; box-shadow: 0 0 8px rgba(13,148,136,0.7);"></span>
+                  <span class="unlit-marker-label">${w.capital}</span>
+                </div>
+              `,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            });
+
+            const unlitMarker = L.marker([w.lat, w.lng], { icon: unlitIcon });
+            unlitMarker.on('click', (e) => {
+              L.DomEvent.stopPropagation(e);
+              promptUnlitClick(w, 'world');
+            });
+            unlitMarkersGroup.addLayer(unlitMarker);
+          });
+        }
+      };
+
+      const promptUnlitClick = (item, type) => {
+        selectedMapCity.value = null;
+        selectedUnlitCity.value = { ...item, type };
+      };
+
+      const openCustomModalForUnlit = () => {
+        if (!selectedUnlitCity.value) return;
+        const item = selectedUnlitCity.value;
+        if (item.type === 'china') {
+          selectPresetChinaCity(item);
+        } else {
+          selectPresetWorldCountry(item);
+        }
+        selectedUnlitCity.value = null;
+        showAddCityModal.value = true;
+      };
+
+      const confirmOneClickLightUp = () => {
+        if (!selectedUnlitCity.value) return;
+        const item = selectedUnlitCity.value;
+        oneClickLightUp(item, item.type);
+        selectedUnlitCity.value = null;
+      };
+
+      const oneClickLightUp = async (item, type) => {
+        const isChina = type === 'china';
+        const name = isChina ? (item.name + ' · ' + item.province) : (item.country + ' · ' + item.capital);
+        const province = isChina ? item.province : item.country;
+        const newCity = {
+          id: 'city_' + Date.now(),
+          name: name,
+          province: province,
+          lat: item.lat,
+          lng: item.lng,
+          status: 'visited',
+          date: '2026',
+          tag: isChina ? '中国足迹 · 已点亮 ♥' : '世界足迹 · 首都已点亮 ♥',
+          story: isChina ? ('想和全世界仅此一个的悦悦大王，漫步在' + item.name + '的街头巷尾，看尽人间烟火。') : (item.story || '留下一生一次的浪漫印记。'),
+          image: './images/hero_cover.jpg'
+        };
+
+        const existingIdx = footprintCities.findIndex(c => c.name.includes(item.name || item.capital));
+        if (existingIdx !== -1) {
+          footprintCities[existingIdx].status = 'visited';
+        } else {
+          footprintCities.push(newCity);
+        }
+
+        renderMapMarkers();
+        triggerConfetti();
+
+        if (worldMap) {
+          worldMap.flyTo([newCity.lat, newCity.lng], 6, { duration: 1.2 });
+          setTimeout(() => { selectMapCity(newCity); }, 1300);
+        }
+
+        await saveFootprintToCloud();
+      };
+
+      const toggleAllCityStars = () => {
+        showAllCityStars.value = !showAllCityStars.value;
+        renderMapMarkers();
       };
 
       const selectMapCity = (city) => {
+        selectedUnlitCity.value = null;
         selectedMapCity.value = city;
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
@@ -2797,7 +3251,6 @@
         setTimeout(() => { saveMessage.value = ''; }, 2500);
       };
 
-
       return {
         siteData,
         timer,
@@ -2889,6 +3342,24 @@
         toggleCityStatus,
         removeCityFootprint,
         toggleMusic
+      ,
+        // Interactive Footprint Starfield, City Drawer & Multi-Tile Engine
+        selectedUnlitCity,
+        showAllCityStars,
+        showExplorerDrawer,
+        explorerTab,
+        drawerSearchQuery,
+        groupedChinaCities,
+        groupedWorldCountries,
+        chinaLitStats,
+        worldLitStats,
+        toggleAllCityStars,
+        confirmOneClickLightUp,
+        openCustomModalForUnlit,
+        oneClickLightUp,
+        promptUnlitClick,
+        currentMapTile,
+        switchMapTile
       };
     }
   }).mount('#app');
