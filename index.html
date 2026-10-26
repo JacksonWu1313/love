@@ -1963,7 +1963,6 @@
         }
       };
 
-
       // Scheme 1: Huawei HarmonyOS 7 & PWA Support
       const showHarmonyGuideModal = ref(false);
       const isPwaInstalled = ref(false);
@@ -2005,17 +2004,17 @@
         activeStoryPhoto.value.story = editingStoryText.value.trim();
         saveMessage.value = '正在将故事便签同步至云端...';
         try {
-          const regUrl = https://api.github.com/repos//contents/data/photo_pool.json;
-          const getReg = await fetch(regUrl, { headers: { 'Authorization': Bearer  } });
+          const regUrl = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/data/photo_pool.json';
+          const getReg = await fetch(regUrl, { headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN } });
           let sha = null;
           if (getReg.ok) sha = (await getReg.json()).sha;
           await fetch(regUrl, {
             method: 'PUT',
-            headers: { 'Authorization': Bearer , 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              message: eat: Update story note for photo ,
+              message: 'feat: Update story note for photo ' + (activeStoryPhoto.value.title || ''),
               content: btoa(unescape(encodeURIComponent(JSON.stringify(siteData.photoPool, null, 2)))),
-              sha
+              sha: sha
             })
           });
           saveMessage.value = '📖 回忆故事已珍藏并同步 ♥';
@@ -2031,11 +2030,13 @@
         const pool = siteData.photoPool || [];
         if (pool.length === 0) return null;
         const now = new Date();
-        const mmdd = ${String(now.getMonth() + 1).padStart(2, '0')}-;
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mmdd = mm + '-' + dd;
         const match = pool.find(p => p.date && p.date.includes(mmdd));
         if (match) {
           return {
-            badge: ✨ 那年今日 · ,
+            badge: '✨ 那年今日 · ' + match.date,
             title: match.title || '那天留下的甜蜜记忆',
             story: match.story || '每一张照片都在诉说着当时的喜欢。',
             photo: match
