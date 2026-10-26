@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Love Story | 伍彦博 & 悦悦大王 数字纪念馆</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FAF7F2',
+            warmwhite: '#FFFDF9',
+            sand: '#F4ECE1',
+            blush: {
+              50: '#FFF5F5',
+              100: '#FED7D7',
+              200: '#FEB2B2',
+              300: '#F5A3A3',
+              400: '#E87A7A',
+              500: '#D95D5D',
+            },
+            sage: {
+              100: '#E6EBE0',
+              200: '#CBD5C0',
+              500: '#8A9A7B',
+            },
+            clay: '#A26769',
+            ink: '#2D2A26',
+            muted: '#766E65',
+          },
+          fontFamily: {
+            serif: ['"Noto Serif SC"', 'serif'],
+            display: ['"Playfair Display"', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          boxShadow: {
+            'soft': '0 10px 30px -10px rgba(162, 103, 105, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02)',
+            'float': '0 20px 40px -15px rgba(217, 93, 93, 0.12)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FAF7F2;
+      color: #2D2A26;
+      font-family: 'Plus Jakarta Sans', "Noto Serif SC", sans-serif;
+      scroll-behavior: smooth;
+    }
+    .text-serif-sc {
+      font-family: "Noto Serif SC", serif;
+    }
+    .glass-card {
+      background: rgba(255, 253, 249, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(244, 236, 225, 0.8);
+    }
+    @keyframes pulse-gentle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .heart-beat {
+      animation: pulse-gentle 2.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="selection:bg-blush-200 selection:text-ink">
+
+  <!-- Floating Audio Player (BGM Placeholder) -->
+  <div class="fixed top-5 right-5 z-50">
+    <button id="musicToggle" class="glass-card px-4 py-2.5 rounded-full shadow-soft flex items-center space-x-2 text-xs text-muted hover:text-blush-500 hover:shadow-float transition duration-300">
+      <i data-lucide="music" class="w-3.5 h-3.5"></i>
+      <span id="musicText">专属BGM: 播放浪漫</span>
+      <span class="w-2 h-2 rounded-full bg-sage-500 animate-pulse"></span>
+    </button>
+    <audio id="bgMusic" loop preload="none">
+      <source src="https://assets.mixkit.co/music/preview/mixkit-loving-you-117.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <!-- Hero Section -->
+  <header class="relative min-h-[92vh] flex flex-col items-center justify-center text-center px-4 pt-16 pb-12 overflow-hidden">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-blush-100 rounded-full filter blur-3xl opacity-50 pointer-events-none"></div>
+    <div class="absolute top-1/2 -right-32 w-96 h-96 bg-sage-100 rounded-full filter blur-3xl opacity-50 pointer-events-none"></div>
+
+    <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blush-50 border border-blush-100 text-blush-500 text-xs font-medium mb-6">
+      <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+      <span>Our Exclusive Digital Memory Archive</span>
+    </div>
+
+    <h1 class="text-4xl md:text-6xl lg:text-7xl font-display font-medium text-ink tracking-tight mb-4">
+      伍彦博 <span class="text-blush-400 font-serif heart-beat inline-block cursor-pointer" id="heroHeart" title="双击有彩蛋哦！">♥</span> 悦悦大王
+    </h1>
+    <p class="text-xs md:text-sm uppercase tracking-widest text-muted mb-8 font-light">
+      YANBO & YUEYUE · FOREVER TOGETHER
+    </p>
+
+    <!-- Golden Quote -->
+    <div class="max-w-xl mx-auto glass-card px-6 py-4 rounded-2xl shadow-soft mb-12">
+      <p class="text-serif-sc text-base md:text-lg text-clay italic">
+        “全世界仅此一个的我，尽情幸福吧。”
+      </p>
+      <span class="block text-right text-xs text-muted mt-2 font-sans">— 我们的独家默契宣言</span>
+    </div>
+
+    <!-- Love Timer -->
+    <div class="w-full max-w-3xl glass-card rounded-3xl p-6 md:p-8 shadow-float border border-white/60 mb-8">
+      <p class="text-xs uppercase tracking-widest text-muted mb-6 font-medium">我们相伴的每一个心动时刻</p>
+      <div class="grid grid-cols-4 gap-3 md:gap-6" id="timerGrid">
+        <div class="bg-warmwhite/90 p-4 rounded-2xl border border-sand">
+          <span class="block font-display text-3xl md:text-5xl font-semibold text-clay" id="days">0</span>
+          <span class="text-xs text-muted mt-1 uppercase tracking-wider">Days 天</span>
+        </div>
+        <div class="bg-warmwhite/90 p-4 rounded-2xl border border-sand">
+          <span class="block font-display text-3xl md:text-5xl font-semibold text-clay" id="hours">0</span>
+          <span class="text-xs text-muted mt-1 uppercase tracking-wider">Hours 时</span>
+        </div>
+        <div class="bg-warmwhite/90 p-4 rounded-2xl border border-sand">
+          <span class="block font-display text-3xl md:text-5xl font-semibold text-clay" id="minutes">0</span>
+          <span class="text-xs text-muted mt-1 uppercase tracking-wider">Mins 分</span>
+        </div>
+        <div class="bg-warmwhite/90 p-4 rounded-2xl border border-sand">
+          <span class="block font-display text-3xl md:text-5xl font-semibold text-blush-400" id="seconds">0</span>
+          <span class="text-xs text-muted mt-1 uppercase tracking-wider">Secs 秒</span>
+        </div>
+      </div>
+      <p class="text-xs text-muted mt-5">从 2026年4月30日 18:23:10 起航 · 时钟永不停歇</p>
+    </div>
+
+    <a href="#timeline" class="inline-flex items-center space-x-1.5 text-xs text-muted hover:text-ink transition duration-300 mt-2">
+      <span>向下翻阅我们的时光</span>
+      <i data-lucide="chevron-down" class="w-4 h-4 animate-bounce"></i>
+    </a>
+  </header>
+
+  <!-- Section 1: 时光轨迹画廊 (Timeline) -->
+  <section id="timeline" class="py-20 px-4 max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+      <div class="inline-block p-2 rounded-2xl bg-sand/60 mb-3">
+        <i data-lucide="calendar-heart" class="w-5 h-5 text-clay"></i>
+      </div>
+      <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">时光轨迹 · 里程碑画廊</h2>
+      <p class="text-xs text-muted mt-2 tracking-wide">6个月 180天，定格在我们对话里的每一个瞬间</p>
+    </div>
+
+    <div class="relative border-l-2 border-blush-100 ml-4 md:ml-32 pl-6 md:pl-10 space-y-12">
+
+      <!-- Milestone 1 -->
+      <div class="relative group">
+        <div class="absolute -left-[31px] md:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-blush-400 border-4 border-warmwhite shadow-sm group-hover:scale-125 transition duration-300"></div>
+        <div class="glass-card p-6 md:p-8 rounded-3xl shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="px-3 py-1 rounded-full bg-blush-50 text-blush-500 text-xs font-semibold">2026年4月30日</span>
+            <span class="text-xs text-muted flex items-center gap-1"><i data-lucide="heart" class="w-3.5 h-3.5 text-blush-400"></i> 起点：心动启航</span>
+          </div>
+          <h3 class="text-lg font-serif font-semibold text-ink mb-2">相伴的开篇与最初的约定</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            从这一刻开始，两个人在彼此的宇宙里有了专属的名字。对话框亮起的每一次震动，都变成了生活里最期待的信号。
+          </p>
+          <div class="p-3.5 rounded-2xl bg-sand/40 border border-sand/70 text-xs text-clay italic">
+            “照片里加了什么 我不懂 好幸福。”
+          </div>
+          <div class="mt-4 overflow-hidden rounded-2xl max-h-64 border border-sand shadow-sm">
+            <img src="./images/may_coffee.jpg" alt="心动启航" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy">
+          </div>
+        </div>
+      </div>
+
+      <!-- Milestone 2 -->
+      <div class="relative group">
+        <div class="absolute -left-[31px] md:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-sage-500 border-4 border-warmwhite shadow-sm group-hover:scale-125 transition duration-300"></div>
+        <div class="glass-card p-6 md:p-8 rounded-3xl shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="px-3 py-1 rounded-full bg-sage-100 text-sage-500 text-xs font-semibold">2026年5月 ~ 6月</span>
+            <span class="text-xs text-muted flex items-center gap-1"><i data-lucide="coffee" class="w-3.5 h-3.5 text-sage-500"></i> 校园步调深度嵌合</span>
+          </div>
+          <h3 class="text-lg font-serif font-semibold text-ink mb-2">课表同步、外卖代取与期末打气</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            “早十嘛”、“一上午的课”、“是我没签到到”……无论上课多忙，总记得找东门外卖代拿到敏七，在每一个日常细节里互相照顾。
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-4">
+            <div class="p-3 rounded-2xl bg-sand/30 border border-sand">
+              <span class="font-medium text-ink block mb-1">日常原话：</span>
+              <p class="text-muted italic">“宝宝你看我今天的课表。”</p>
+            </div>
+            <div class="p-3 rounded-2xl bg-sand/30 border border-sand">
+              <span class="font-medium text-ink block mb-1">专属打卡：</span>
+              <p class="text-muted italic">“一杯热美式，吃鸡块不蘸酱。”</p>
+            </div>
+          </div>
+          <div class="overflow-hidden rounded-2xl max-h-64 border border-sand shadow-sm">
+            <img src="./images/june_study.jpg" alt="校园日常" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy">
+          </div>
+        </div>
+      </div>
+
+      <!-- Milestone 3 -->
+      <div class="relative group">
+        <div class="absolute -left-[31px] md:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-blush-400 border-4 border-warmwhite shadow-sm group-hover:scale-125 transition duration-300"></div>
+        <div class="glass-card p-6 md:p-8 rounded-3xl shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="px-3 py-1 rounded-full bg-blush-50 text-blush-500 text-xs font-semibold">2026年7月 ~ 8月</span>
+            <span class="text-xs text-muted flex items-center gap-1"><i data-lucide="flame" class="w-3.5 h-3.5 text-blush-400"></i> 暑期峰值：515张美照</span>
+          </div>
+          <h3 class="text-lg font-serif font-semibold text-ink mb-2">跨越空间的依恋爆发与专属福利</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            单月分享超过500张图片！即使暑假分隔两地，每一顿饭、每一次出门自拍都毫无保留地发给对方——“再奖励你一张嘛”、“女神一下”！
+          </p>
+          <div class="p-3.5 rounded-2xl bg-blush-50/70 border border-blush-100 text-xs text-blush-500 italic mb-4">
+            “我越来越离不开你了，我只想好好和你在一起。”
+          </div>
+          <div class="overflow-hidden rounded-2xl max-h-64 border border-sand shadow-sm">
+            <img src="./images/aug_vacation.jpg" alt="暑期峰值" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy">
+          </div>
+        </div>
+      </div>
+
+      <!-- Milestone 4 -->
+      <div class="relative group">
+        <div class="absolute -left-[31px] md:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-clay border-4 border-warmwhite shadow-sm group-hover:scale-125 transition duration-300"></div>
+        <div class="glass-card p-6 md:p-8 rounded-3xl shadow-soft">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="px-3 py-1 rounded-full bg-sand text-clay text-xs font-semibold">2026年9月 ~ 10月</span>
+            <span class="text-xs text-muted flex items-center gap-1"><i data-lucide="smile" class="w-3.5 h-3.5 text-clay"></i> 成熟磨合与温柔坚定</span>
+          </div>
+          <h3 class="text-lg font-serif font-semibold text-ink mb-2">把小情绪化作更懂彼此的养分</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            两个人在一起最珍贵的不是从不拌嘴，而是每一次有了小情绪都能被温柔接住，用极高情商让感情更加坚不可摧。
+          </p>
+          <div class="space-y-2 text-xs mb-4">
+            <div class="p-3 rounded-2xl bg-sand/30 border border-sand text-muted italic">
+              “老婆说我坏坏我可伤心了[委屈] —— 好啦不委屈，打嘴嘴好不好？”
+            </div>
+            <div class="p-3 rounded-2xl bg-sand/30 border border-sand text-clay font-medium italic">
+              “我是想通过这个让我们磨合的更好，剩下的交给我。”
+            </div>
+          </div>
+          <div class="overflow-hidden rounded-2xl max-h-64 border border-sand shadow-sm">
+            <img src="./images/oct_daily.jpg" alt="金秋深情" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: 快乐储藏罐 (Happiness Vault) -->
+  <section class="py-20 px-4 bg-sand/30 border-y border-sand/70">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="inline-block p-2 rounded-2xl bg-warmwhite mb-3 shadow-soft">
+        <i data-lucide="sparkles" class="w-5 h-5 text-blush-400"></i>
+      </div>
+      <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">快乐储藏罐 · 随机心动卡</h2>
+      <p class="text-xs text-muted mt-2 tracking-wide">按下按钮，随机翻开我们聊天记录里的一句甜言密语或搞笑日常</p>
+
+      <!-- Draw Box -->
+      <div class="mt-8 glass-card rounded-3xl p-8 md:p-12 shadow-float max-w-xl mx-auto border border-white">
+        <div id="quoteDisplay" class="min-h-[90px] flex items-center justify-center">
+          <p class="text-serif-sc text-lg md:text-xl text-clay font-medium transition duration-300" id="quoteText">
+            “点我一下，抽取我们专属的今日快乐 🍬”
+          </p>
+        </div>
+        <p class="text-xs text-muted mt-3" id="quoteAuthor">— 对话记忆库</p>
+
+        <button id="drawBtn" class="mt-6 px-7 py-3 rounded-full bg-blush-400 hover:bg-blush-500 text-white text-xs font-semibold tracking-wider uppercase shadow-soft hover:shadow-float transform active:scale-95 transition duration-300 inline-flex items-center space-x-2">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>抽取专属甜蜜语录</span>
+        </button>
+      </div>
+
+      <!-- Tag Cloud -->
+      <div class="mt-12">
+        <p class="text-xs uppercase tracking-widest text-muted mb-4 font-medium">我们的独家默契高频词</p>
+        <div class="flex flex-wrap justify-center gap-2.5 max-w-2xl mx-auto">
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-clay border border-sand shadow-sm">👑 悦悦大王</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-sage-500 border border-sand shadow-sm">🌱 耐嚼的四季豆</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-blush-500 border border-sand shadow-sm">☕ 一杯热美式</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-ink border border-sand shadow-sm">🛵 东门外卖敏七</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-clay border border-sand shadow-sm">💋 打嘴嘴好不好</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-blush-400 border border-sand shadow-sm">🥰 再奖励你一张嘛</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-muted border border-sand shadow-sm">📅 早十课表</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-sage-500 border border-sand shadow-sm">🏀 余姚小哈登</span>
+          <span class="px-3.5 py-1.5 rounded-full bg-warmwhite text-xs text-clay border border-sand shadow-sm">✨ 尽情幸福吧</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: 未来胶囊与愿望池 (Bucket List) -->
+  <section class="py-20 px-4 max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <div class="inline-block p-2 rounded-2xl bg-sand/60 mb-3">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-clay"></i>
+      </div>
+      <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">未来愿望池 · 恋爱打卡清单</h2>
+      <p class="text-xs text-muted mt-2 tracking-wide">所有关于“下次”与“以后”的诺言，我们一个一个去实现</p>
+    </div>
+
+    <div class="glass-card rounded-3xl p-6 md:p-8 shadow-soft">
+      <!-- Input for new wishes -->
+      <form id="wishForm" class="flex gap-2 mb-6">
+        <input type="text" id="wishInput" placeholder="输入我们新的约定（如：去大理看洱海日出）..." class="flex-1 px-4 py-2.5 rounded-2xl bg-warmwhite border border-sand text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-200 transition">
+        <button type="submit" class="px-5 py-2.5 rounded-2xl bg-clay text-white text-xs font-medium hover:bg-clay/90 transition shadow-sm">
+          许下心愿
+        </button>
+      </form>
+
+      <!-- Wishes Checklist -->
+      <div class="space-y-3" id="wishList">
+        <!-- Wish Items injected by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: 趣味数据洞察雷达 (Data Insights) -->
+  <section class="py-20 px-4 bg-sand/20 border-t border-sand/70">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <div class="inline-block p-2 rounded-2xl bg-warmwhite mb-3 shadow-soft">
+          <i data-lucide="bar-chart-2" class="w-5 h-5 text-sage-500"></i>
+        </div>
+        <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">默契档案 · 趣味数字洞察</h2>
+        <p class="text-xs text-muted mt-2 tracking-wide">基于半年4944条多媒体与万条对话的真实情感度量</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div class="glass-card p-6 rounded-3xl shadow-soft text-center">
+          <span class="block text-3xl md:text-4xl font-display font-semibold text-clay mb-1">180</span>
+          <span class="text-xs text-muted">连续记录天数 (天)</span>
+        </div>
+        <div class="glass-card p-6 rounded-3xl shadow-soft text-center">
+          <span class="block text-3xl md:text-4xl font-display font-semibold text-blush-400 mb-1">2,176</span>
+          <span class="text-xs text-muted">解密大图与相片 (张)</span>
+        </div>
+        <div class="glass-card p-6 rounded-3xl shadow-soft text-center">
+          <span class="block text-3xl md:text-4xl font-display font-semibold text-sage-500 mb-1">1,348</span>
+          <span class="text-xs text-muted">情侣专属动态贴纸 (次)</span>
+        </div>
+        <div class="glass-card p-6 rounded-3xl shadow-soft text-center">
+          <span class="block text-3xl md:text-4xl font-display font-semibold text-clay mb-1">00:30</span>
+          <span class="text-xs text-muted">平均最晚入睡约定 (时)</span>
+        </div>
+      </div>
+
+      <!-- Feature Card: Love Radar -->
+      <div class="mt-8 glass-card p-8 rounded-3xl shadow-soft grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="space-y-2">
+          <h4 class="font-serif font-semibold text-ink text-sm">💡 互动习惯小揭秘</h4>
+          <p class="text-xs text-muted leading-relaxed">
+            双方具有高度对称的问候节律：晨起互相播报“早十”与课表，午间互问午餐，夜晚互道“我要十二点半睡觉了”。
+          </p>
+        </div>
+        <div class="space-y-2">
+          <h4 class="font-serif font-semibold text-ink text-sm">💖 情绪自愈力评级：SSS</h4>
+          <p class="text-xs text-muted leading-relaxed">
+            绝不冷战！面对分歧平均在5分钟内完成“真诚道歉+幽默化解+长远承诺”的完美闭环。
+          </p>
+        </div>
+        <div class="space-y-2">
+          <h4 class="font-serif font-semibold text-ink text-sm">📸 摄影与分享欲望峰值</h4>
+          <p class="text-xs text-muted leading-relaxed">
+            2026年8月创下单月515张相片互发的历史纪录，涵盖美食打卡、出行自拍与生活写实。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: 专属情书与隐藏彩蛋 (Letter & Easter Egg) -->
+  <section class="py-24 px-4 text-center">
+    <div class="max-w-xl mx-auto">
+      <button id="openLetterBtn" class="glass-card px-8 py-4 rounded-3xl shadow-float hover:scale-105 border border-blush-200 text-clay font-serif font-medium text-base inline-flex items-center space-x-2 transition duration-300 group">
+        <i data-lucide="mail-heart" class="w-5 h-5 text-blush-400 group-hover:rotate-12 transition"></i>
+        <span>拆开给悦悦大王的专属手写信 ✉️</span>
+      </button>
+      <p class="text-xs text-muted mt-3">点击触发全屏甜蜜彩蛋烟花</p>
+    </div>
+  </section>
+
+  <!-- Letter Modal -->
+  <div id="letterModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-warmwhite max-w-lg w-full rounded-3xl p-8 shadow-2xl border border-sand relative transform scale-95 transition-transform duration-300" id="letterContent">
+      <button id="closeLetterBtn" class="absolute top-5 right-5 text-muted hover:text-ink">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="text-center mb-6">
+        <span class="inline-block px-3 py-1 bg-blush-50 text-blush-400 rounded-full text-xs font-serif">A Letter To My Love</span>
+        <h3 class="font-serif text-2xl font-bold text-ink mt-2">致我全世界仅此一个的悦悦大王</h3>
+      </div>
+      <div class="space-y-4 text-xs md:text-sm text-muted leading-relaxed font-serif text-justify border-t border-b border-sand/70 py-6">
+        <p>亲爱的悦悦大王：</p>
+        <p>从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。手机里存下的两千多张照片，记录了你每一次可爱的撒娇、每一杯热美式、每一次签到时的糊涂，还有你发给我的每一张自拍。</p>
+        <p>谢谢你每次在我大声说话后给我的宽恕，也谢谢你让我学会如何成为一个更有担当、更能给予安全感的伴侣。就像聊天里说的那样：“我是想通过这个让我们磨合的更好，剩下的交给我。”</p>
+        <p>我越来越离不开你了，我只想好好和你在一起。全世界仅此一个的你，我们要一直一直尽情幸福下去。</p>
+        <p class="text-right text-clay font-semibold mt-4">爱你的 彦博 ♥</p>
+      </div>
+      <div class="text-center mt-6">
+        <button id="modalConfettiBtn" class="px-6 py-2 rounded-full bg-blush-400 text-white text-xs font-semibold shadow-soft hover:bg-blush-500 transition">
+          放礼花庆祝！🎉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="py-8 text-center text-xs text-muted border-t border-sand/60">
+    <p>Designed with Love for 伍彦博 & 悦悦大王</p>
+    <p class="mt-1 font-mono text-[10px] text-muted/60">Permanent Couple Memory Archive · 2026</p>
+  </footer>
+
+  <!-- Script -->
+  <script>
+    lucide.createIcons();
+
+    // 1. Love Timer
+    const startDate = new Date(2026, 3, 30, 18, 23, 10);
+    function updateTimer() {
+      const now = new Date();
+      const diff = now - startDate;
+
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+
+        document.getElementById('days').innerText = days;
+        document.getElementById('hours').innerText = hours;
+        document.getElementById('minutes').innerText = minutes;
+        document.getElementById('seconds').innerText = seconds;
+      }
+    }
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    // 2. Happiness Vault
+    const quotes = [
+      { text: "“宝宝你看我今天的课表。”", author: "日常撒娇播报" },
+      { text: "“全世界仅此一个的我，尽情幸福吧。”", author: "悦悦大王 默契宣言" },
+      { text: "“我越来越离不开你了，我只想好好和你在一起。”", author: "深情告白" },
+      { text: "“老婆说我坏坏我可伤心了[委屈]”", author: "彦博的委屈时刻" },
+      { text: "“好啦不委屈，打嘴嘴好不好？”", author: "悦悦大王 温柔哄哄" },
+      { text: "“我不该那么大声说你，谢宝宝大人宽恕。”", author: "秒级道歉求原谅" },
+      { text: "“再奖励你一张嘛，女神一下！”", author: "悦悦大王 的美照福利" },
+      { text: "“我是想通过这个让我们磨合的更好，剩下的交给我。”", author: "彦博的坚定承诺" },
+      { text: "“找东门外卖代拿到敏七，一杯热美式。”", author: "校园生活日常" },
+      { text: "“比想象中好看！”", author: "生活惊喜定格" },
+      { text: "“我要十二点半睡觉了，晚安宝宝。”", author: "深夜甜甜入睡" }
+    ];
+
+    const drawBtn = document.getElementById('drawBtn');
+    const quoteText = document.getElementById('quoteText');
+    const quoteAuthor = document.getElementById('quoteAuthor');
+
+    drawBtn.addEventListener('click', () => {
+      quoteText.classList.add('opacity-0', 'scale-95');
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        quoteText.innerText = quotes[randomIndex].text;
+        quoteAuthor.innerText = '— ' + quotes[randomIndex].author;
+        quoteText.classList.remove('opacity-0', 'scale-95');
+        confetti({
+          particleCount: 25,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#FEB2B2', '#CBD5C0', '#F4ECE1']
+        });
+      }, 200);
+    });
+
+    // 3. Bucket List (LocalStorage)
+    const defaultWishes = [
+      { text: "去一次大理双廊，看洱海日落与晚霞", done: false },
+      { text: "拍一组穿学士服的情侣毕业专属写真", done: false },
+      { text: "一起看一场演唱会，在全场大合唱时拥抱", done: true },
+      { text: "去余姚主场看一场精彩的篮球比赛", done: false },
+      { text: "冬天一起煮一顿热气腾腾的寿喜烧", done: true },
+      { text: "在每一个重要纪念日给对方准备手写信", done: true }
+    ];
+
+    function loadWishes() {
+      const saved = localStorage.getItem('couple_wishes');
+      return saved ? JSON.parse(saved) : defaultWishes;
+    }
+
+    function saveWishes(wishes) {
+      localStorage.setItem('couple_wishes', JSON.stringify(wishes));
+    }
+
+    function renderWishes() {
+      const list = document.getElementById('wishList');
+      const wishes = loadWishes();
+      list.innerHTML = '';
+
+      wishes.forEach((w, index) => {
+        const item = document.createElement('div');
+        item.className = `flex items-center justify-between p-3.5 rounded-2xl border transition duration-300 ${w.done ? 'bg-sage-100/50 border-sage-200/60' : 'bg-warmwhite border-sand'}`;
+        item.innerHTML = `
+          <label class="flex items-center space-x-3 cursor-pointer flex-1">
+            <input type="checkbox" data-index="${index}" ${w.done ? 'checked' : ''} class="w-4 h-4 rounded text-blush-400 focus:ring-blush-200 border-sand transition">
+            <span class="text-xs md:text-sm ${w.done ? 'line-through text-muted' : 'text-ink font-medium'}">${w.text}</span>
+          </label>
+          <button data-delete="${index}" class="text-muted hover:text-blush-400 p-1 opacity-60 hover:opacity-100 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>
+        `;
+        list.appendChild(item);
+      });
+
+      list.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          const wishes = loadWishes();
+          wishes[idx].done = e.target.checked;
+          saveWishes(wishes);
+          renderWishes();
+          if (e.target.checked) {
+            confetti({ particleCount: 30, spread: 70, origin: { y: 0.6 } });
+          }
+        });
+      });
+
+      list.querySelectorAll('button[data-delete]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = e.currentTarget.getAttribute('data-delete');
+          const wishes = loadWishes();
+          wishes.splice(idx, 1);
+          saveWishes(wishes);
+          renderWishes();
+        });
+      });
+    }
+
+    document.getElementById('wishForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('wishInput');
+      const val = input.value.trim();
+      if (val) {
+        const wishes = loadWishes();
+        wishes.push({ text: val, done: false });
+        saveWishes(wishes);
+        renderWishes();
+        input.value = '';
+        confetti({ particleCount: 40, spread: 80 });
+      }
+    });
+
+    renderWishes();
+
+    // 4. Modal & Confetti Easter Egg
+    const modal = document.getElementById('letterModal');
+    const modalContent = document.getElementById('letterContent');
+    const openBtn = document.getElementById('openLetterBtn');
+    const closeBtn = document.getElementById('closeLetterBtn');
+    const modalConfettiBtn = document.getElementById('modalConfettiBtn');
+    const heroHeart = document.getElementById('heroHeart');
+
+    function openModal() {
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modalContent.classList.remove('scale-95');
+      }, 10);
+      confetti({
+        particleCount: 100,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ['#FEB2B2', '#D95D5D', '#A26769', '#CBD5C0']
+      });
+    }
+
+    function closeModal() {
+      modal.classList.add('opacity-0');
+      modalContent.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    modalConfettiBtn.addEventListener('click', () => {
+      confetti({ particleCount: 120, spread: 100, origin: { y: 0.6 } });
+    });
+
+    heroHeart.addEventListener('dblclick', () => {
+      openModal();
+    });
+
+    // 5. Audio Player Toggle
+    const musicToggle = document.getElementById('musicToggle');
+    const bgMusic = document.getElementById('bgMusic');
+    const musicText = document.getElementById('musicText');
+    let isPlaying = false;
+
+    musicToggle.addEventListener('click', () => {
+      if (!isPlaying) {
+        bgMusic.play().then(() => {
+          isPlaying = true;
+          musicText.innerText = '专属BGM: 正在播放 ♥';
+        }).catch(() => {
+          musicText.innerText = '专属BGM: 播放受限';
+        });
+      } else {
+        bgMusic.pause();
+        isPlaying = false;
+        musicText.innerText = '专属BGM: 暂停';
+      }
+    });
+  </script>
+</body>
+</html>
