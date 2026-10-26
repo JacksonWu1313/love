@@ -297,12 +297,18 @@
 <body class="selection:bg-blush-200 selection:text-ink">
 <div id="app" v-cloak class="relative min-h-screen">
 
-  <!-- Floating HarmonyOS App Guide Button -->
-  <div class="fixed top-5 left-5 z-40">
-    <button @click="openHarmonyGuide" class="glass-card px-3.5 py-2.5 rounded-full shadow-soft flex items-center space-x-1.5 text-xs text-ink hover:text-clay hover:shadow-float transition duration-300 group">
+  <!-- Floating HarmonyOS App Guide Button & Arrow Tip for 小悦悦 -->
+  <div class="fixed top-4 left-4 z-40 flex flex-col items-start select-none">
+    <button @click="openHarmonyGuide" class="glass-card px-3.5 py-2.5 rounded-full shadow-soft flex items-center space-x-1.5 text-xs text-ink hover:text-clay hover:shadow-float transition duration-300 group border border-sand/80 ring-2 ring-blush-200/50">
       <i data-lucide="smartphone" class="w-3.5 h-3.5 text-clay group-hover:scale-110 transition"></i>
-      <span class="font-medium hidden sm:inline">华为鸿蒙</span><span>桌面App指引</span>
+      <span class="font-medium text-clay hidden sm:inline">华为鸿蒙</span><span>桌面App指引</span>
     </button>
+    <!-- Bouncing Arrow Pointer for 小悦悦 -->
+    <div v-if="showTopLeftTip" @click="openHarmonyGuide" class="mt-2 ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-blush-500 to-rose-400 text-white text-[11px] shadow-lg cursor-pointer transform hover:scale-105 transition active:scale-95 animate-bounce">
+      <span class="text-xs font-bold">↖</span>
+      <span class="font-serif font-medium">小悦悦看这里 · 开启专属App</span>
+      <button @click.stop="showTopLeftTip = false" class="ml-1 opacity-80 hover:opacity-100 text-xs leading-none">×</button>
+    </div>
   </div>
 
   <!-- Floating Retro Vinyl Player (Top Right) -->
@@ -1629,8 +1635,8 @@
       </div>
 
       <div class="mt-5 text-center">
-        <button @click="closeHarmonyGuide" class="w-full py-2.5 rounded-full bg-clay text-white text-xs font-medium hover:bg-clay/90 transition shadow-sm">
-          我知道啦 · 去设置桌面 App
+        <button @click="closeHarmonyGuide" class="w-full py-2.5 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold hover:opacity-90 transition shadow-soft flex items-center justify-center gap-1.5">
+          <span>小悦悦知道啦 ♥</span>
         </button>
       </div>
     </div>
@@ -1779,6 +1785,136 @@
       </div>
     </div>
   </div>
+
+
+  <!-- Section: 爱的留声便签墙 (Love Messages & Whispers Wall) -->
+  <section id="messages-section" class="py-16 px-4 max-w-5xl mx-auto relative">
+    <!-- Section Title & Badge -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-blush-600 text-xs font-semibold tracking-wider mb-2 shadow-soft">
+        <i data-lucide="message-heart" class="w-3.5 h-3.5"></i>
+        <span>LOVE NOTES WALL · 专属私语留言板</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-display font-medium text-ink tracking-tight">
+        留声便签 · 属于彼此的悄悄话
+      </h2>
+      <p class="text-xs text-muted mt-1.5 max-w-md mx-auto">
+        今日发生的小确幸、偷偷想念的瞬间、未来的约定 · 随时为对方贴上一张温暖便签
+      </p>
+    </div>
+
+    <!-- Toolbar: Filter Tabs & New Note Trigger -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 px-1">
+      <!-- Filter Tabs -->
+      <div class="inline-flex rounded-full bg-sand/40 p-1 text-xs text-muted border border-sand/70">
+        <button @click="messageFilter = 'all'" :class="messageFilter === 'all' ? 'bg-white text-clay font-semibold shadow-xs' : 'hover:text-ink'" class="px-3 py-1 rounded-full transition">全部 ({{ loveMessagesList.length }})</button>
+        <button @click="messageFilter = 'yb'" :class="messageFilter === 'yb' ? 'bg-white text-clay font-semibold shadow-xs' : 'hover:text-ink'" class="px-3 py-1 rounded-full transition">来自 YB ♥</button>
+        <button @click="messageFilter = 'yueyue'" :class="messageFilter === 'yueyue' ? 'bg-white text-rose-500 font-semibold shadow-xs' : 'hover:text-ink'" class="px-3 py-1 rounded-full transition">来自 悦悦大王 👑</button>
+      </div>
+
+      <!-- Action: Toggle Write Form -->
+      <button @click="isWritingNote = !isWritingNote" class="px-4 py-1.5 rounded-full bg-clay text-white text-xs font-medium shadow-soft hover:bg-clay/90 transition flex items-center space-x-1.5 transform active:scale-95">
+        <i :data-lucide="isWritingNote ? 'chevron-up' : 'pen-tool'" class="w-3.5 h-3.5"></i>
+        <span>{{ isWritingNote ? '收起写字板' : '✏️ 写一张新便签' }}</span>
+      </button>
+    </div>
+
+    <!-- Expandable Write Form Card -->
+    <transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0 -translate-y-4 scale-95" enter-to-class="opacity-100 translate-y-0 scale-100" leave-active-class="transition duration-200 ease-in" leave-from-class="opacity-100 translate-y-0 scale-100" leave-to-class="opacity-0 -translate-y-4 scale-95">
+      <div v-if="isWritingNote" class="mb-8 glass-card p-5 sm:p-7 rounded-3xl border border-sand shadow-float bg-white/95">
+        <h4 class="text-sm font-semibold text-ink mb-3 flex items-center gap-1.5">
+          <i data-lucide="feather" class="w-4 h-4 text-clay"></i>
+          <span>贴上一张新的爱心便签</span>
+        </h4>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <!-- Author Selector -->
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1.5">留言人</label>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="newNoteForm.author = 'YB'" :class="newNoteForm.author === 'YB' ? 'bg-clay text-white font-semibold shadow-xs' : 'bg-sand/30 text-muted hover:text-ink'" class="flex-1 py-2 rounded-xl text-xs transition border border-sand">
+                YB ♥
+              </button>
+              <button type="button" @click="newNoteForm.author = '悦悦大王'" :class="newNoteForm.author === '悦悦大王' ? 'bg-blush-400 text-white font-semibold shadow-xs' : 'bg-sand/30 text-muted hover:text-ink'" class="flex-1 py-2 rounded-xl text-xs transition border border-sand">
+                悦悦大王 👑
+              </button>
+            </div>
+          </div>
+
+          <!-- Mood / Sticker Tag -->
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1.5">心情贴纸</label>
+            <select v-model="newNoteForm.tag" class="w-full py-2 px-3 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300">
+              <option value="👑 专属宠溺">👑 专属宠溺</option>
+              <option value="🌸 日常心动">🌸 日常心动</option>
+              <option value="🍟 KFC不蘸酱默契">🍟 KFC不蘸酱默契</option>
+              <option value="✨ 未来心愿">✨ 未来心愿</option>
+              <option value="💌 悄悄话">💌 悄悄话</option>
+              <option value="🏔️ 浪漫旅行足迹">🏔️ 浪漫旅行足迹</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Note Color Palette -->
+        <div class="mb-4">
+          <label class="block text-xs font-medium text-muted mb-1.5">便签底色</label>
+          <div class="flex items-center gap-2.5">
+            <button type="button" @click="newNoteForm.color = 'pink'" class="w-6 h-6 rounded-full bg-blush-100 border-2 transition" :class="newNoteForm.color === 'pink' ? 'border-clay scale-110' : 'border-transparent'"></button>
+            <button type="button" @click="newNoteForm.color = 'yellow'" class="w-6 h-6 rounded-full bg-amber-100 border-2 transition" :class="newNoteForm.color === 'yellow' ? 'border-clay scale-110' : 'border-transparent'"></button>
+            <button type="button" @click="newNoteForm.color = 'sage'" class="w-6 h-6 rounded-full bg-sage-100 border-2 transition" :class="newNoteForm.color === 'sage' ? 'border-clay scale-110' : 'border-transparent'"></button>
+            <button type="button" @click="newNoteForm.color = 'purple'" class="w-6 h-6 rounded-full bg-purple-100 border-2 transition" :class="newNoteForm.color === 'purple' ? 'border-clay scale-110' : 'border-transparent'"></button>
+            <button type="button" @click="newNoteForm.color = 'white'" class="w-6 h-6 rounded-full bg-warmwhite border-2 border-sand transition" :class="newNoteForm.color === 'white' ? 'border-clay scale-110' : 'border-sand'"></button>
+          </div>
+        </div>
+
+        <!-- Note Textarea -->
+        <div class="mb-4">
+          <label class="block text-xs font-medium text-muted mb-1.5">便签私语</label>
+          <textarea v-model="newNoteForm.content" rows="3" placeholder="写下想对 TA 说的心里话、今天的小确幸，或是未来的约定..." class="w-full p-3 rounded-2xl border border-sand bg-warmwhite text-xs text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-blush-300 resize-none font-serif"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex items-center justify-end gap-2">
+          <button type="button" @click="isWritingNote = false" class="px-4 py-2 rounded-full border border-sand text-xs text-muted hover:text-ink transition">取消</button>
+          <button type="button" @click="submitNewNote" class="px-6 py-2 rounded-full bg-gradient-to-r from-clay to-blush-400 text-white text-xs font-semibold shadow-soft hover:opacity-90 transition flex items-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>贴在便签墙上 · 永久留存 ♥</span>
+          </button>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Notes Masonry Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <div v-for="(note, idx) in filteredLoveMessages" :key="note.id || idx" class="relative p-5 rounded-3xl border transition duration-300 transform hover:-translate-y-1 hover:shadow-float shadow-soft flex flex-col justify-between" :class="getNoteColorClasses(note.color)">
+        <!-- Top Tape / Pin effect -->
+        <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-16 h-5 bg-sand/60 backdrop-blur-xs rounded-sm opacity-70 transform -rotate-1 border border-sand/80 shadow-xs pointer-events-none"></div>
+
+        <div>
+          <!-- Header: Author Badge & Tag -->
+          <div class="flex items-center justify-between gap-2 mb-3 pt-1">
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full" :class="note.author === 'YB' ? 'bg-clay/10 text-clay' : 'bg-rose-100 text-rose-600'">
+              <span class="text-xs">{{ note.author === 'YB' ? '👦 YB' : '👑 悦悦大王' }}</span>
+            </span>
+            <span class="text-[10px] text-muted/80 bg-white/60 px-2 py-0.5 rounded-full font-serif border border-sand/50">{{ note.tag }}</span>
+          </div>
+
+          <!-- Note Content -->
+          <p class="font-serif text-ink text-xs sm:text-[13px] leading-relaxed mb-4 whitespace-pre-wrap select-text">
+            “{{ note.content }}”
+          </p>
+        </div>
+
+        <!-- Footer: Date & Delete -->
+        <div class="flex items-center justify-between pt-2 border-t border-sand/50 text-[10px] text-muted">
+          <span>{{ note.date }}</span>
+          <button v-if="isEditing" @click="deleteNote(idx)" class="text-rose-400 hover:text-rose-600 transition" title="删除便签">
+            <i data-lucide="trash-2" class="w-3 h-3"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
 
 
   <!-- Romantic To Be Continued Section -->
@@ -2329,6 +2465,119 @@
           console.error('LocalStorage save error', e);
         }
       }, { deep: true });
+
+      // Top-Left Tip for 小悦悦
+      const showTopLeftTip = ref(true);
+
+      // --- Love Notes Wall Engine (留声便签墙) ---
+      const messageFilter = ref('all');
+      const isWritingNote = ref(false);
+      const newNoteForm = reactive({
+        author: 'YB',
+        tag: '👑 专属宠溺',
+        color: 'pink',
+        content: ''
+      });
+
+      const initialLoveMessages = [
+        {
+          id: 'msg_1',
+          author: 'YB',
+          tag: '👑 专属宠溺',
+          color: 'pink',
+          content: '从 5月19日 22:30 牵手那一刻起，我就知道遇到了要用一生宠爱的人。吃鸡块永远给你留着最脆的皮，只要你在身边，无论逛哪个公园，晚风都是甜的。悦悦大王要每天都开开心心！',
+          date: '2026-05-19 22:30'
+        },
+        {
+          id: 'msg_2',
+          author: '悦悦大王',
+          tag: '🌸 日常心动',
+          color: 'yellow',
+          content: '大理的洱海、丽江的雪山，都不如坐在副驾看你认真的侧脸。谢谢你一直迁就我的小脾气，做我永远的靠山。下一次旅行，我们还要一起去看更广阔的世界！',
+          date: '2026-08-15 14:20'
+        },
+        {
+          id: 'msg_3',
+          author: 'YB',
+          tag: '🍟 KFC不蘸酱默契',
+          color: 'white',
+          content: '无论生活是平淡还是忙碌，只要回家能抱抱你，所有疲惫都烟消云散了。以后的每个春夏秋冬、每一个纪念日，我都陪在你身边。',
+          date: '2026-09-20 20:15'
+        },
+        {
+          id: 'msg_4',
+          author: '悦悦大王',
+          tag: '✨ 未来心愿',
+          color: 'sage',
+          content: '今天也是超爱 YB 的一天！要一起把我们的小家布置得越来越温馨，一起吃好多好多顿好吃的，看好多好多场晚霞！',
+          date: '2026-10-26 21:00'
+        },
+        {
+          id: 'msg_5',
+          author: 'YB',
+          tag: '💌 悄悄话',
+          color: 'purple',
+          content: '给未来的悦悦大王：哪怕时光走过几十年，你在我心里永远是那个被捧在手心里的小公主。',
+          date: '2026-10-26 22:30'
+        }
+      ];
+
+      const storedNotes = typeof window !== 'undefined' ? localStorage.getItem('yb_love_messages') : null;
+      const loveMessagesList = ref(storedNotes ? JSON.parse(storedNotes) : initialLoveMessages);
+
+      const filteredLoveMessages = computed(() => {
+        if (messageFilter.value === 'yb') {
+          return loveMessagesList.value.filter(m => m.author === 'YB');
+        } else if (messageFilter.value === 'yueyue') {
+          return loveMessagesList.value.filter(m => m.author === '悦悦大王');
+        }
+        return loveMessagesList.value;
+      });
+
+      const getNoteColorClasses = (color) => {
+        const map = {
+          pink: 'bg-blush-50/95 border-blush-200/80',
+          yellow: 'bg-amber-50/95 border-amber-200/80',
+          sage: 'bg-sage-50/95 border-sage-200/80',
+          purple: 'bg-purple-50/95 border-purple-200/80',
+          white: 'bg-warmwhite/95 border-sand/90'
+        };
+        return map[color] || map.pink;
+      };
+
+      const submitNewNote = () => {
+        if (!newNoteForm.content.trim()) {
+          alert('便签内容不能为空哦~ 写几句心里话吧 ♥');
+          return;
+        }
+        const now = new Date();
+        const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const newNote = {
+          id: 'msg_' + Date.now(),
+          author: newNoteForm.author,
+          tag: newNoteForm.tag,
+          color: newNoteForm.color,
+          content: newNoteForm.content.trim(),
+          date: timeStr
+        };
+        loveMessagesList.value.unshift(newNote);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value));
+        }
+        newNoteForm.content = '';
+        isWritingNote.value = false;
+        triggerConfetti();
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const deleteNote = (idx) => {
+        if (confirm('确认揭下这张便签吗？')) {
+          loveMessagesList.value.splice(idx, 1);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value));
+          }
+        }
+      };
 
       // --- Scheme 1: Heart Sparks & Tap Confetti ---
       const heartStreak = ref(0);
@@ -4438,7 +4687,16 @@
         nextMilestone,
         anniversaryCountdown,
         currentDailyAffirmation,
-        drawNextAffirmation
+        drawNextAffirmation,
+        showTopLeftTip,
+        loveMessagesList,
+        messageFilter,
+        isWritingNote,
+        newNoteForm,
+        filteredLoveMessages,
+        getNoteColorClasses,
+        submitNewNote,
+        deleteNote
       };
     }
   }).mount('#app');
