@@ -659,22 +659,7 @@
         <div class="flex flex-wrap items-center gap-2">
           <!-- Map Multi-Tile Switcher -->
           <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60 mr-1">
-            <button @click="switchMapTile,
-        // 3D Photo Constellation Sphere
-        spherePhotosList,
-        sphereTransformStyle,
-        getSphereCardStyle,
-        isSphereRotating,
-        toggleSphereAutoRotate,
-        resetSphereView,
-        shuffleSpherePhotos,
-        onSphereDragStart,
-        onSphereDragMove,
-        onSphereDragEnd,
-        onSphereTouchStart,
-        onSphereTouchMove,
-        onSphereTouchEnd,
-        handleSpherePhotoClick('autonavi')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'autonavi' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
+            <button @click="switchMapTile('autonavi')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'autonavi' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
               <span>🗺️ 高德中文</span>
             </button>
             <button @click="switchMapTile('esriStreet')" class="px-2.5 py-0.5 rounded-full transition flex items-center space-x-1" :class="currentMapTile === 'esriStreet' ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">
@@ -3869,7 +3854,22 @@
         oneClickLightUp,
         promptUnlitClick,
         currentMapTile,
-        switchMapTile
+        switchMapTile,
+        // 3D Photo Constellation Sphere
+        spherePhotosList,
+        sphereTransformStyle,
+        getSphereCardStyle,
+        isSphereRotating,
+        toggleSphereAutoRotate,
+        resetSphereView,
+        shuffleSpherePhotos,
+        onSphereDragStart,
+        onSphereDragMove,
+        onSphereDragEnd,
+        onSphereTouchStart,
+        onSphereTouchMove,
+        onSphereTouchEnd,
+        handleSpherePhotoClick
       };
     }
   }).mount('#app');
