@@ -1,0 +1,98 @@
+[
+  {
+    "id": "dali",
+    "name": "大理 · 苍山洱海",
+    "lat": 25.606,
+    "lng": 100.267,
+    "province": "云南",
+    "date": "2026 盛夏",
+    "status": "visited",
+    "tag": "环海自驾 · 已点亮 ♥",
+    "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
+    "image": "./images/timeline_08_1.jpg"
+  },
+  {
+    "id": "lijiang",
+    "name": "丽江 · 玉龙雪山",
+    "lat": 26.872,
+    "lng": 100.229,
+    "province": "云南",
+    "date": "2026 盛夏",
+    "status": "visited",
+    "tag": "古城漫步 · 已点亮 ♥",
+    "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
+    "image": "./images/timeline_08_2.jpg"
+  },
+  {
+    "id": "kunming",
+    "name": "昆明 · 春城微风",
+    "lat": 25.045,
+    "lng": 102.709,
+    "province": "云南",
+    "date": "2026 盛夏",
+    "status": "visited",
+    "tag": "旅途起点 · 已点亮 ♥",
+    "story": "自驾漫游的温馨起点，满城鲜花盛开，落地第一眼就觉得这次旅程一定很甜。",
+    "image": "./images/hero_cover.jpg"
+  },
+  {
+    "id": "shenzhen",
+    "name": "深圳 · 温暖海风",
+    "lat": 22.543,
+    "lng": 114.057,
+    "province": "广东",
+    "date": "日常温馨守护",
+    "status": "home",
+    "tag": "爱的港湾 · 彼此守候",
+    "story": "彼此守候的城市港湾，走过无数街巷，每一顿饭、每一次散步都是稳稳的幸福。",
+    "image": "./images/life_food_1.jpg"
+  },
+  {
+    "id": "chengdu",
+    "name": "成都 · 烟火锦官城",
+    "lat": 30.572,
+    "lng": 104.066,
+    "province": "四川",
+    "date": "心动愿望 · 待打卡",
+    "status": "wish",
+    "tag": "愿望清单 · 待解锁 ✈️",
+    "story": "约好下次一起去吃地道牛油火锅、逛宽窄巷子和太古里、看憨态可掬的大熊猫。",
+    "image": "./images/wish_cook.jpg"
+  },
+  {
+    "id": "chongqing",
+    "name": "重庆 · 赛博山城",
+    "lat": 29.563,
+    "lng": 106.551,
+    "province": "重庆",
+    "date": "愿望清单 · 待打卡",
+    "status": "wish",
+    "tag": "愿望清单 · 待解锁 ✈️",
+    "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
+    "image": "./images/wish_dali.jpg"
+  },
+  {
+    "id": "paris",
+    "name": "巴黎 · 浪漫之都",
+    "lat": 48.856,
+    "lng": 2.352,
+    "province": "法国",
+    "date": "远期梦想 · 待打卡",
+    "status": "wish",
+    "tag": "世界之旅 · 愿望清单 ✈️",
+    "story": "一起去塞纳河畔散步、看埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。",
+    "image": "./images/quote_1.jpg"
+  },
+  {
+    "id": "santorini",
+    "name": "圣托里尼 · 爱琴海",
+    "lat": 36.393,
+    "lng": 25.461,
+    "province": "希腊",
+    "date": "远期梦想 · 待打卡",
+    "status": "wish",
+    "tag": "世界之旅 · 愿望清单 ✈️",
+    "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
+    "image": "./images/wish_concert.jpg"
+  }
+]
