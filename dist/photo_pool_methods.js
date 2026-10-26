@@ -359,3 +359,164 @@
           removePoolPhoto(idx);
         }
       };
+
+
+      // Scheme 1: Huawei HarmonyOS 7 & PWA Support
+      const showHarmonyGuideModal = ref(false);
+      const isPwaInstalled = ref(false);
+
+      const checkPwaStatus = () => {
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+          isPwaInstalled.value = true;
+        }
+      };
+
+      const openHarmonyGuide = () => {
+        showHarmonyGuideModal.value = true;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeHarmonyGuide = () => {
+        showHarmonyGuideModal.value = false;
+      };
+
+      // Scheme 2: On This Day (那年今日) & Photo Story Notes
+      const showStoryModal = ref(false);
+      const activeStoryPhoto = ref(null);
+      const editingStoryText = ref('');
+
+      const openPhotoStoryModal = (photo) => {
+        activeStoryPhoto.value = photo;
+        editingStoryText.value = photo.story || '';
+        showStoryModal.value = true;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closePhotoStoryModal = () => {
+        showStoryModal.value = false;
+        activeStoryPhoto.value = null;
+      };
+
+      const saveCurrentPhotoStory = async () => {
+        if (!activeStoryPhoto.value) return;
+        activeStoryPhoto.value.story = editingStoryText.value.trim();
+        saveMessage.value = '正在将故事便签同步至云端...';
+        try {
+          const regUrl = https://api.github.com/repos//contents/data/photo_pool.json;
+          const getReg = await fetch(regUrl, { headers: { 'Authorization': Bearer  } });
+          let sha = null;
+          if (getReg.ok) sha = (await getReg.json()).sha;
+          await fetch(regUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': Bearer , 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: eat: Update story note for photo ,
+              content: btoa(unescape(encodeURIComponent(JSON.stringify(siteData.photoPool, null, 2)))),
+              sha
+            })
+          });
+          saveMessage.value = '📖 回忆故事已珍藏并同步 ♥';
+        } catch (e) {
+          saveMessage.value = '已在本地保存故事便签';
+        }
+        triggerConfetti();
+        closePhotoStoryModal();
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
+      const onThisDayMemory = computed(() => {
+        const pool = siteData.photoPool || [];
+        if (pool.length === 0) return null;
+        const now = new Date();
+        const mmdd = ${String(now.getMonth() + 1).padStart(2, '0')}-;
+        const match = pool.find(p => p.date && p.date.includes(mmdd));
+        if (match) {
+          return {
+            badge: ✨ 那年今日 · ,
+            title: match.title || '那天留下的甜蜜记忆',
+            story: match.story || '每一张照片都在诉说着当时的喜欢。',
+            photo: match
+          };
+        }
+        const featured = pool[0];
+        return {
+          badge: '✨ 甜蜜时光机 · 专属回忆推荐',
+          title: featured.title || '彩云之南的浪漫瞬间',
+          story: featured.story || '大理洱海的晴空晚风，还有全世界仅此一个的你。',
+          photo: featured
+        };
+      });
+
+      // Scheme 3: Interactive Love Footprint Map (浪漫足迹地图)
+      const selectedMapCity = ref(null);
+      const loveMapCities = reactive([
+        {
+          id: 'dali',
+          name: '大理 · 苍山洱海',
+          province: '云南',
+          date: '2026 盛夏',
+          tag: '自驾漫游 · 已点亮 ♥',
+          desc: '环洱海西路自驾、双廊日落吹风、喜洲麦田微风拂面，车里一直放着我们爱的歌。',
+          image: './images/timeline_08_1.jpg',
+          x: 285,
+          y: 440,
+          status: 'visited'
+        },
+        {
+          id: 'lijiang',
+          name: '丽江 · 玉龙雪山',
+          province: '云南',
+          date: '2026 盛夏',
+          tag: '古城漫步 · 已点亮 ♥',
+          desc: '下过小雨的束河古镇青石板路、看古城夜景流水、吃热气腾腾的云南烤肉小吃。',
+          image: './images/timeline_08_2.jpg',
+          x: 290,
+          y: 405,
+          status: 'visited'
+        },
+        {
+          id: 'kunming',
+          name: '昆明 · 春城微风',
+          province: '云南',
+          date: '2026 盛夏',
+          tag: '旅途起点 · 已点亮 ♥',
+          desc: '彩云之南自驾漫游的温馨中转，满城鲜花盛开，落地第一眼就觉得这次旅程一定很甜。',
+          image: './images/hero_cover.jpg',
+          x: 340,
+          y: 450,
+          status: 'visited'
+        },
+        {
+          id: 'chengdu',
+          name: '成都 / 重庆',
+          province: '川渝',
+          date: '心动愿望 · 待打卡',
+          tag: '愿望清单 · 待解锁 ✈️',
+          desc: '约好下次一起去吃正宗牛油火锅、逛宽窄巷子太古里、在夜市看人间烟火与大熊猫。',
+          image: './images/wish_cook.jpg',
+          x: 380,
+          y: 360,
+          status: 'wish'
+        },
+        {
+          id: 'shenzhen',
+          name: '深圳 · 温暖海风',
+          province: '广东',
+          date: '日常甜蜜驻足',
+          tag: '爱意常伴 · 我们的港湾',
+          desc: '无数个平淡却温馨的日子，一起吃过的每一顿饭、走过的每一个街口，都是最踏实的幸福。',
+          image: './images/life_food_1.jpg',
+          x: 530,
+          y: 485,
+          status: 'home'
+        }
+      ]);
+
+      const selectMapCity = (city) => {
+        selectedMapCity.value = city;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeMapCity = () => {
+        selectedMapCity.value = null;
+      };

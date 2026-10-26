@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fceae5"/>
+      <stop offset="50%" stop-color="#f8cfc3"/>
+      <stop offset="100%" stop-color="#e89582"/>
+    </linearGradient>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7e79"/>
+      <stop offset="50%" stop-color="#e65a58"/>
+      <stop offset="100%" stop-color="#c8414b"/>
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#c8414b" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded App Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Inner Ring -->
+  <rect x="20" y="20" width="472" height="472" rx="96" fill="none" stroke="#ffffff" stroke-width="6" stroke-opacity="0.5"/>
+  
+  <!-- Dual Heart Motif -->
+  <g filter="url(#softGlow)" transform="translate(256, 230) scale(1.15)">
+    <!-- Main Heart -->
+    <path d="M0,75 C-120,-45 -120,-115 0,-165 C120,-115 120,-45 0,75 Z" fill="url(#heartGrad)"/>
+    <!-- Small Companion Heart -->
+    <path d="M45,-80 C80,-120 120,-80 85,-45 Z" fill="#ffd1cf" opacity="0.85"/>
+  </g>
+  
+  <!-- Couple Initials Badge -->
+  <text x="256" y="390" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-weight="700" font-size="52" fill="#5c2e27" letter-spacing="4">YB ♥ 悦悦</text>
+  <text x="256" y="435" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-weight="500" font-size="22" fill="#8c584f" letter-spacing="8">FOREVER TOGETHER</text>
+</svg>

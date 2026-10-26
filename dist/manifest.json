@@ -1,0 +1,25 @@
+{
+  "name": "YB & 悦悦大王 · 我们的专属纪念馆",
+  "short_name": "YB & 悦悦",
+  "description": "YB与悦悦大王的专属爱情纪念馆，时光轴、心动照片池与旅行足迹",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#e89582",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./images/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./images/hero_cover.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
