@@ -2555,12 +2555,15 @@
 
         L.control.zoom({ position: 'topright' }).addTo(worldMap);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; CartoDB &copy; OpenStreetMap',
-          subdomains: 'abcd',
-          maxZoom: 19,
+        const baseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri &copy; OpenStreetMap',
+          maxZoom: 16,
           className: 'romantic-map-tiles'
-        }).addTo(worldMap);
+        });
+        baseLayer.on('tileerror', function(error, tile) {
+          tile.src = 'https://tile.openstreetmap.org/' + error.coords.z + '/' + error.coords.x + '/' + error.coords.y + '.png';
+        });
+        baseLayer.addTo(worldMap);
 
         mapMarkersGroup = L.layerGroup().addTo(worldMap);
 
