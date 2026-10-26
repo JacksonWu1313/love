@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Our Love Story | 伍彦博 & 悦悦大王 数字纪念馆 (CMS 可持续编辑版)</title>
+  <title>Our Love Story | YB & 悦悦大王 数字纪念馆 (CMS 可持续编辑版)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Vue 3 CDN -->
@@ -98,11 +98,11 @@
   <div class="fixed top-5 right-5 z-40">
     <button @click="toggleMusic" class="glass-card px-4 py-2.5 rounded-full shadow-soft flex items-center space-x-2 text-xs text-muted hover:text-blush-500 hover:shadow-float transition duration-300">
       <i data-lucide="music" class="w-3.5 h-3.5"></i>
-      <span>{{ isMusicPlaying ? '专属BGM: 播放中 ♥' : '专属BGM: 播放浪漫' }}</span>
+      <span>{{ isMusicPlaying ? '蔡徐坤 - Hug me ♪ 播放中 ♥' : '蔡徐坤 - Hug me ♪ 点击播放' }}</span>
       <span class="w-2 h-2 rounded-full" :class="isMusicPlaying ? 'bg-blush-400 animate-ping' : 'bg-sage-500'"></span>
     </button>
     <audio ref="audioPlayer" loop preload="none">
-      <source src="https://assets.mixkit.co/music/preview/mixkit-loving-you-117.mp3" type="audio/mpeg">
+      <source src="./audio/hug_me.mp3" type="audio/mpeg">
     </audio>
   </div>
 
@@ -370,7 +370,7 @@
         <i data-lucide="camera" class="w-5 h-5 text-clay"></i>
       </div>
       <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">生活足迹 · 轻食与美照相册</h2>
-      <p class="text-xs text-muted mt-2 tracking-wide">一杯热美式、减脂轻食与每一次出门的美照记录</p>
+      <p class="text-xs text-muted mt-2 tracking-wide">最爱的KFC、公园漫步与每一次出门的美好记录</p>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -543,9 +543,30 @@
     </div>
   </div>
 
+
+  <!-- Romantic To Be Continued Section -->
+  <div class= py-16 text-center relative overflow-hidden>
+    <div class=inline-block relative group>
+      <div class=absolute -inset-4 bg-gradient-to-r from-blush-300/40 via-sand/30 to-blush-400/40 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition duration-1000></div>
+      <div class=relative glass-card px-10 py-6 rounded-3xl border border-sand/80 shadow-soft>
+        <div class=flex items-center justify-center space-x-3 mb-2>
+          <span class=h-px w-8 bg-gradient-to-r from-transparent to-blush-400></span>
+          <i data-lucide=heart class=w-4 h-4 text-blush-400 fill-blush-400 animate-pulse></i>
+          <span class=h-px w-8 bg-gradient-to-l from-transparent to-blush-400></span>
+        </div>
+        <h2 class=text-3xl md:text-4xl font-serif tracking-[0.35em] text-ink font-semibold pl-[0.35em] select-none style=font-family: Noto Serif SC Playfair Display serif>
+          未 完 待 续
+        </h2>
+        <p class=text-xs md:text-sm font-serif italic text-muted tracking-widest mt-2>
+          To Be Continued · 我们的故事仍在书写
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer class="py-12 text-center text-xs text-muted border-t border-sand/60">
-    <p>Designed with Love for 伍彦博 & 悦悦大王</p>
+    <p>Designed with Love for YB & 悦悦大王</p>
     <p class="mt-1 font-mono text-[10px] text-muted/60">Permanent Couple Memory Archive & Local CMS · 2026</p>
   </footer>
 
@@ -554,12 +575,12 @@
 <script>
   const { createApp, ref, reactive, watch, nextTick, onMounted } = Vue;
 
-  // Default Comprehensive Initial Dataset (V2: Real Yunnan Self-Driving & Separation Aligned)
+  // Default Comprehensive Initial Dataset (V3: KFC & Park & Hug me & YB Aligned)
   const defaultSiteData = {
   "hero": {
-    "title1": "伍彦博",
+    "title1": "YB",
     "title2": "悦悦大王",
-    "subtitle": "YANBO & YUEYUE · FOREVER TOGETHER",
+    "subtitle": "YB & YUEYUE · FOREVER TOGETHER",
     "coverImage": "./images/hero_cover.jpg",
     "coverCaption": "彩云之南 · 大理洱海与丽江自驾漫游记 · 2026盛夏",
     "quote": "全世界仅此一个的我，尽情幸福吧。",
@@ -599,9 +620,9 @@
     {
       "date": "2026年5月 ~ 6月",
       "tag": "校园同频 · 日常相守",
-      "title": "早课签到、热美式与敏七外卖守护",
-      "desc": "“早十嘛”、“一上午的课”、“是我没签到到”……无论上课多忙，总记得找东门外卖代拿到敏七，一杯热美式，吃鸡块不蘸酱，把每一个日常细节都过成彼此的默契。",
-      "quote": "宝宝你看我今天的课表，一杯热美式，吃鸡块不蘸酱。",
+      "title": "KFC专属套餐、公园散步与日常相守",
+      "desc": "“吃鸡块不蘸酱”、去公园散步吹晚风……无论平时多忙，只要两个人在一起吃顿KFC、在公园石板路边牵手漫步，平凡的小日子就被填得满满当当。",
+      "quote": "吃KFC不蘸酱，再去公园散散步。",
       "images": [
         "./images/timeline_06_1.jpg",
         "./images/timeline_06_2.jpg"
@@ -644,9 +665,9 @@
   ],
   "quotes": [
     {
-      "text": "宝宝你看我今天的课表。",
-      "author": "日常撒娇播报",
-      "tag": "课表打卡",
+      "text": "吃KFC不蘸酱，再去公园散散步。",
+      "author": "两人的专属偏好",
+      "tag": "KFC与公园",
       "image": "./images/quote_1.jpg"
     },
     {
@@ -675,7 +696,7 @@
     },
     {
       "text": "我是想通过这个让我们磨合的更好，剩下的交给我。",
-      "author": "彦博成熟担当",
+      "author": "YB成熟担当",
       "tag": "长效契约",
       "image": "./images/quote_6.jpg"
     }
@@ -706,9 +727,9 @@
       "image": "./images/life_food_4.jpg"
     },
     {
-      "title": "校园初夏 · 早课与热美式",
+      "title": "初夏日常 · KFC与公园漫步",
       "date": "2026-05",
-      "desc": "早十上课前必点的一杯热美式，找东门外卖代拿到敏七，最简单的陪伴也是幸福。",
+      "desc": "拼好的Hello Kitty小信物，去吃最喜欢的KFC（吃鸡块不蘸酱），再去公园牵手散步吹晚风，最简单的陪伴也是幸福。",
       "image": "./images/life_food_5.jpg"
     },
     {
@@ -759,8 +780,8 @@
   "letter": {
     "title": "致我全世界仅此一个的悦悦大王",
     "to": "亲爱的悦悦大王",
-    "content": "从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。\n\n还记得五六月份在学校里，你每天早晨发给我课表、找东门外卖代拿到敏七的一杯热美式；还记得七月份放暑假各自回家，我们相隔两地整整分开了一个月，每天靠着长长的视频通话和互发自拍熬过异地，你说“再奖励你一张嘛，女神一下”，我说“我越来越离不开你了，我只想好好和你在一起”；\n\n更难忘的是八月份我们久别重逢，一起飞往云南开启自驾之旅。在苍山洱海边的环海路上吹晚风，在丽江古城的石板路上漫步看夜市灯火，那515张照片里全是你最灿烂开心的笑脸。\n\n谢谢你每次在我大声说话后给我的温柔与宽恕，也谢谢你在每一次小情绪后愿意听我那句“剩下的交给我”。从初夏的怦然心动，到云南自驾的浪漫，再到如今校园常态里的默契温存，全世界仅此一个的你，我们要一直一直尽情幸福下去。",
-    "from": "爱你的 彦博 ♥",
+    "content": "从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。\n\n还记得五六月份在学校里，我们一起吃最喜欢的KFC、去公园散步吹晚风，你说吃鸡块不要蘸酱；还记得七月份放暑假各自回家，我们相隔两地整整分开了一个月，每天靠着长长的视频通话和互发自拍熬过异地，你说“再奖励你一张嘛，女神一下”，我说“我越来越离不开你了，我只想好好和你在一起”；\n\n更难忘的是八月份我们久别重逢，一起飞往云南开启自驾之旅。在苍山洱海边的环海路上吹晚风，在丽江古城的石板路上漫步看夜市灯火，那515张照片里全是你最灿烂开心的笑脸。\n\n谢谢你每次在我大声说话后给我的温柔与宽恕，也谢谢你在每一次小情绪后愿意听我那句“剩下的交给我”。从初夏的怦然心动，到云南自驾的浪漫，再到如今常态里的默契温存，全世界仅此一个的你，我们要一直一直尽情幸福下去。",
+    "from": "爱你的 YB ♥",
     "bgImage": "./images/capsule_bg.jpg"
   }
 };
@@ -770,7 +791,7 @@
       // 1. Reactive State with LocalStorage Persistence & Version Migration
       const storageKey = 'couple_site_data';
       const versionKey = 'couple_site_version';
-      const CURRENT_VERSION = 'v2_yunnan_aligned';
+      const CURRENT_VERSION = 'v3_kfc_park_hugme_yb';
 
       const loadInitialData = () => {
         try {
