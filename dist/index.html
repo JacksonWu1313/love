@@ -406,6 +406,69 @@
     </div>
   </section>
 
+    <!-- Section: 专属无限照片池 (Our Memory Pool - 随时随地互相添加照片) -->
+  <section id="photo-pool" class="py-20 px-4 max-w-6xl mx-auto border-t border-sand/60">
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-blush-500 text-xs mb-3 shadow-soft">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        <span>共同存入 · 记忆无上限</span>
+      </div>
+      <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">
+        专属照片池 · Our Memory Pool
+      </h2>
+      <p class="text-xs text-muted mt-2 tracking-wide">
+        存放所有我们心动的瞬间 · 支持手机相册多选直传，永久保存在我们两人的秘密空间
+      </p>
+
+      <!-- Action Bar: Add Photos Button + Quick Counts -->
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <button @click="triggerPoolUpload" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-blush-400 to-clay text-white text-xs font-medium shadow-soft hover:shadow-float hover:scale-105 transition duration-300 flex items-center space-x-2">
+          <i data-lucide="image-plus" class="w-4 h-4"></i>
+          <span>➕ 存入新照片 (支持多选)</span>
+        </button>
+        <button @click="promptAddPoolLink" class="px-5 py-2.5 rounded-full bg-warmwhite hover:bg-sand/60 border border-sand text-ink text-xs font-medium shadow-soft transition flex items-center space-x-1.5">
+          <i data-lucide="link-2" class="w-3.5 h-3.5 text-clay"></i>
+          <span>输入图片网络链接</span>
+        </button>
+        <span class="px-3.5 py-2 rounded-full bg-sand/40 text-xs text-muted">
+          已珍藏 <strong class="text-ink font-semibold">{{ siteData.photoPool ? siteData.photoPool.length : 0 }}</strong> 张回忆
+        </span>
+        <input type="file" ref="poolFileInput" multiple accept="image/*" @change="handlePoolFilesSelected" class="hidden">
+      </div>
+    </div>
+
+    <!-- Photo Pool Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
+      <div v-for="(photo, pIdx) in siteData.photoPool" :key="photo.id || pIdx" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
+        <!-- Photo Container -->
+        <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
+          <img :src="photo.image" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+          <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
+            <span class="p-2 rounded-full bg-black/40 hover:bg-black/60"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </div>
+        
+        <!-- Info & Controls -->
+        <div class="pt-2 px-1 pb-1 flex items-center justify-between text-[11px]">
+          <div class="min-w-0 flex-1 pr-1">
+            <p :contenteditable="isEditing" @blur="onPoolItemEdit(pIdx, 'title', $event)" class="font-medium text-ink truncate cursor-text" :title="photo.title">
+              {{ photo.title || '甜蜜瞬间' }}
+            </p>
+            <div class="flex items-center space-x-1 text-[10px] text-muted">
+              <span>{{ photo.date || '2026' }}</span>
+              <span>·</span>
+              <span class="text-blush-500">{{ photo.uploader || '我们' }}</span>
+            </div>
+          </div>
+          <button @click.stop="removePoolPhoto(pIdx)" class="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-red-500 rounded-lg hover:bg-red-50 transition" title="从照片池移除">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
   <!-- Section 4: 未来愿望池 (Bucket List - 全配打卡憧憬图) -->
   <section class="py-20 px-4 bg-sand/30 border-y border-sand/70">
     <div class="max-w-4xl mx-auto">
@@ -575,7 +638,7 @@
 <script>
   const { createApp, ref, reactive, watch, nextTick, onMounted } = Vue;
 
-  // Default Comprehensive Initial Dataset (V3: KFC & Park & Hug me & YB Aligned)
+  // Default Comprehensive Initial Dataset (V4: Unlimited Photo Pool)
   const defaultSiteData = {
   "hero": {
     "title1": "YB",
@@ -739,6 +802,92 @@
       "image": "./images/life_food_6.jpg"
     }
   ],
+  "photoPool": [
+    {
+      "id": 1,
+      "image": "./images/timeline_08_1.jpg",
+      "title": "大理洱海蓝天与晚风",
+      "date": "2026-08",
+      "uploader": "我们"
+    },
+    {
+      "id": 2,
+      "image": "./images/timeline_08_2.jpg",
+      "title": "丽江古城檐角与石板街",
+      "date": "2026-08",
+      "uploader": "悦悦大王"
+    },
+    {
+      "id": 3,
+      "image": "./images/life_food_5.jpg",
+      "title": "初夏拼好的Hello Kitty挂件",
+      "date": "2026-05",
+      "uploader": "YB"
+    },
+    {
+      "id": 4,
+      "image": "./images/timeline_08_3.jpg",
+      "title": "彩云之南环海公路自驾",
+      "date": "2026-08",
+      "uploader": "我们"
+    },
+    {
+      "id": 5,
+      "image": "./images/quote_3.jpg",
+      "title": "异地分开时的专属自拍福利",
+      "date": "2026-07",
+      "uploader": "悦悦大王"
+    },
+    {
+      "id": 6,
+      "image": "./images/timeline_06_1.jpg",
+      "title": "KFC鸡块不蘸酱与公园散步",
+      "date": "2026-05",
+      "uploader": "YB"
+    },
+    {
+      "id": 7,
+      "image": "./images/life_food_1.jpg",
+      "title": "洱海生态廊道车窗水色",
+      "date": "2026-08",
+      "uploader": "我们"
+    },
+    {
+      "id": 8,
+      "image": "./images/life_food_2.jpg",
+      "title": "丽江古城挂满灯笼的夜色",
+      "date": "2026-08",
+      "uploader": "悦悦大王"
+    },
+    {
+      "id": 9,
+      "image": "./images/timeline_07_1.jpg",
+      "title": "盛夏七月的日常播报",
+      "date": "2026-07",
+      "uploader": "悦悦大王"
+    },
+    {
+      "id": 10,
+      "image": "./images/timeline_10_1.jpg",
+      "title": "金秋十月校园漫步",
+      "date": "2026-09",
+      "uploader": "YB"
+    },
+    {
+      "id": 11,
+      "image": "./images/life_food_3.jpg",
+      "title": "苍山与远方郁郁葱葱的林海",
+      "date": "2026-08",
+      "uploader": "我们"
+    },
+    {
+      "id": 12,
+      "image": "./images/timeline_10_2.jpg",
+      "title": "常态里最踏实温暖的模样",
+      "date": "2026-10",
+      "uploader": "我们"
+    }
+  ],
   "wishes": [
     {
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
@@ -788,10 +937,9 @@
 
   createApp({
     setup() {
-      // 1. Reactive State with LocalStorage Persistence & Version Migration
       const storageKey = 'couple_site_data';
       const versionKey = 'couple_site_version';
-      const CURRENT_VERSION = 'v3_kfc_park_hugme_yb';
+      const CURRENT_VERSION = 'v4_photo_pool_unlimited';
 
       const loadInitialData = () => {
         try {
@@ -1043,6 +1191,105 @@
         }
       };
 
+      // Photo Pool Functions (Unlimited Photo Vault with Canvas Compression)
+      const poolFileInput = ref(null);
+      const triggerPoolUpload = () => {
+        if (poolFileInput.value) poolFileInput.value.click();
+      };
+
+      const compressImage = (file, maxDim = 1200, quality = 0.85) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              let w = img.width;
+              let h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) {
+                  h = Math.round((h * maxDim) / w);
+                  w = maxDim;
+                } else {
+                  w = Math.round((w * maxDim) / h);
+                  h = maxDim;
+                }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      };
+
+      const handlePoolFilesSelected = async (event) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        saveMessage.value = '正在智能压缩并存入照片池...';
+        if (!siteData.photoPool) siteData.photoPool = [];
+        
+        let count = 0;
+        const today = new Date().toISOString().slice(0, 10);
+        for (let i = 0; i < files.length; i++) {
+          try {
+            const base64 = await compressImage(files[i]);
+            siteData.photoPool.unshift({
+              id: Date.now() + Math.random(),
+              image: base64,
+              title: files[i].name.replace(/\.[^/.]+$/, '') || '我们的美好瞬间',
+              date: today,
+              uploader: '我们'
+            });
+            count++;
+          } catch (err) {
+            console.error('Photo compress error:', err);
+          }
+        }
+        event.target.value = '';
+        saveMessage.value = `成功存入 ${count} 张照片到照片池 ♥`;
+        triggerConfetti();
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        setTimeout(() => { saveMessage.value = ''; }, 3000);
+      };
+
+      const promptAddPoolLink = () => {
+        const url = prompt('请输入照片的网络图片链接（URL）：');
+        if (url && url.trim()) {
+          if (!siteData.photoPool) siteData.photoPool = [];
+          siteData.photoPool.unshift({
+            id: Date.now() + Math.random(),
+            image: url.trim(),
+            title: '网图/合照瞬间',
+            date: new Date().toISOString().slice(0, 10),
+            uploader: '我们'
+          });
+          triggerConfetti();
+          saveMessage.value = '已存入新照片链接 ♥';
+          nextTick(() => { if (window.lucide) lucide.createIcons(); });
+          setTimeout(() => { saveMessage.value = ''; }, 2500);
+        }
+      };
+
+      const removePoolPhoto = (pIdx) => {
+        if (confirm('确定要从照片池中移除这张照片吗？')) {
+          siteData.photoPool.splice(pIdx, 1);
+          saveMessage.value = '已移除照片';
+          setTimeout(() => { saveMessage.value = ''; }, 2000);
+        }
+      };
+
+      const onPoolItemEdit = (pIdx, field, event) => {
+        if (!siteData.photoPool[pIdx]) return;
+        siteData.photoPool[pIdx][field] = event.target.innerText.trim();
+      };
+
       return {
         siteData,
         timer,
@@ -1076,6 +1323,12 @@
         openLetterModal,
         triggerConfetti,
         drawRandomQuote,
+        poolFileInput,
+        triggerPoolUpload,
+        handlePoolFilesSelected,
+        promptAddPoolLink,
+        removePoolPhoto,
+        onPoolItemEdit,
         toggleMusic
       };
     }

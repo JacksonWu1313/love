@@ -1,0 +1,61 @@
+  <!-- Section: 专属无限照片池 (Our Memory Pool - 随时随地互相添加照片) -->
+  <section id="photo-pool" class="py-20 px-4 max-w-6xl mx-auto border-t border-sand/60">
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-blush-500 text-xs mb-3 shadow-soft">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        <span>共同存入 · 记忆无上限</span>
+      </div>
+      <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">
+        专属照片池 · Our Memory Pool
+      </h2>
+      <p class="text-xs text-muted mt-2 tracking-wide">
+        存放所有我们心动的瞬间 · 支持手机相册多选直传，永久保存在我们两人的秘密空间
+      </p>
+
+      <!-- Action Bar: Add Photos Button + Quick Counts -->
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <button @click="triggerPoolUpload" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-blush-400 to-clay text-white text-xs font-medium shadow-soft hover:shadow-float hover:scale-105 transition duration-300 flex items-center space-x-2">
+          <i data-lucide="image-plus" class="w-4 h-4"></i>
+          <span>➕ 存入新照片 (支持多选)</span>
+        </button>
+        <button @click="promptAddPoolLink" class="px-5 py-2.5 rounded-full bg-warmwhite hover:bg-sand/60 border border-sand text-ink text-xs font-medium shadow-soft transition flex items-center space-x-1.5">
+          <i data-lucide="link-2" class="w-3.5 h-3.5 text-clay"></i>
+          <span>输入图片网络链接</span>
+        </button>
+        <span class="px-3.5 py-2 rounded-full bg-sand/40 text-xs text-muted">
+          已珍藏 <strong class="text-ink font-semibold">{{ siteData.photoPool ? siteData.photoPool.length : 0 }}</strong> 张回忆
+        </span>
+        <input type="file" ref="poolFileInput" multiple accept="image/*" @change="handlePoolFilesSelected" class="hidden">
+      </div>
+    </div>
+
+    <!-- Photo Pool Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
+      <div v-for="(photo, pIdx) in siteData.photoPool" :key="photo.id || pIdx" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
+        <!-- Photo Container -->
+        <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
+          <img :src="photo.image" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+          <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
+            <span class="p-2 rounded-full bg-black/40 hover:bg-black/60"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></span>
+          </div>
+        </div>
+        
+        <!-- Info & Controls -->
+        <div class="pt-2 px-1 pb-1 flex items-center justify-between text-[11px]">
+          <div class="min-w-0 flex-1 pr-1">
+            <p :contenteditable="isEditing" @blur="onPoolItemEdit(pIdx, 'title', $event)" class="font-medium text-ink truncate cursor-text" :title="photo.title">
+              {{ photo.title || '甜蜜瞬间' }}
+            </p>
+            <div class="flex items-center space-x-1 text-[10px] text-muted">
+              <span>{{ photo.date || '2026' }}</span>
+              <span>·</span>
+              <span class="text-blush-500">{{ photo.uploader || '我们' }}</span>
+            </div>
+          </div>
+          <button @click.stop="removePoolPhoto(pIdx)" class="opacity-0 group-hover:opacity-100 p-1 text-muted hover:text-red-500 rounded-lg hover:bg-red-50 transition" title="从照片池移除">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>

@@ -73,6 +73,20 @@
     { "title": "初夏日常 · KFC与公园漫步", "date": "2026-05", "desc": "拼好的Hello Kitty小信物，去吃最喜欢的KFC（吃鸡块不蘸酱），再去公园牵手散步吹晚风，最简单的陪伴也是幸福。", "image": "./images/life_food_5.jpg" },
     { "title": "金秋十月 · 校园漫步与默契", "date": "2026-10", "desc": "从云南旅行归来后的校园常态，180天的相伴，生活变成了最踏实温暖的模样。", "image": "./images/life_food_6.jpg" }
   ],
+  "photoPool": [
+    { "id": 1, "image": "./images/timeline_08_1.jpg", "title": "大理洱海蓝天与晚风", "date": "2026-08", "uploader": "我们" },
+    { "id": 2, "image": "./images/timeline_08_2.jpg", "title": "丽江古城檐角与石板街", "date": "2026-08", "uploader": "悦悦大王" },
+    { "id": 3, "image": "./images/life_food_5.jpg", "title": "初夏拼好的Hello Kitty挂件", "date": "2026-05", "uploader": "YB" },
+    { "id": 4, "image": "./images/timeline_08_3.jpg", "title": "彩云之南环海公路自驾", "date": "2026-08", "uploader": "我们" },
+    { "id": 5, "image": "./images/quote_3.jpg", "title": "异地分开时的专属自拍福利", "date": "2026-07", "uploader": "悦悦大王" },
+    { "id": 6, "image": "./images/timeline_06_1.jpg", "title": "KFC鸡块不蘸酱与公园散步", "date": "2026-05", "uploader": "YB" },
+    { "id": 7, "image": "./images/life_food_1.jpg", "title": "洱海生态廊道车窗水色", "date": "2026-08", "uploader": "我们" },
+    { "id": 8, "image": "./images/life_food_2.jpg", "title": "丽江古城挂满灯笼的夜色", "date": "2026-08", "uploader": "悦悦大王" },
+    { "id": 9, "image": "./images/timeline_07_1.jpg", "title": "盛夏七月的日常播报", "date": "2026-07", "uploader": "悦悦大王" },
+    { "id": 10, "image": "./images/timeline_10_1.jpg", "title": "金秋十月校园漫步", "date": "2026-09", "uploader": "YB" },
+    { "id": 11, "image": "./images/life_food_3.jpg", "title": "苍山与远方郁郁葱葱的林海", "date": "2026-08", "uploader": "我们" },
+    { "id": 12, "image": "./images/timeline_10_2.jpg", "title": "常态里最踏实温暖的模样", "date": "2026-10", "uploader": "我们" }
+  ],
   "wishes": [
     { "text": "云南自驾游：环洱海吹晚风，漫步丽江古城", "tag": "自驾漫游", "done": true, "image": "./images/wish_dali.jpg" },
     { "text": "拍一组穿学士服的情侣毕业专属写真", "tag": "校园留念", "done": false, "image": "./images/wish_grad.jpg" },
