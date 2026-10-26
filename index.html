@@ -881,27 +881,43 @@
           3D 浪漫照片星球 · 拨动时光星系
         </h3>
         <p class="text-xs text-muted mt-1.5 max-w-lg mx-auto">
-          轻触手指全向旋转三维照片球，360° 漫游独属于我们的回忆星系 · 点击任意照片即可大图欣赏
+          轻触手指全向旋转三维照片球，360° 漫游独属于我们的回忆星系 · 可随心调节数量与编辑文字
         </p>
       </div>
 
       <!-- 3D Sphere Card Stage -->
       <div class="relative glass-card rounded-3xl p-4 sm:p-6 border border-sand shadow-soft bg-gradient-to-b from-white/95 to-warmwhite/90">
         
-        <!-- Top Toolbar & Status -->
-        <div class="mb-3 flex flex-wrap items-center justify-between gap-2.5 px-1">
-          <div class="flex items-center space-x-2 text-xs">
+        <!-- Top Toolbar: Quantity Controls & Presets -->
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
+          <!-- Count Selector & Adaptive Presets -->
+          <div class="flex flex-wrap items-center gap-2 text-xs">
             <span class="px-3 py-1 rounded-full bg-sand/35 text-ink text-[11px] font-medium border border-sand/60 flex items-center space-x-1.5">
               <span class="w-2 h-2 rounded-full bg-rose-500" :class="isSphereRotating ? 'animate-pulse' : ''"></span>
-              <span>星系收录：{{ spherePhotosList.length }} 张浪漫瞬间</span>
+              <span>球体星辰：<strong>{{ spherePhotosList.length }}</strong> 张</span>
             </span>
+
+            <!-- Quantity Adjuster Presets -->
+            <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60">
+              <button @click="setSphereCardCount(16)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 16 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">16张</button>
+              <button @click="setSphereCardCount(24)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 24 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">24张</button>
+              <button @click="setSphereCardCount(32)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 32 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">32张 (满天星)</button>
+            </div>
+
+            <!-- Stepper for Custom Quantity -->
+            <div class="hidden sm:inline-flex items-center space-x-1.5 bg-sand/25 px-2.5 py-0.5 rounded-full border border-sand/50 text-[11px]">
+              <span class="text-muted">自定义数量:</span>
+              <button @click="adjustSphereCount(-2)" class="w-4 h-4 rounded-full bg-warmwhite hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">-</button>
+              <span class="font-bold text-rose-600 min-w-[20px] text-center">{{ sphereCardCount }}</span>
+              <button @click="adjustSphereCount(2)" class="w-4 h-4 rounded-full bg-warmwhite hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">+</button>
+            </div>
           </div>
 
           <!-- Controls -->
           <div class="flex items-center space-x-2 text-xs">
             <button @click="toggleSphereAutoRotate" class="px-3 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1.5 shadow-2xs">
               <i data-lucide="refresh-cw" class="w-3 h-3 text-clay" :class="isSphereRotating ? 'animate-spin' : ''"></i>
-              <span>{{ isSphereRotating ? '自动自转中' : '自转已暂停' }}</span>
+              <span>{{ isSphereRotating ? '自转中' : '已暂停' }}</span>
             </button>
             <button @click="resetSphereView" class="px-3 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1.5 shadow-2xs">
               <i data-lucide="compass" class="w-3 h-3 text-clay"></i>
@@ -915,7 +931,7 @@
         </div>
 
         <!-- 3D Stage Viewport -->
-        <div class="relative w-full h-[460px] sm:h-[540px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        <div class="relative w-full h-[470px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
              style="touch-action: none;"
              @mousedown="onSphereDragStart"
              @mousemove="onSphereDragMove"
@@ -926,11 +942,11 @@
              @touchend="onSphereTouchEnd">
 
           <!-- Center Ambient Heart Glow -->
-          <div class="absolute w-48 h-48 rounded-full bg-rose-400/15 blur-3xl pointer-events-none"></div>
-          <div class="absolute w-24 h-24 rounded-full bg-amber-400/15 blur-2xl pointer-events-none"></div>
+          <div class="absolute w-52 h-52 rounded-full bg-rose-400/15 blur-3xl pointer-events-none"></div>
+          <div class="absolute w-28 h-28 rounded-full bg-amber-400/15 blur-2xl pointer-events-none"></div>
 
           <!-- 3D Perspective Stage -->
-          <div class="photo-sphere-stage" :style="{ perspective: '950px' }">
+          <div class="photo-sphere-stage" :style="{ perspective: spherePerspective }">
             <div class="photo-sphere-world" :style="sphereTransformStyle">
               
               <!-- Photo Cards Distributed on 3D Sphere -->
@@ -938,11 +954,15 @@
                    class="sphere-photo-card group"
                    :style="getSphereCardStyle(sIdx)"
                    @click="handleSpherePhotoClick(photo)">
-                <div class="w-full h-full p-1 sm:p-1.5 bg-white/95 rounded-xl sm:rounded-2xl shadow-md group-hover:shadow-xl transition duration-300 flex flex-col border border-white/80">
+                <div class="w-full h-full p-1 sm:p-1.5 bg-white/95 rounded-xl sm:rounded-2xl shadow-md group-hover:shadow-xl transition duration-300 flex flex-col border border-white/80 relative">
                   <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/30">
                     <img :src="photo.image" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" loading="lazy">
-                    <div class="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center text-white">
-                      <span class="p-1 rounded-full bg-black/40"><i data-lucide="maximize-2" class="w-3 h-3"></i></span>
+                    <!-- Hover Action Overlay -->
+                    <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-1.5 text-white">
+                      <button @click.stop="openSphereEditModal(photo)" class="p-1.5 rounded-full bg-black/60 hover:bg-rose-500 transition shadow-sm" title="编辑这张照片文字">
+                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <span class="p-1.5 rounded-full bg-black/60"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></span>
                     </div>
                   </div>
                   <div class="pt-1 px-0.5 text-center truncate">
@@ -957,7 +977,7 @@
           <!-- Floating Guidance Overlay -->
           <div class="absolute bottom-3 left-4 right-4 text-center pointer-events-none">
             <span class="px-3 py-1 rounded-full bg-white/85 backdrop-blur-md text-muted text-[11px] border border-sand/80 shadow-2xs inline-flex items-center space-x-1.5">
-              <span>🪐 任意方向滑动可 360° 旋转球体 · 点击照片放大查看</span>
+              <span>🪐 任意方向滑动可 360° 旋转球体 · 点击照片放大 · 悬停可编辑文字</span>
             </span>
           </div>
 
@@ -965,6 +985,55 @@
 
       </div>
 
+    </div>
+
+    <!-- Sphere Photo Note Editor Modal -->
+    <div v-if="showSphereEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm animate-fade-in" @click.self="closeSphereEditModal">
+      <div class="glass-card bg-white/98 rounded-3xl p-5 sm:p-6 max-w-md w-full border border-sand shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-sand/70">
+          <div class="flex items-center space-x-2">
+            <span class="p-1.5 rounded-xl bg-blush-100 text-blush-600"><i data-lucide="edit-3" class="w-4 h-4"></i></span>
+            <h4 class="text-sm font-bold text-ink">编辑照片文字与回忆便签</h4>
+          </div>
+          <button @click="closeSphereEditModal" class="p-1 text-muted hover:text-ink rounded-lg transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <!-- Thumbnail -->
+        <div class="w-full h-36 rounded-2xl overflow-hidden bg-sand/30 border border-sand/60">
+          <img :src="sphereEditForm.image" :alt="sphereEditForm.title" class="w-full h-full object-cover">
+        </div>
+
+        <!-- Fields -->
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block font-medium text-ink mb-1">照片标题 / 标题名称</label>
+            <input v-model="sphereEditForm.title" type="text" placeholder="例如：大理洱海蓝天与晚风" class="w-full px-3 py-2 rounded-xl bg-sand/20 border border-sand/80 focus:outline-none focus:border-rose-400 text-xs">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-medium text-ink mb-1">回忆日期</label>
+              <input v-model="sphereEditForm.date" type="text" placeholder="例如：2026-08-01" class="w-full px-3 py-2 rounded-xl bg-sand/20 border border-sand/80 focus:outline-none focus:border-rose-400 text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-ink mb-1">记录者</label>
+              <input v-model="sphereEditForm.uploader" type="text" placeholder="例如：我们 / YB / 悦悦大王" class="w-full px-3 py-2 rounded-xl bg-sand/20 border border-sand/80 focus:outline-none focus:border-rose-400 text-xs">
+            </div>
+          </div>
+          <div>
+            <label class="block font-medium text-ink mb-1">回忆便签 / 甜蜜故事</label>
+            <textarea v-model="sphereEditForm.story" rows="3" placeholder="写下当时的心动小事与属于你们的独家回忆..." class="w-full px-3 py-2 rounded-xl bg-sand/20 border border-sand/80 focus:outline-none focus:border-rose-400 text-xs resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button @click="closeSphereEditModal" class="px-4 py-2 rounded-full border border-sand text-ink text-xs hover:bg-sand/30 transition">取消</button>
+          <button @click="saveSpherePhotoEdit" class="px-5 py-2 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-xs font-semibold shadow-soft transition flex items-center space-x-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>保存并全网同步 ♥</span>
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1793,91 +1862,263 @@
     }
   ],
   "photoPool": [
-    {
-      "id": 1,
-      "image": "./images/timeline_08_1.jpg",
-      "title": "大理洱海蓝天与晚风",
-      "date": "2026-08",
-      "uploader": "我们"
-    },
-    {
-      "id": 2,
-      "image": "./images/timeline_08_2.jpg",
-      "title": "丽江古城檐角与石板街",
-      "date": "2026-08",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 3,
-      "image": "./images/life_food_5.jpg",
-      "title": "初夏拼好的Hello Kitty挂件",
-      "date": "2026-05",
-      "uploader": "YB"
-    },
-    {
-      "id": 4,
-      "image": "./images/timeline_08_3.jpg",
-      "title": "彩云之南环海公路自驾",
-      "date": "2026-08",
-      "uploader": "我们"
-    },
-    {
-      "id": 5,
-      "image": "./images/quote_3.jpg",
-      "title": "异地分开时的专属自拍福利",
-      "date": "2026-07",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 6,
-      "image": "./images/timeline_06_1.jpg",
-      "title": "KFC鸡块不蘸酱与公园散步",
-      "date": "2026-05",
-      "uploader": "YB"
-    },
-    {
-      "id": 7,
-      "image": "./images/life_food_1.jpg",
-      "title": "洱海生态廊道车窗水色",
-      "date": "2026-08",
-      "uploader": "我们"
-    },
-    {
-      "id": 8,
-      "image": "./images/life_food_2.jpg",
-      "title": "丽江古城挂满灯笼的夜色",
-      "date": "2026-08",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 9,
-      "image": "./images/timeline_07_1.jpg",
-      "title": "盛夏七月的日常播报",
-      "date": "2026-07",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 10,
-      "image": "./images/timeline_10_1.jpg",
-      "title": "金秋十月校园漫步",
-      "date": "2026-09",
-      "uploader": "YB"
-    },
-    {
-      "id": 11,
-      "image": "./images/life_food_3.jpg",
-      "title": "苍山与远方郁郁葱葱的林海",
-      "date": "2026-08",
-      "uploader": "我们"
-    },
-    {
-      "id": 12,
-      "image": "./images/timeline_10_2.jpg",
-      "title": "常态里最踏实温暖的模样",
-      "date": "2026-10",
-      "uploader": "我们"
-    }
-  ],
+  {
+    "id": 1,
+    "image": "./images/timeline_08_1.jpg",
+    "title": "大理洱海蓝天与晚风",
+    "date": "2026-08-01",
+    "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
+    "uploader": "我们"
+  },
+  {
+    "id": 2,
+    "image": "./images/timeline_08_2.jpg",
+    "title": "丽江古城檐角与石板街",
+    "date": "2026-08-03",
+    "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
+    "uploader": "我们"
+  },
+  {
+    "id": 3,
+    "image": "./images/life_food_5.jpg",
+    "title": "初夏拼好的Hello Kitty挂件",
+    "date": "2026-05-18",
+    "story": "你亲手拼好送我的小挂件，挂在车钥匙上，每天出门看到都觉得心里甜甜的。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 4,
+    "image": "./images/timeline_08_3.jpg",
+    "title": "彩云之南环海公路自驾",
+    "date": "2026-08-05",
+    "story": "车窗摇下一半，音乐轻轻放着，一路上看云、看路，看身边的你。",
+    "uploader": "YB"
+  },
+  {
+    "id": 5,
+    "image": "./images/quote_3.jpg",
+    "title": "异地分开时的专属自拍福利",
+    "date": "2026-07-15",
+    "story": "“再奖励你一张嘛，女神一下”，每一张搞怪又可爱的自拍都是治愈想念的良药。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 6,
+    "image": "./images/timeline_06_1.jpg",
+    "title": "KFC鸡块不蘸酱与公园散步",
+    "date": "2026-06-12",
+    "story": "记下你不蘸酱的独特吃法，记下你喜欢的奶茶糖度，把心意都写在日常里。",
+    "uploader": "YB"
+  },
+  {
+    "id": 7,
+    "image": "./images/life_food_1.jpg",
+    "title": "洱海生态廊道车窗水色",
+    "date": "2026-08-02",
+    "story": "蔚蓝水面上波光粼粼，微风把发梢吹乱，那一刻真希望时间就此慢下来。",
+    "uploader": "我们"
+  },
+  {
+    "id": 8,
+    "image": "./images/life_food_2.jpg",
+    "title": "丽江古城挂满灯笼的夜色",
+    "date": "2026-08-04",
+    "story": "华灯初上的古镇小巷，牵着手在石板路上慢慢走，街旁飘来民谣吉他的歌声。",
+    "uploader": "我们"
+  },
+  {
+    "id": 9,
+    "image": "./images/timeline_07_1.jpg",
+    "title": "盛夏七月的日常早安播报",
+    "date": "2026-07-08",
+    "story": "哪怕相隔两地，早起的第一声早安和睡前的晚安，永远是我们不变的默契。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 10,
+    "image": "./images/timeline_10_1.jpg",
+    "title": "金秋十月校园漫步",
+    "date": "2026-10-12",
+    "story": "秋意渐浓的林荫道，落叶铺了一地，踩在上面沙沙作响，有你在身边就很安心。",
+    "uploader": "我们"
+  },
+  {
+    "id": 11,
+    "image": "./images/life_food_3.jpg",
+    "title": "苍山与远方郁郁葱葱的林海",
+    "date": "2026-08-06",
+    "story": "站在山腰远眺，远处是水天一色的洱海，身边是全世界仅此一个的悦悦大王。",
+    "uploader": "YB"
+  },
+  {
+    "id": 12,
+    "image": "./images/timeline_10_2.jpg",
+    "title": "常态里最踏实温暖的模样",
+    "date": "2026-10-18",
+    "story": "不需要惊天动地的波澜，平平淡淡的陪伴就是世界上最深沉的喜欢。",
+    "uploader": "我们"
+  },
+  {
+    "id": 13,
+    "image": "./images/timeline_05_1.jpg",
+    "title": "初见心动的浪漫五月",
+    "date": "2026-05-01",
+    "story": "出站口第一次手牵手的那一刻，夏天的微风吹过，一切心动都如期而至。",
+    "uploader": "我们"
+  },
+  {
+    "id": 14,
+    "image": "./images/timeline_05_2.jpg",
+    "title": "洱海边的粉色落日晚霞",
+    "date": "2026-05-03",
+    "story": "夕阳把苍山染成了金色，把湖面映成了粉紫色，浪漫至死不渝。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 15,
+    "image": "./images/timeline_06_2.jpg",
+    "title": "期末自习与晚安视频电话",
+    "date": "2026-06-18",
+    "story": "图书馆出来最期待的就是听你讲一整天的趣事，哪怕隔着屏幕也觉得就在身旁。",
+    "uploader": "YB"
+  },
+  {
+    "id": 16,
+    "image": "./images/timeline_07_2.jpg",
+    "title": "七夕前夕的专属密语甜话",
+    "date": "2026-07-20",
+    "story": "分开的日子里，每一条微信分享和搞怪表情包都是我们相爱的印记。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 17,
+    "image": "./images/timeline_09_1.jpg",
+    "title": "初秋重聚的温暖拥抱",
+    "date": "2026-09-02",
+    "story": "跨越千里再次见面的那一秒，扑进怀里的踏实感胜过千言万语。",
+    "uploader": "我们"
+  },
+  {
+    "id": 18,
+    "image": "./images/timeline_09_2.jpg",
+    "title": "操场夜跑与橘子味汽水",
+    "date": "2026-09-15",
+    "story": "并肩走在微凉的秋风里，耳机里一人一只，听着喜欢的歌，影子拉得很长。",
+    "uploader": "YB"
+  },
+  {
+    "id": 19,
+    "image": "./images/life_food_4.jpg",
+    "title": "一起打卡的地道牛肉米粉",
+    "date": "2026-05-12",
+    "story": "红油牛肉粉配溏心荷包蛋，看着你大口嗦粉满足的样子，心里满是欢喜。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 20,
+    "image": "./images/life_food_6.jpg",
+    "title": "深夜投喂的热气腾腾烧烤",
+    "date": "2026-06-25",
+    "story": "散步到街角的小店，点两杯冰奶茶和烤串，人间烟火气最抚凡人心。",
+    "uploader": "我们"
+  },
+  {
+    "id": 21,
+    "image": "./images/quote_1.jpg",
+    "title": "手写信笺里的纯粹喜欢",
+    "date": "2026-05-20",
+    "story": "信纸上一笔一划写下对未来的期许，工整写着属于悦悦大王的小情话。",
+    "uploader": "YB"
+  },
+  {
+    "id": 22,
+    "image": "./images/quote_2.jpg",
+    "title": "并肩看过的每一场暮色晚霞",
+    "date": "2026-06-08",
+    "story": "天空是渐变橘粉色，身边是最喜欢的人，世界再大也不及身边的温度。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 23,
+    "image": "./images/quote_4.jpg",
+    "title": "人潮夜市里牵紧不放的手",
+    "date": "2026-07-05",
+    "story": "人潮拥挤的街市中，掌心传来的坚定温度是世界上最踏实的港湾。",
+    "uploader": "我们"
+  },
+  {
+    "id": 24,
+    "image": "./images/quote_5.jpg",
+    "title": "专属副驾的甜蜜兜风歌单",
+    "date": "2026-08-14",
+    "story": "音乐轻轻流淌，看着窗外的风景和你带笑的侧脸，这一路都是幸福。",
+    "uploader": "YB"
+  },
+  {
+    "id": 25,
+    "image": "./images/quote_6.jpg",
+    "title": "藏在备忘录里的专属心意",
+    "date": "2026-09-28",
+    "story": "记下你的小喜好和小脾气，用心去包容和宠爱全世界唯一的你。",
+    "uploader": "YB"
+  },
+  {
+    "id": 26,
+    "image": "./images/wish_cook.jpg",
+    "title": "未来厨房的双人料理愿望",
+    "date": "2026-10-01",
+    "story": "心愿第一条：系上围裙，一人洗菜切配一人下厨掌勺，做出充满爱意的家的味道。",
+    "uploader": "我们"
+  },
+  {
+    "id": 27,
+    "image": "./images/wish_concert.jpg",
+    "title": "并肩去听一场心心念念的演唱会",
+    "date": "2026-10-05",
+    "story": "在荧光棒挥舞的浪漫灯海里，手牵手大声合唱属于我们的旋律。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 28,
+    "image": "./images/wish_dali.jpg",
+    "title": "二刷大理苍山洱海二度蜜月",
+    "date": "2026-10-10",
+    "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
+    "uploader": "我们"
+  },
+  {
+    "id": 29,
+    "image": "./images/wish_drive.jpg",
+    "title": "川西自驾与雪山日照金山之约",
+    "date": "2026-10-15",
+    "story": "开着车一路向西，在海拔三千米的草甸上看满天银河与日出晨光。",
+    "uploader": "YB"
+  },
+  {
+    "id": 30,
+    "image": "./images/wish_ball.jpg",
+    "title": "盛夏海岛冲浪与沙滩落日野餐",
+    "date": "2026-10-20",
+    "story": "在细软的沙滩上铺开野餐垫，吹着海风听海浪翻涌，看夕阳缓缓沉入海平线。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 31,
+    "image": "./images/wish_grad.jpg",
+    "title": "手牵手拍毕业照与未来见证",
+    "date": "2026-10-22",
+    "story": "穿上学士服，把鲜花递到你怀里，携手迈入属于我们的下一个人生旅途。",
+    "uploader": "我们"
+  },
+  {
+    "id": 32,
+    "image": "./images/hero_cover.jpg",
+    "title": "大理晴空下的浪漫心动剪影",
+    "date": "2026-05-02",
+    "story": "阳光正好，微风不燥，全世界仅此一个的悦悦大王，我好喜欢你。",
+    "uploader": "YB"
+  }
+],
   "wishes": [
     {
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
@@ -1987,11 +2228,12 @@
         }
       };
 
-      // --- Scheme: 3D Photo Constellation Sphere (360° 旋转照片星球) ---
+      // --- Scheme: 3D Photo Constellation Sphere (360° 旋转照片星球 - 自适应调节与自由编辑) ---
       const sphereRotX = ref(-12);
       const sphereRotY = ref(0);
       const isSphereRotating = ref(true);
       const spherePhotoPoolIndex = ref(0);
+      const sphereCardCount = ref(24);
       let sphereVelX = 0;
       let sphereVelY = 0.22;
       let isDraggingSphere = false;
@@ -1999,10 +2241,88 @@
       let sphereLastY = 0;
       let hasSphereMoved = false;
 
+      // Photo Edit Modal State
+      const showSphereEditModal = ref(false);
+      const sphereEditForm = reactive({
+        id: '',
+        image: '',
+        title: '',
+        date: '',
+        story: '',
+        uploader: '我们'
+      });
+
+      const openSphereEditModal = (photo) => {
+        sphereEditForm.id = photo.id;
+        sphereEditForm.image = photo.image;
+        sphereEditForm.title = photo.title || '';
+        sphereEditForm.date = photo.date || '';
+        sphereEditForm.story = photo.story || '';
+        sphereEditForm.uploader = photo.uploader || '我们';
+        showSphereEditModal.value = true;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeSphereEditModal = () => {
+        showSphereEditModal.value = false;
+      };
+
+      const saveSpherePhotoEdit = async () => {
+        if (!siteData.photoPool) siteData.photoPool = [];
+        const idx = siteData.photoPool.findIndex(p => (p.id && p.id === sphereEditForm.id) || p.image === sphereEditForm.image);
+        if (idx !== -1) {
+          siteData.photoPool[idx].title = sphereEditForm.title;
+          siteData.photoPool[idx].date = sphereEditForm.date;
+          siteData.photoPool[idx].story = sphereEditForm.story;
+          siteData.photoPool[idx].uploader = sphereEditForm.uploader;
+        } else {
+          siteData.photoPool.unshift({ ...sphereEditForm });
+        }
+        closeSphereEditModal();
+        triggerConfetti();
+        await savePoolToCloud();
+      };
+
+      const setSphereCardCount = (count) => {
+        sphereCardCount.value = count;
+      };
+
+      const adjustSphereCount = (delta) => {
+        const poolLen = (siteData.photoPool ? siteData.photoPool.length : 32);
+        const maxVal = Math.max(32, poolLen);
+        sphereCardCount.value = Math.max(8, Math.min(maxVal, sphereCardCount.value + delta));
+      };
+
+      // Adaptive Radius based on quantity and screen width
       const getSphereRadius = () => {
         if (typeof window === 'undefined') return 240;
-        return window.innerWidth < 640 ? 185 : (window.innerWidth < 1024 ? 240 : 275);
+        const count = sphereCardCount.value || 24;
+        const isMobile = window.innerWidth < 640;
+        const isTablet = window.innerWidth < 1024;
+        const baseR = isMobile ? 172 : (isTablet ? 230 : 272);
+        const factor = Math.sqrt(count / 24);
+        return Math.round(baseR * (0.82 + 0.22 * factor));
       };
+
+      // Adaptive Card Dimensions based on count
+      const getSphereCardDimensions = computed(() => {
+        const count = sphereCardCount.value || 24;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        if (count <= 16) {
+          return isMobile ? { w: 86, h: 116 } : { w: 110, h: 146 };
+        } else if (count <= 26) {
+          return isMobile ? { w: 76, h: 102 } : { w: 98, h: 130 };
+        } else {
+          return isMobile ? { w: 66, h: 90 } : { w: 84, h: 112 };
+        }
+      });
+
+      // Adaptive CSS Perspective
+      const spherePerspective = computed(() => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        const count = sphereCardCount.value || 24;
+        return isMobile ? (count > 24 ? '850px' : '920px') : (count > 24 ? '980px' : '1050px');
+      });
 
       const spherePhotosList = computed(() => {
         const all = [];
@@ -2011,12 +2331,12 @@
         }
         if (siteData.timeline) {
           siteData.timeline.forEach(t => {
-            if (t.image) all.push({ image: t.image, title: t.title || '甜蜜瞬间', date: t.date });
+            if (t.image) all.push({ id: t.id || ('tl_' + Math.random()), image: t.image, title: t.title || '甜蜜瞬间', story: t.story || t.desc || '', date: t.date || '2026', uploader: '我们' });
           });
         }
         if (siteData.galleryItems) {
           siteData.galleryItems.forEach(g => {
-            if (g.image) all.push({ image: g.image, title: g.caption || '美好日常', date: '2026' });
+            if (g.image) all.push({ id: g.id || ('gal_' + Math.random()), image: g.image, title: g.caption || '美好日常', story: g.story || '', date: '2026', uploader: '我们' });
           });
         }
         const map = new Map();
@@ -2024,10 +2344,10 @@
         const unique = Array.from(map.values());
         if (unique.length === 0) return [];
 
-        const N = Math.min(24, unique.length);
+        const targetCount = Math.min(sphereCardCount.value, unique.length);
         const start = (spherePhotoPoolIndex.value * 6) % unique.length;
         const slice = [];
-        for (let i = 0; i < N; i++) {
+        for (let i = 0; i < targetCount; i++) {
           slice.push(unique[(start + i) % unique.length]);
         }
         return slice;
@@ -2054,8 +2374,13 @@
 
       const getSphereCardStyle = (idx) => {
         const coord = sphereCoordinates.value[idx];
-        if (!coord) return {};
+        if (!coord) return { display: 'none' };
+        const dims = getSphereCardDimensions.value;
         return {
+          width: `${dims.w}px`,
+          height: `${dims.h}px`,
+          marginLeft: `${-dims.w / 2}px`,
+          marginTop: `${-dims.h / 2}px`,
           transform: `rotateY(${coord.lonDeg}deg) rotateX(${-coord.latDeg}deg) translateZ(${coord.r}px)`
         };
       };
@@ -3855,7 +4180,7 @@
         promptUnlitClick,
         currentMapTile,
         switchMapTile,
-        // 3D Photo Constellation Sphere
+        // 3D Photo Constellation Sphere (Adaptive & Editable)
         spherePhotosList,
         sphereTransformStyle,
         getSphereCardStyle,
@@ -3869,7 +4194,17 @@
         onSphereTouchStart,
         onSphereTouchMove,
         onSphereTouchEnd,
-        handleSpherePhotoClick
+        handleSpherePhotoClick,
+        sphereCardCount,
+        setSphereCardCount,
+        adjustSphereCount,
+        getSphereCardDimensions,
+        spherePerspective,
+        showSphereEditModal,
+        sphereEditForm,
+        openSphereEditModal,
+        closeSphereEditModal,
+        saveSpherePhotoEdit
       };
     }
   }).mount('#app');
