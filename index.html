@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
@@ -3976,8 +3977,8 @@
       // Helper: read file as base64
       const extractVideoCoverAndDuration = (videoFile) => {
         return new Promise((resolve) => {
-          const video = document.createElement(video);
-          video.preload = metadata;
+          const video = document.createElement('video');
+          video.preload = 'metadata';
           video.muted = true;
           video.playsInline = true;
           const url = URL.createObjectURL(videoFile);
@@ -3986,32 +3987,36 @@
             const dur = Math.round(video.duration) || 0;
             const m = Math.floor(dur / 60);
             const s = dur % 60;
-            const durationStr = (m < 10 ? 0 + m : m) + : + (s < 10 ? 0 + s : s);
+            const durationStr = (m < 10 ? '0' + m : '' + m) + ':' + (s < 10 ? '0' + s : '' + s);
             video.currentTime = Math.min(1.0, dur > 1 ? 1.0 : dur * 0.5);
           };
           video.onseeked = () => {
             try {
-              const canvas = document.createElement(canvas);
+              const canvas = document.createElement('canvas');
               canvas.width = video.videoWidth || 640;
               canvas.height = video.videoHeight || 360;
-              const ctx = canvas.getContext(2d);
+              const ctx = canvas.getContext('2d');
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              const coverBase64 = canvas.toDataURL(image/jpeg, 0.85);
+              const coverBase64 = canvas.toDataURL('image/jpeg', 0.85);
               const dur = Math.round(video.duration) || 0;
               const m = Math.floor(dur / 60);
               const s = dur % 60;
-              const durationStr = (m < 10 ? 0 + m : m) + : + (s < 10 ? 0 + s : s);
+              const durationStr = (m < 10 ? '0' + m : '' + m) + ':' + (s < 10 ? '0' + s : '' + s);
               URL.revokeObjectURL(url);
               resolve({ coverBase64, durationStr });
             } catch (err) {
               URL.revokeObjectURL(url);
-              resolve({ coverBase64: null, durationStr: " });
+              resolve({ coverBase64: null, durationStr: '' });
             }
           };
-          video.onerror = () => { URL.revokeObjectURL(url); resolve({ coverBase64: null, durationStr: " }); };
+          video.onerror = () => { URL.revokeObjectURL(url); resolve({ coverBase64: null, durationStr: '' }); };
         });
       };
-      const isVideoMedia = (u) => { if (!u || typeof u !== string) return false; const c = u.split(?)[0].toLowerCase(); return c.endsWith(.mp4) || c.endsWith(.mov) || c.endsWith(.webm) || c.startsWith(data:video/); };
+      const isVideoMedia = (u) => {
+        if (!u || typeof u !== 'string') return false;
+        const c = u.split('?')[0].toLowerCase();
+        return c.endsWith('.mp4') || c.endsWith('.mov') || c.endsWith('.webm') || c.startsWith('data:video/');
+      };
       const readFileAsBase64 = (file) => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -4024,54 +4029,24 @@
         });
       };
 
-      // Helper: compress static images with Canvas (skips GIFs to preserve animation)
+      // Helper: process media for upload (preserves 100% full original image resolution/quality without lossy downscaling)
       const processImageForUpload = (file) => {
-        const ft = file.type || ";
+        const ft = file.type || '';
         const fn = file.name.toLowerCase();
-        if (ft.startsWith(video/) || fn.endsWith(.mp4) || fn.endsWith(.mov) || fn.endsWith(.webm)) {
+        if (ft.startsWith('video/') || fn.endsWith('.mp4') || fn.endsWith('.mov') || fn.endsWith('.webm')) {
           return new Promise((resolve, reject) => {
-            const ext = fn.endsWith(.mov) ? mov : (fn.endsWith(.webm) ? webm : mp4);
+            const ext = fn.endsWith('.mov') ? 'mov' : (fn.endsWith('.webm') ? 'webm' : 'mp4');
             extractVideoCoverAndDuration(file).then(({ coverBase64, durationStr }) => {
               readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isVideo: true, coverBase64, durationStr })).catch(reject);
             }).catch(() => {
-              readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isVideo: true, coverBase64: null, durationStr: " })).catch(reject);
+              readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isVideo: true, coverBase64: null, durationStr: '' })).catch(reject);
             });
           });
         }
         return new Promise((resolve, reject) => {
-          if (file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')) {
-            readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: 'gif', isGif: true })).catch(reject);
-            return;
-          }
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-              const maxDim = 1600;
-              let w = img.width;
-              let h = img.height;
-              if (w > maxDim || h > maxDim) {
-                if (w > h) {
-                  h = Math.round((h * maxDim) / w);
-                  w = maxDim;
-                } else {
-                  w = Math.round((w * maxDim) / h);
-                  h = maxDim;
-                }
-              }
-              const canvas = document.createElement('canvas');
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, w, h);
-              const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-              resolve({ base64: dataUrl.split(',')[1], ext: 'jpg', isGif: false });
-            };
-            img.onerror = reject;
-            img.src = e.target.result;
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
+          const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+          const isGif = ext === 'gif' || file.type === 'image/gif';
+          readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isGif: isGif, isVideo: false })).catch(reject);
         });
       };
 
@@ -4091,30 +4066,59 @@
             const file = files[i];
             const processed = await processImageForUpload(file);
             const { base64, ext, isGif, isVideo } = processed;
-            const safeName = `pool_${Date.now()}_${Math.floor(Math.random()*1000)}.${ext}`;
+            const safeName = pool__.;
             
             // 1. Upload to GitHub images/pool/
-            const uploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/pool/${safeName}`;
+            const uploadUrl = https://api.github.com/repos//contents/images/pool/;
             const uploadRes = await fetch(uploadUrl, {
               method: 'PUT',
               headers: {
-                'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                'Authorization': Bearer ,
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                message: `feat(pool): upload ${isGif ? 'animated GIF' : 'photo'} ${safeName}`,
+                message: eat(pool): upload  ,
                 content: base64
               })
             });
 
             if (uploadRes.ok) {
-              const cloudImgUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/images/pool/${safeName}`;
-              const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : '美好瞬间');
+              const cloudImgUrl = https://raw.githubusercontent.com//main/images/pool/;
+              const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '美好视频' : '美好瞬间'));
               
+              let cloudCoverUrl = '';
+              if (isVideo && processed.coverBase64) {
+                try {
+                  const coverSafeName = cover__.jpg;
+                  const coverCleanB64 = processed.coverBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+                  const coverUploadUrl = https://api.github.com/repos//contents/images/pool/;
+                  const coverRes = await fetch(coverUploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                      'Authorization': Bearer ,
+                      'Accept': 'application/vnd.github.v3+json',
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      message: eat: Auto capture video frame cover for ,
+                      content: coverCleanB64
+                    })
+                  });
+                  if (coverRes.ok) {
+                    cloudCoverUrl = https://raw.githubusercontent.com//main/images/pool/;
+                  }
+                } catch (eCov) {
+                  console.warn('Cover upload failed:', eCov);
+                }
+              }
+
               const newPhotoItem = {
                 id: Date.now() + Math.random(),
                 image: cloudImgUrl,
+                cover: cloudCoverUrl || (isVideo ? processed.coverBase64 : null),
+                duration: processed.durationStr || '',
+                isVideo: !!isVideo,
                 title: titleName,
                 date: today,
                 uploader: '我们'
@@ -4124,23 +4128,12 @@
               successCount++;
             } else {
               console.warn('GitHub upload failed, falling back to local storage');
-              let cloudCoverUrl = ";
-            if (isVideo && processed.coverBase64) {
-              try {
-                const coverSafeName = cover__.jpg;
-                const coverCleanB64 = processed.coverBase64.replace(/^data:image\/[a-z]+;base64,/, ");
-                const coverUploadUrl = https://api.github.com/repos//contents/images/pool/;
-                const coverRes = await fetch(coverUploadUrl, {
-                  method: PUT,
-                  headers: { Authorization: Bearer , Accept: application/vnd.github.v3+json, Content-Type: application/json },
-                  body: JSON.stringify({ message: eat: Auto capture video frame cover for , content: coverCleanB64 })
-                });
-                if (coverRes.ok) cloudCoverUrl = https://raw.githubusercontent.com//main/images/pool/;
-              } catch (eCov) { console.warn(Cover upload failed:, eCov); }
-            }
-            siteData.photoPool.unshift({
+              siteData.photoPool.unshift({
                 id: Date.now() + Math.random(),
-                image: 'data:image/jpeg;base64,' + base64,
+                image: (isVideo ? 'data:video/mp4;base64,' : 'data:image/jpeg;base64,') + base64,
+                cover: processed.coverBase64 || null,
+                duration: processed.durationStr || '',
+                isVideo: !!isVideo,
                 title: file.name.replace(/\.[^/.]+$/, '') || '本地暂存照片',
                 date: today,
                 uploader: '我们'
