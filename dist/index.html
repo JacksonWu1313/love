@@ -254,7 +254,9 @@
       transform: translate3d(-50%, -50%, 0);
       cursor: pointer;
       user-select: none;
-      will-change: transform;
+      will-change: transform, opacity, filter;
+      transition: opacity 0.12s ease-out, filter 0.12s ease-out;
+      transform-origin: center center;
       transition: transform 0.15s ease-out;
     }
     .unlit-marker-wrapper:hover {
@@ -303,7 +305,9 @@
       height: 0;
       position: absolute;
       transform-style: preserve-3d;
-      will-change: transform;
+      will-change: transform, opacity, filter;
+      transition: opacity 0.12s ease-out, filter 0.12s ease-out;
+      transform-origin: center center;
       pointer-events: none;
     }
     .sphere-photo-card {
@@ -321,7 +325,9 @@
       -webkit-user-select: none;
       backface-visibility: visible;
       -webkit-backface-visibility: visible;
-      will-change: transform;
+      will-change: transform, opacity, filter;
+      transition: opacity 0.12s ease-out, filter 0.12s ease-out;
+      transform-origin: center center;
       pointer-events: auto;
     }
     .sphere-photo-card img,
@@ -330,14 +336,7 @@
       backface-visibility: visible !important;
       -webkit-backface-visibility: visible !important;
     }
-    @media (min-width: 640px) {
-      .sphere-photo-card {
-        width: 104px;
-        height: 138px;
-        margin-left: -52px;
-        margin-top: -69px;
-      }
-    }
+    /* 卡片尺寸由 getSphereCardDimensions 动态计算，保持 80~90px 紧凑比例 */
     .sphere-photo-card:hover {
       filter: brightness(1.08) drop-shadow(0 8px 16px rgba(217,93,93,0.3));
     }
@@ -1093,7 +1092,7 @@
               <button @click="setSphereCardCount(16)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 16 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">16张</button>
               <button @click="setSphereCardCount(24)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 24 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">24张</button>
               <button @click="setSphereCardCount(32)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 32 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">32张</button>
-              <button @click="setSphereCardCount(48)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 48 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">48张(双轨)</button>
+              <button @click="setSphereCardCount(48)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 48 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">48张 (漫天星)</button>
             </div>
 
             <!-- Stepper for Custom Quantity (Unlimited) -->
@@ -1137,7 +1136,7 @@
         </div>
 
         <!-- 3D Stage Viewport (支持鼠标滚轮与手机双指捏合缩放) -->
-        <div class="relative w-full h-[470px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        <div class="relative w-full h-[520px] sm:h-[600px] md:h-[680px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
              style="touch-action: none;"
              @wheel.passive="onSphereWheel"
              @mousedown="onSphereDragStart"
@@ -2502,11 +2501,11 @@
     "title1": "YB",
     "title2": "悦悦大王",
     "subtitle": "YB & YUEYUE · FOREVER TOGETHER",
-    "coverImage": "./images/uploads/slot_1793090427258_811.jpeg",
+    "coverImage": "./images/hero_cover.jpg",
     "coverCaption": "彩云之南 · 大理洱海与丽江自驾漫游记 · 2026盛夏",
     "quote": "全世界仅此一个的我，尽情幸福吧。",
     "quoteAuthor": "我们的独家默契宣言",
-    "startDate": "2026-04-30T18:23:10"
+    "startDate": "2026-05-19T22:30:00"
   },
   "stats": [
     {
@@ -2545,7 +2544,7 @@
       "desc": "“吃鸡块不蘸酱”、去公园散步吹晚风……无论平时多忙，只要两个人在一起吃顿KFC、在公园石板路边牵手漫步，平凡的小日子就被填得满满当当。",
       "quote": "吃KFC不蘸酱，再去公园散散步。",
       "images": [
-        "./images/uploads/slot_1793090471895_624.jpeg",
+        "./images/timeline_06_1.jpg",
         "./images/timeline_06_2.jpg"
       ]
     },
@@ -2639,7 +2638,7 @@
       "title": "苍山远眺 · 旅途风光",
       "date": "2026-08",
       "desc": "远眺巍峨的山景与郁郁葱葱的林海，自驾在路上的每一公里都是自由的滋味。",
-      "image": "./images/uploads/slot_1793092562912_677.jpeg"
+      "image": "./images/life_food_3.jpg"
     },
     {
       "title": "七月异地 · 隔着屏幕的日常",
@@ -2661,263 +2660,263 @@
     }
   ],
   "photoPool": [
-    {
-      "id": 1,
-      "image": "./images/timeline_08_1.jpg",
-      "title": "大理洱海蓝天与晚风",
-      "date": "2026-08-01",
-      "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
-      "uploader": "我们"
-    },
-    {
-      "id": 2,
-      "image": "./images/timeline_08_2.jpg",
-      "title": "丽江古城檐角与石板街",
-      "date": "2026-08-03",
-      "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
-      "uploader": "我们"
-    },
-    {
-      "id": 3,
-      "image": "./images/life_food_5.jpg",
-      "title": "初夏拼好的Hello Kitty挂件",
-      "date": "2026-05-18",
-      "story": "你亲手拼好送我的小挂件，挂在车钥匙上，每天出门看到都觉得心里甜甜的。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 4,
-      "image": "./images/timeline_08_3.jpg",
-      "title": "彩云之南环海公路自驾",
-      "date": "2026-08-05",
-      "story": "车窗摇下一半，音乐轻轻放着，一路上看云、看路，看身边的你。",
-      "uploader": "YB"
-    },
-    {
-      "id": 5,
-      "image": "./images/quote_3.jpg",
-      "title": "异地分开时的专属自拍福利",
-      "date": "2026-07-15",
-      "story": "“再奖励你一张嘛，女神一下”，每一张搞怪又可爱的自拍都是治愈想念的良药。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 6,
-      "image": "./images/timeline_06_1.jpg",
-      "title": "KFC鸡块不蘸酱与公园散步",
-      "date": "2026-06-12",
-      "story": "记下你不蘸酱的独特吃法，记下你喜欢的奶茶糖度，把心意都写在日常里。",
-      "uploader": "YB"
-    },
-    {
-      "id": 7,
-      "image": "./images/life_food_1.jpg",
-      "title": "洱海生态廊道车窗水色",
-      "date": "2026-08-02",
-      "story": "蔚蓝水面上波光粼粼，微风把发梢吹乱，那一刻真希望时间就此慢下来。",
-      "uploader": "我们"
-    },
-    {
-      "id": 8,
-      "image": "./images/life_food_2.jpg",
-      "title": "丽江古城挂满灯笼的夜色",
-      "date": "2026-08-04",
-      "story": "华灯初上的古镇小巷，牵着手在石板路上慢慢走，街旁飘来民谣吉他的歌声。",
-      "uploader": "我们"
-    },
-    {
-      "id": 9,
-      "image": "./images/timeline_07_1.jpg",
-      "title": "盛夏七月的日常早安播报",
-      "date": "2026-07-08",
-      "story": "哪怕相隔两地，早起的第一声早安和睡前的晚安，永远是我们不变的默契。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 10,
-      "image": "./images/timeline_10_1.jpg",
-      "title": "金秋十月校园漫步",
-      "date": "2026-10-12",
-      "story": "秋意渐浓的林荫道，落叶铺了一地，踩在上面沙沙作响，有你在身边就很安心。",
-      "uploader": "我们"
-    },
-    {
-      "id": 11,
-      "image": "./images/life_food_3.jpg",
-      "title": "苍山与远方郁郁葱葱的林海",
-      "date": "2026-08-06",
-      "story": "站在山腰远眺，远处是水天一色的洱海，身边是全世界仅此一个的悦悦大王。",
-      "uploader": "YB"
-    },
-    {
-      "id": 12,
-      "image": "./images/timeline_10_2.jpg",
-      "title": "常态里最踏实温暖的模样",
-      "date": "2026-10-18",
-      "story": "不需要惊天动地的波澜，平平淡淡的陪伴就是世界上最深沉的喜欢。",
-      "uploader": "我们"
-    },
-    {
-      "id": 13,
-      "image": "./images/timeline_05_1.jpg",
-      "title": "初见心动的浪漫五月",
-      "date": "2026-05-01",
-      "story": "出站口第一次手牵手的那一刻，夏天的微风吹过，一切心动都如期而至。",
-      "uploader": "我们"
-    },
-    {
-      "id": 14,
-      "image": "./images/timeline_05_2.jpg",
-      "title": "洱海边的粉色落日晚霞",
-      "date": "2026-05-03",
-      "story": "夕阳把苍山染成了金色，把湖面映成了粉紫色，浪漫至死不渝。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 15,
-      "image": "./images/timeline_06_2.jpg",
-      "title": "期末自习与晚安视频电话",
-      "date": "2026-06-18",
-      "story": "图书馆出来最期待的就是听你讲一整天的趣事，哪怕隔着屏幕也觉得就在身旁。",
-      "uploader": "YB"
-    },
-    {
-      "id": 16,
-      "image": "./images/timeline_07_2.jpg",
-      "title": "七夕前夕的专属密语甜话",
-      "date": "2026-07-20",
-      "story": "分开的日子里，每一条微信分享和搞怪表情包都是我们相爱的印记。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 17,
-      "image": "./images/timeline_09_1.jpg",
-      "title": "初秋重聚的温暖拥抱",
-      "date": "2026-09-02",
-      "story": "跨越千里再次见面的那一秒，扑进怀里的踏实感胜过千言万语。",
-      "uploader": "我们"
-    },
-    {
-      "id": 18,
-      "image": "./images/timeline_09_2.jpg",
-      "title": "操场夜跑与橘子味汽水",
-      "date": "2026-09-15",
-      "story": "并肩走在微凉的秋风里，耳机里一人一只，听着喜欢的歌，影子拉得很长。",
-      "uploader": "YB"
-    },
-    {
-      "id": 19,
-      "image": "./images/life_food_4.jpg",
-      "title": "一起打卡的地道牛肉米粉",
-      "date": "2026-05-12",
-      "story": "红油牛肉粉配溏心荷包蛋，看着你大口嗦粉满足的样子，心里满是欢喜。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 20,
-      "image": "./images/life_food_6.jpg",
-      "title": "深夜投喂的热气腾腾烧烤",
-      "date": "2026-06-25",
-      "story": "散步到街角的小店，点两杯冰奶茶和烤串，人间烟火气最抚凡人心。",
-      "uploader": "我们"
-    },
-    {
-      "id": 21,
-      "image": "./images/quote_1.jpg",
-      "title": "手写信笺里的纯粹喜欢",
-      "date": "2026-05-20",
-      "story": "信纸上一笔一划写下对未来的期许，工整写着属于悦悦大王的小情话。",
-      "uploader": "YB"
-    },
-    {
-      "id": 22,
-      "image": "./images/quote_2.jpg",
-      "title": "并肩看过的每一场暮色晚霞",
-      "date": "2026-06-08",
-      "story": "天空是渐变橘粉色，身边是最喜欢的人，世界再大也不及身边的温度。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 23,
-      "image": "./images/quote_4.jpg",
-      "title": "人潮夜市里牵紧不放的手",
-      "date": "2026-07-05",
-      "story": "人潮拥挤的街市中，掌心传来的坚定温度是世界上最踏实的港湾。",
-      "uploader": "我们"
-    },
-    {
-      "id": 24,
-      "image": "./images/quote_5.jpg",
-      "title": "专属副驾的甜蜜兜风歌单",
-      "date": "2026-08-14",
-      "story": "音乐轻轻流淌，看着窗外的风景和你带笑的侧脸，这一路都是幸福。",
-      "uploader": "YB"
-    },
-    {
-      "id": 25,
-      "image": "./images/quote_6.jpg",
-      "title": "藏在备忘录里的专属心意",
-      "date": "2026-09-28",
-      "story": "记下你的小喜好和小脾气，用心去包容和宠爱全世界唯一的你。",
-      "uploader": "YB"
-    },
-    {
-      "id": 26,
-      "image": "./images/wish_cook.jpg",
-      "title": "未来厨房的双人料理愿望",
-      "date": "2026-10-01",
-      "story": "心愿第一条：系上围裙，一人洗菜切配一人下厨掌勺，做出充满爱意的家的味道。",
-      "uploader": "我们"
-    },
-    {
-      "id": 27,
-      "image": "./images/wish_concert.jpg",
-      "title": "并肩去听一场心心念念的演唱会",
-      "date": "2026-10-05",
-      "story": "在荧光棒挥舞的浪漫灯海里，手牵手大声合唱属于我们的旋律。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 28,
-      "image": "./images/wish_dali.jpg",
-      "title": "二刷大理苍山洱海二度蜜月",
-      "date": "2026-10-10",
-      "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
-      "uploader": "我们"
-    },
-    {
-      "id": 29,
-      "image": "./images/wish_drive.jpg",
-      "title": "川西自驾与雪山日照金山之约",
-      "date": "2026-10-15",
-      "story": "开着车一路向西，在海拔三千米的草甸上看满天银河与日出晨光。",
-      "uploader": "YB"
-    },
-    {
-      "id": 30,
-      "image": "./images/wish_ball.jpg",
-      "title": "盛夏海岛冲浪与沙滩落日野餐",
-      "date": "2026-10-20",
-      "story": "在细软的沙滩上铺开野餐垫，吹着海风听海浪翻涌，看夕阳缓缓沉入海平线。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 31,
-      "image": "./images/wish_grad.jpg",
-      "title": "手牵手拍毕业照与未来见证",
-      "date": "2026-10-22",
-      "story": "穿上学士服，把鲜花递到你怀里，携手迈入属于我们的下一个人生旅途。",
-      "uploader": "我们"
-    },
-    {
-      "id": 32,
-      "image": "./images/hero_cover.jpg",
-      "title": "大理晴空下的浪漫心动剪影",
-      "date": "2026-05-02",
-      "story": "阳光正好，微风不燥，全世界仅此一个的悦悦大王，我好喜欢你。",
-      "uploader": "YB"
-    }
-  ],
+  {
+    "id": 1,
+    "image": "./images/timeline_08_1.jpg",
+    "title": "大理洱海蓝天与晚风",
+    "date": "2026-08-01",
+    "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
+    "uploader": "我们"
+  },
+  {
+    "id": 2,
+    "image": "./images/timeline_08_2.jpg",
+    "title": "丽江古城檐角与石板街",
+    "date": "2026-08-03",
+    "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
+    "uploader": "我们"
+  },
+  {
+    "id": 3,
+    "image": "./images/life_food_5.jpg",
+    "title": "初夏拼好的Hello Kitty挂件",
+    "date": "2026-05-18",
+    "story": "你亲手拼好送我的小挂件，挂在车钥匙上，每天出门看到都觉得心里甜甜的。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 4,
+    "image": "./images/timeline_08_3.jpg",
+    "title": "彩云之南环海公路自驾",
+    "date": "2026-08-05",
+    "story": "车窗摇下一半，音乐轻轻放着，一路上看云、看路，看身边的你。",
+    "uploader": "YB"
+  },
+  {
+    "id": 5,
+    "image": "./images/quote_3.jpg",
+    "title": "异地分开时的专属自拍福利",
+    "date": "2026-07-15",
+    "story": "“再奖励你一张嘛，女神一下”，每一张搞怪又可爱的自拍都是治愈想念的良药。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 6,
+    "image": "./images/timeline_06_1.jpg",
+    "title": "KFC鸡块不蘸酱与公园散步",
+    "date": "2026-06-12",
+    "story": "记下你不蘸酱的独特吃法，记下你喜欢的奶茶糖度，把心意都写在日常里。",
+    "uploader": "YB"
+  },
+  {
+    "id": 7,
+    "image": "./images/life_food_1.jpg",
+    "title": "洱海生态廊道车窗水色",
+    "date": "2026-08-02",
+    "story": "蔚蓝水面上波光粼粼，微风把发梢吹乱，那一刻真希望时间就此慢下来。",
+    "uploader": "我们"
+  },
+  {
+    "id": 8,
+    "image": "./images/life_food_2.jpg",
+    "title": "丽江古城挂满灯笼的夜色",
+    "date": "2026-08-04",
+    "story": "华灯初上的古镇小巷，牵着手在石板路上慢慢走，街旁飘来民谣吉他的歌声。",
+    "uploader": "我们"
+  },
+  {
+    "id": 9,
+    "image": "./images/timeline_07_1.jpg",
+    "title": "盛夏七月的日常早安播报",
+    "date": "2026-07-08",
+    "story": "哪怕相隔两地，早起的第一声早安和睡前的晚安，永远是我们不变的默契。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 10,
+    "image": "./images/timeline_10_1.jpg",
+    "title": "金秋十月校园漫步",
+    "date": "2026-10-12",
+    "story": "秋意渐浓的林荫道，落叶铺了一地，踩在上面沙沙作响，有你在身边就很安心。",
+    "uploader": "我们"
+  },
+  {
+    "id": 11,
+    "image": "./images/life_food_3.jpg",
+    "title": "苍山与远方郁郁葱葱的林海",
+    "date": "2026-08-06",
+    "story": "站在山腰远眺，远处是水天一色的洱海，身边是全世界仅此一个的悦悦大王。",
+    "uploader": "YB"
+  },
+  {
+    "id": 12,
+    "image": "./images/timeline_10_2.jpg",
+    "title": "常态里最踏实温暖的模样",
+    "date": "2026-10-18",
+    "story": "不需要惊天动地的波澜，平平淡淡的陪伴就是世界上最深沉的喜欢。",
+    "uploader": "我们"
+  },
+  {
+    "id": 13,
+    "image": "./images/timeline_05_1.jpg",
+    "title": "初见心动的浪漫五月",
+    "date": "2026-05-01",
+    "story": "出站口第一次手牵手的那一刻，夏天的微风吹过，一切心动都如期而至。",
+    "uploader": "我们"
+  },
+  {
+    "id": 14,
+    "image": "./images/timeline_05_2.jpg",
+    "title": "洱海边的粉色落日晚霞",
+    "date": "2026-05-03",
+    "story": "夕阳把苍山染成了金色，把湖面映成了粉紫色，浪漫至死不渝。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 15,
+    "image": "./images/timeline_06_2.jpg",
+    "title": "期末自习与晚安视频电话",
+    "date": "2026-06-18",
+    "story": "图书馆出来最期待的就是听你讲一整天的趣事，哪怕隔着屏幕也觉得就在身旁。",
+    "uploader": "YB"
+  },
+  {
+    "id": 16,
+    "image": "./images/timeline_07_2.jpg",
+    "title": "七夕前夕的专属密语甜话",
+    "date": "2026-07-20",
+    "story": "分开的日子里，每一条微信分享和搞怪表情包都是我们相爱的印记。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 17,
+    "image": "./images/timeline_09_1.jpg",
+    "title": "初秋重聚的温暖拥抱",
+    "date": "2026-09-02",
+    "story": "跨越千里再次见面的那一秒，扑进怀里的踏实感胜过千言万语。",
+    "uploader": "我们"
+  },
+  {
+    "id": 18,
+    "image": "./images/timeline_09_2.jpg",
+    "title": "操场夜跑与橘子味汽水",
+    "date": "2026-09-15",
+    "story": "并肩走在微凉的秋风里，耳机里一人一只，听着喜欢的歌，影子拉得很长。",
+    "uploader": "YB"
+  },
+  {
+    "id": 19,
+    "image": "./images/life_food_4.jpg",
+    "title": "一起打卡的地道牛肉米粉",
+    "date": "2026-05-12",
+    "story": "红油牛肉粉配溏心荷包蛋，看着你大口嗦粉满足的样子，心里满是欢喜。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 20,
+    "image": "./images/life_food_6.jpg",
+    "title": "深夜投喂的热气腾腾烧烤",
+    "date": "2026-06-25",
+    "story": "散步到街角的小店，点两杯冰奶茶和烤串，人间烟火气最抚凡人心。",
+    "uploader": "我们"
+  },
+  {
+    "id": 21,
+    "image": "./images/quote_1.jpg",
+    "title": "手写信笺里的纯粹喜欢",
+    "date": "2026-05-20",
+    "story": "信纸上一笔一划写下对未来的期许，工整写着属于悦悦大王的小情话。",
+    "uploader": "YB"
+  },
+  {
+    "id": 22,
+    "image": "./images/quote_2.jpg",
+    "title": "并肩看过的每一场暮色晚霞",
+    "date": "2026-06-08",
+    "story": "天空是渐变橘粉色，身边是最喜欢的人，世界再大也不及身边的温度。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 23,
+    "image": "./images/quote_4.jpg",
+    "title": "人潮夜市里牵紧不放的手",
+    "date": "2026-07-05",
+    "story": "人潮拥挤的街市中，掌心传来的坚定温度是世界上最踏实的港湾。",
+    "uploader": "我们"
+  },
+  {
+    "id": 24,
+    "image": "./images/quote_5.jpg",
+    "title": "专属副驾的甜蜜兜风歌单",
+    "date": "2026-08-14",
+    "story": "音乐轻轻流淌，看着窗外的风景和你带笑的侧脸，这一路都是幸福。",
+    "uploader": "YB"
+  },
+  {
+    "id": 25,
+    "image": "./images/quote_6.jpg",
+    "title": "藏在备忘录里的专属心意",
+    "date": "2026-09-28",
+    "story": "记下你的小喜好和小脾气，用心去包容和宠爱全世界唯一的你。",
+    "uploader": "YB"
+  },
+  {
+    "id": 26,
+    "image": "./images/wish_cook.jpg",
+    "title": "未来厨房的双人料理愿望",
+    "date": "2026-10-01",
+    "story": "心愿第一条：系上围裙，一人洗菜切配一人下厨掌勺，做出充满爱意的家的味道。",
+    "uploader": "我们"
+  },
+  {
+    "id": 27,
+    "image": "./images/wish_concert.jpg",
+    "title": "并肩去听一场心心念念的演唱会",
+    "date": "2026-10-05",
+    "story": "在荧光棒挥舞的浪漫灯海里，手牵手大声合唱属于我们的旋律。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 28,
+    "image": "./images/wish_dali.jpg",
+    "title": "二刷大理苍山洱海二度蜜月",
+    "date": "2026-10-10",
+    "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
+    "uploader": "我们"
+  },
+  {
+    "id": 29,
+    "image": "./images/wish_drive.jpg",
+    "title": "川西自驾与雪山日照金山之约",
+    "date": "2026-10-15",
+    "story": "开着车一路向西，在海拔三千米的草甸上看满天银河与日出晨光。",
+    "uploader": "YB"
+  },
+  {
+    "id": 30,
+    "image": "./images/wish_ball.jpg",
+    "title": "盛夏海岛冲浪与沙滩落日野餐",
+    "date": "2026-10-20",
+    "story": "在细软的沙滩上铺开野餐垫，吹着海风听海浪翻涌，看夕阳缓缓沉入海平线。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 31,
+    "image": "./images/wish_grad.jpg",
+    "title": "手牵手拍毕业照与未来见证",
+    "date": "2026-10-22",
+    "story": "穿上学士服，把鲜花递到你怀里，携手迈入属于我们的下一个人生旅途。",
+    "uploader": "我们"
+  },
+  {
+    "id": 32,
+    "image": "./images/hero_cover.jpg",
+    "title": "大理晴空下的浪漫心动剪影",
+    "date": "2026-05-02",
+    "story": "阳光正好，微风不燥，全世界仅此一个的悦悦大王，我好喜欢你。",
+    "uploader": "YB"
+  }
+],
   "wishes": [
     {
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
@@ -2962,45 +2961,7 @@
     "content": "从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。\n\n还记得五六月份在学校里，我们一起吃最喜欢的KFC、去公园散步吹晚风，你说吃鸡块不要蘸酱；还记得七月份放暑假各自回家，我们相隔两地整整分开了一个月，每天靠着长长的视频通话和互发自拍熬过异地，你说“再奖励你一张嘛，女神一下”，我说“我越来越离不开你了，我只想好好和你在一起”；\n\n更难忘的是八月份我们久别重逢，一起飞往云南开启自驾之旅。在苍山洱海边的环海路上吹晚风，在丽江古城的石板路上漫步看夜市灯火，那515张照片里全是你最灿烂开心的笑脸。\n\n谢谢你每次在我大声说话后给我的温柔与宽恕，也谢谢你在每一次小情绪后愿意听我那句“剩下的交给我”。从初夏的怦然心动，到云南自驾的浪漫，再到如今常态里的默契温存，全世界仅此一个的你，我们要一直一直尽情幸福下去。",
     "from": "爱你的 YB ♥",
     "bgImage": "./images/capsule_bg.jpg"
-  },
-  "loveRecords": [
-    {
-      "id": "rec_1",
-      "date": "2026年4月30日",
-      "tag": "心动启航",
-      "title": "相恋与故事的开篇",
-      "content": "从这一天开始，两人的宇宙有了专属的频率。“全世界仅此一个的我，尽情幸福吧。”对话框亮起的每一次震动，都是初夏最心动的回响。",
-      "quote": "照片里加了什么 我不懂好幸福。",
-      "image": "./images/IMG_8708.JPG"
-    },
-    {
-      "id": "rec_2",
-      "date": "2026年5月19日",
-      "tag": "命中注定",
-      "title": "正式确立关系 · 22:30 的心跳同频",
-      "content": "在这个美好的夜晚 22:30，两颗心紧紧相扣。决定把手交给你，走向同一个未来。从此以后，每一声晚安、每一个微笑，都是独属于我们的浪漫默契。",
-      "quote": "从 5月19日 开始，以后的每个春夏秋冬，我都陪着你。",
-      "image": "./images/IMG_8716.JPG"
-    },
-    {
-      "id": "rec_3",
-      "date": "2026年8月15日",
-      "tag": "漫游苍山洱海",
-      "title": "彩云之南 · 大理自驾与夏日微风",
-      "content": "在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。",
-      "quote": "苍山的雪，洱海的月，身边的悦悦大王。",
-      "image": "./images/hero_cover.jpg"
-    },
-    {
-      "id": "rec_4",
-      "date": "2026年10月26日",
-      "tag": "日常甜宠",
-      "title": "KFC不蘸酱与公园吹晚风",
-      "content": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。",
-      "quote": "全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。",
-      "image": "./images/IMG_8727.JPG"
-    }
-  ]
+  }
 };
 
   createApp({
@@ -3942,37 +3903,36 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // 动态球体半径自适应：R = R_base * sqrt(max(N, 16) / 16)
+      // 动态大幅扩大半径：纯单层大球壳 R = R_base * sqrt(max(N, 16) / 16) * 1.4
       const getSphereRadius = () => {
-        if (typeof window === 'undefined') return 240;
+        if (typeof window === 'undefined') return 320;
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
-        const baseR = isMobile ? 175 : (isTablet ? 230 : 280);
+        const baseR = isMobile ? 220 : (isTablet ? 270 : 330);
         const factor = Math.sqrt(Math.max(count, 16) / 16);
-        return Math.round(baseR * factor);
+        return Math.round(baseR * factor * 1.4);
       };
 
-      // 动态卡片尺寸：随照片总数阶梯式自适应伸缩，杜绝碰撞挤压
+      // 动态卡片尺寸：收拢在 80~90px 紧凑精致比例，结合大半径提供超充裕呼吸感空间
       const getSphereCardDimensions = computed(() => {
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
         if (count <= 16) {
-          return isMobile ? { w: 84, h: 112 } : { w: 104, h: 140 };
+          return isMobile ? { w: 74, h: 98 } : { w: 88, h: 118 };
         } else if (count <= 30) {
-          return isMobile ? { w: 72, h: 96 } : { w: 90, h: 120 };
+          return isMobile ? { w: 68, h: 90 } : { w: 82, h: 110 };
         } else if (count <= 50) {
-          return isMobile ? { w: 62, h: 84 } : { w: 78, h: 104 };
+          return isMobile ? { w: 62, h: 82 } : { w: 76, h: 102 };
         } else {
-          return isMobile ? { w: 54, h: 72 } : { w: 68, h: 90 };
+          return isMobile ? { w: 56, h: 74 } : { w: 70, h: 94 };
         }
       });
 
       // 自适应 CSS 视距
       const spherePerspective = computed(() => {
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
-        return isMobile ? (count > 24 ? '850px' : '920px') : (count > 24 ? '980px' : '1050px');
+        const R = getSphereRadius();
+        return `${Math.round(R * 2.6)}px`;
       });
 
       const spherePhotosList = computed(() => {
@@ -4004,7 +3964,7 @@
         return slice;
       });
 
-      // 斐波那契球面算法 + 法线朝向校正 + 多层同心星轨 (N > 40 时分流内外错层)
+      // 纯单层斐波那契球面算法 (Single-Layer Fibonacci Spiral, 严禁内外双层，所有卡片均在半径 R 表面)
       const sphereCoordinates = computed(() => {
         const N = spherePhotosList.value.length || 24;
         const phiGolden = Math.PI * (3 - Math.sqrt(5)); // ~2.3999632 rad
@@ -4017,16 +3977,15 @@
           const x = Math.cos(theta) * radiusAtY;
           const z = Math.sin(theta) * radiusAtY;
 
-          // N > 40 时自动分流内外双层景深星轨 (偶数层 0.90R, 奇数层 1.10R)
-          const r_i = (N > 40) ? (i % 2 === 0 ? R * 0.90 : R * 1.10) : R;
-          const px = x * r_i;
-          const py = y * r_i;
-          const pz = z * r_i;
+          // 纯单层球面：所有卡片统一半径 R，严禁内外双轨错层
+          const px = x * R;
+          const py = y * R;
+          const pz = z * R;
 
           const latDeg = Math.asin(Math.max(-1, Math.min(1, y))) * (180 / Math.PI);
           const lonDeg = Math.atan2(x, z) * (180 / Math.PI);
 
-          coords.push({ x, y, z, px, py, pz, r: r_i, latDeg, lonDeg });
+          coords.push({ x, y, z, px, py, pz, r: R, latDeg, lonDeg });
         }
         return coords;
       });
@@ -4049,8 +4008,8 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
-      // 移动端 60fps 背面不可见剔除与实况视频暂停 (Backface Culling)
-      const cullBackfaceCards = (rxDeg, ryDeg) => {
+      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，背面卡片自然透出半透明与景深光感，视频动图持续动态播放
+      const updateCardDepthVisuals = (rxDeg, ryDeg) => {
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
         const rxRad = rxDeg * (Math.PI / 180);
@@ -4060,23 +4019,32 @@
         const cosRy = Math.cos(ryRad);
         const sinRy = Math.sin(ryRad);
 
+        const R = getSphereRadius();
         for (let i = 0; i < coords.length; i++) {
           const c = coords[i];
           const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
           const el = document.getElementById('sphere-card-' + i);
           if (!el) continue;
-          if (zEye < -20) {
-            if (el.style.visibility !== 'hidden') {
-              el.style.visibility = 'hidden';
-              const vid = el.querySelector('video');
-              if (vid && !vid.paused) vid.pause();
-            }
-          } else {
-            if (el.style.visibility !== 'visible') {
-              el.style.visibility = 'visible';
-              const vid = el.querySelector('video');
-              if (vid && vid.paused) vid.play().catch(() => {});
-            }
+
+          // 100% 保持可见，严禁背面隐藏
+          if (el.style.visibility !== 'visible') {
+            el.style.visibility = 'visible';
+          }
+
+          // 归一化深度 alpha：背面最远端（zEye = -R）为 0，正前方最近端（zEye = +R）为 1
+          const alpha = Math.max(0, Math.min(1, (zEye + R) / (2 * R)));
+          // 柔和景深半透明：背面 0.48 ~ 正面 1.00
+          const depthOpacity = (0.48 + 0.52 * alpha).toFixed(2);
+          // 景深明暗：背面 82% 亮度 ~ 正面 100% 亮度
+          const depthBrightness = (0.82 + 0.18 * alpha).toFixed(2);
+
+          el.style.opacity = depthOpacity;
+          el.style.filter = `brightness(${depthBrightness})`;
+
+          // 动图与实况视频全程保持播放，严禁暂停
+          const vid = el.querySelector('video');
+          if (vid && vid.paused) {
+            vid.play().catch(() => {});
           }
         }
       };
@@ -4090,10 +4058,9 @@
           const ry = Number((liveSphereRotY + liveGyroY).toFixed(2));
           const s = Number(liveSphereScale.toFixed(2));
           sphereWorldDomEl.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(${s}, ${s}, ${s})`;
-          cullBackfaceCards(rx, ry);
+          updateCardDepthVisuals(rx, ry);
         }
       };
-
       const sphereTransformStyle = computed(() => {
         return {
           transform: `rotateX(${liveSphereRotX}deg) rotateY(${liveSphereRotY}deg) scale3d(${sphereScale.value}, ${sphereScale.value}, ${sphereScale.value})`
@@ -4157,7 +4124,7 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const ratio = curDist / pinchStartDist;
-          liveSphereScale = Math.max(0.45, Math.min(2.5, pinchStartScale * ratio));
+          liveSphereScale = Math.max(0.25, Math.min(3.0, pinchStartScale * ratio));
           sphereScale.value = Number(liveSphereScale.toFixed(2));
           applySphereWorldTransform();
           return;
@@ -4191,13 +4158,13 @@
       // 电脑端鼠标滚轮平滑缩放
       const onSphereWheel = (e) => {
         const delta = e.deltaY < 0 ? 0.08 : -0.08;
-        liveSphereScale = Math.max(0.45, Math.min(2.5, liveSphereScale + delta));
+        liveSphereScale = Math.max(0.25, Math.min(3.0, liveSphereScale + delta));
         sphereScale.value = Number(liveSphereScale.toFixed(2));
         applySphereWorldTransform();
       };
 
       const zoomSphere = (delta) => {
-        liveSphereScale = Math.max(0.45, Math.min(2.5, liveSphereScale + delta));
+        liveSphereScale = Math.max(0.25, Math.min(3.0, liveSphereScale + delta));
         sphereScale.value = Number(liveSphereScale.toFixed(2));
         applySphereWorldTransform();
       };
@@ -4299,6 +4266,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
