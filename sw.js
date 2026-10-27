@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v7-fast-cdn';
+const CACHE_NAME = 'yb-love-v9-instant-media';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

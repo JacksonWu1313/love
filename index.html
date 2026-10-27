@@ -30,6 +30,7 @@
   <meta name="apple-mobile-web-app-title" content="YB & 悦悦">
   <link rel="apple-touch-icon" href="./images/icon.svg">
   <link rel="icon" type="image/svg+xml" href="./images/icon.svg">
+  <link rel="preload" as="image" href="./images/hero_cover.jpg" fetchpriority="high">
   <title>Our Love Story | YB & 悦悦大王 数字纪念馆 (CMS 可持续编辑版)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -1103,7 +1104,7 @@
                    @click="handleSpherePhotoClick(photo)">
                 <div class="w-full h-full p-1 sm:p-1.5 bg-white/95 rounded-xl sm:rounded-2xl shadow-md group-hover:shadow-xl transition duration-300 flex flex-col border border-white/80 relative">
                   <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/30">
-                    <img :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" :loading="sIdx < 6 ? 'eager' : 'lazy'" :fetchpriority="sIdx < 6 ? 'high' : 'low'" decoding="async" @error="onImgError($event, photo.image)">
+                    <img :src="getFastImg(photo.image, true)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" loading="eager" fetchpriority="high" decoding="async" @error="onImgError($event, photo.image)">
                     <!-- Hover Action Overlay -->
                     <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-1.5 text-white">
                       <button @click.stop="openSphereEditModal(photo)" class="p-1.5 rounded-full bg-black/60 hover:bg-rose-500 transition shadow-sm" title="编辑这张照片文字">
@@ -2818,7 +2819,7 @@
       const CURRENT_VERSION = 'v5_safe_persistence_and_multi_os';
 
       // Scheme 1: Asia-Pacific Multi-CDN Acceleration Engine with Instant Fallback
-      const getFastImg = (src) => {
+      const getFastImg = (src, preferThumb = false) => {
         if (!src) return '';
         if (typeof src !== 'string') return src;
         if (src.startsWith('data:') || (src.startsWith('http') && !src.includes('github'))) {
@@ -2826,8 +2827,8 @@
         }
         const clean = src.replace(/^\.?\//, '');
         if (clean.startsWith('images/')) {
-          // Use Fastly Asia-Pacific POPs (Hong Kong / Singapore / Tokyo nodes)
-          return `https://fastly.jsdelivr.net/gh/JacksonWu1313/love@main/${clean}`;
+          if (preferThumb && clean.startsWith('images/') && !clean.includes('thumb/')) return './' + clean.replace('images/', 'images/thumb/');
+          return './' + clean;
         }
         return src;
       };
@@ -2836,7 +2837,9 @@
         const el = event.target;
         if (!el.dataset.fallbackDone) {
           el.dataset.fallbackDone = 'true';
-          if (fallbackSrc) {
+          if (el.src && el.src.includes('/thumb/')) { el.src = el.src.replace('/thumb/', '/'); return; }
+          if (fallbackSrc) { const c = fallbackSrc.replace(/^\.?\//, ''); el.src = 'https://cdn.jsdelivr.net/gh/JacksonWu1313/love@main/' + c; return; }
+          if (false) {
             el.src = fallbackSrc;
           } else {
             // Fallback from CDN URL to relative local path
@@ -2886,9 +2889,9 @@
           './images/IMG_8727.JPG'
         ];
 
-        const schedulePrewarm = window.requestIdleCallback || ((cb) => setTimeout(cb, 1200));
+        const schedulePrewarm = (cb) => setTimeout(cb, 3000);
         schedulePrewarm(() => {
-          allPhotosToPrewarm.forEach((rel) => {
+          let pIdx = 0; const step = () => { if (pIdx < allPhotosToPrewarm.length) { const img = new Image(); img.decoding = 'async'; img.src = getFastImg(allPhotosToPrewarm[pIdx], true); pIdx++; setTimeout(step, 100); } }; step(); if (false) allPhotosToPrewarm.forEach((rel) => {
             const img = new Image();
             img.decoding = 'async';
             img.src = getFastImg(rel);
