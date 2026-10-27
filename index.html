@@ -356,7 +356,7 @@
       <span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-full font-semibold">鸿蒙7 · 澎湃4</span>
     </button>
     <!-- Bouncing Arrow Pointer for 小悦悦 -->
-    <div v-if="showTopLeftTip" @click="openHarmonyGuide" class="mt-2 ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-blush-500 to-rose-400 text-white text-[11px] shadow-lg cursor-pointer transform hover:scale-105 transition active:scale-95 animate-bounce">
+    <div v-if="showTopLeftTip" @click="openHarmonyGuide" class="mt-2 ml-1 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-gradient-to-r from-blush-500 to-rose-400 text-white text-[10px] sm:text-[11px] shadow-lg cursor-pointer transform hover:scale-105 transition active:scale-95 animate-bounce max-w-[210px] sm:max-w-xs">
       <span class="text-xs font-bold">↖</span>
       <span class="font-serif font-medium">小悦悦看这里 · 开启专属App (华为鸿蒙/小米澎湃)</span>
       <button @click.stop="showTopLeftTip = false" class="ml-1 opacity-80 hover:opacity-100 text-xs leading-none">×</button>
@@ -1054,7 +1054,7 @@
   </section>
 
   <!-- Section: 3D 浪漫照片星球 (3D Photo Constellation Sphere - 360° 全景旋转照片球) -->
-  <section id="sphere-section" class="py-14 px-3 sm:px-6 md:px-8 bg-gradient-to-b from-warmwhite via-sand/25 to-warmwhite border-t border-sand/60 relative overflow-hidden">
+  <section id="sphere-section" class="pt-16 sm:pt-20 pb-14 px-3 sm:px-6 md:px-8 bg-gradient-to-b from-warmwhite via-sand/25 to-warmwhite border-t border-sand/60 relative overflow-hidden">
     <div class="max-w-5xl mx-auto">
       
       <!-- Section Header -->
@@ -1079,7 +1079,7 @@
       <!-- 3D Sphere Card Stage -->
       <div class="relative glass-card rounded-3xl p-4 sm:p-6 border border-sand shadow-soft bg-gradient-to-b from-white/95 to-warmwhite/90">
         
-        <!-- Top Toolbar: Quantity Controls & Presets -->
+        <!-- Top Toolbar: Quantity Controls & Presets & Zoom -->
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
           <!-- Count Selector & Adaptive Presets -->
           <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -1092,38 +1092,54 @@
             <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60">
               <button @click="setSphereCardCount(16)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 16 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">16张</button>
               <button @click="setSphereCardCount(24)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 24 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">24张</button>
-              <button @click="setSphereCardCount(32)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 32 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">32张 (满天星)</button>
+              <button @click="setSphereCardCount(32)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 32 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">32张</button>
+              <button @click="setSphereCardCount(48)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 48 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">48张(双轨)</button>
             </div>
 
-            <!-- Stepper for Custom Quantity -->
-            <div class="hidden sm:inline-flex items-center space-x-1.5 bg-sand/25 px-2.5 py-0.5 rounded-full border border-sand/50 text-[11px]">
-              <span class="text-muted">自定义数量:</span>
+            <!-- Stepper for Custom Quantity (Unlimited) -->
+            <div class="inline-flex items-center space-x-1.5 bg-sand/25 px-2.5 py-0.5 rounded-full border border-sand/50 text-[11px]">
+              <span class="text-muted">数量:</span>
               <button @click="adjustSphereCount(-2)" class="w-4 h-4 rounded-full bg-warmwhite hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">-</button>
               <span class="font-bold text-rose-600 min-w-[20px] text-center">{{ sphereCardCount }}</span>
               <button @click="adjustSphereCount(2)" class="w-4 h-4 rounded-full bg-warmwhite hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">+</button>
             </div>
+
+            <!-- Add Photo / Live Media Button -->
+            <button @click="pickLocalImageForNewSpherePhoto" class="px-2.5 py-0.5 rounded-full bg-blush-100 hover:bg-blush-200 text-rose-600 text-[11px] font-medium transition flex items-center space-x-1 border border-blush-200 shadow-2xs" title="从本地相册追加一张照片或实况动图到星球">
+              <span>➕ 追加照片/动图</span>
+            </button>
           </div>
 
-          <!-- Controls -->
-          <div class="flex items-center space-x-2 text-xs">
-            <button @click="toggleSphereAutoRotate" class="px-3 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1.5 shadow-2xs">
+          <!-- Controls: Zoom, Auto-Rotate, Reset, Shuffle -->
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
+            <!-- Zoom Controls (Pinch/Wheel/Buttons) -->
+            <div class="inline-flex items-center space-x-1 bg-sand/35 px-1.5 py-0.5 rounded-full border border-sand/60 text-[11px]">
+              <button @click="zoomSphere(0.15)" class="px-1.5 py-0.5 rounded-full hover:bg-warmwhite text-ink transition shadow-2xs" title="放大视角">🔍+</button>
+              <span class="text-[10px] font-mono text-muted min-w-[32px] text-center">{{ Math.round(sphereScale * 100) }}%</span>
+              <button @click="zoomSphere(-0.15)" class="px-1.5 py-0.5 rounded-full hover:bg-warmwhite text-ink transition shadow-2xs" title="缩小视角">🔍-</button>
+            </div>
+
+            <button @click="resetSphereView" class="px-2.5 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1 shadow-2xs" title="复位星球朝向与视角缩放">
+              <i data-lucide="compass" class="w-3 h-3 text-clay"></i>
+              <span>🎯 复位</span>
+            </button>
+
+            <button @click="toggleSphereAutoRotate" class="px-2.5 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1 shadow-2xs">
               <i data-lucide="refresh-cw" class="w-3 h-3 text-clay" :class="isSphereRotating ? 'animate-spin' : ''"></i>
               <span>{{ isSphereRotating ? '自转中' : '已暂停' }}</span>
             </button>
-            <button @click="resetSphereView" class="px-3 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1.5 shadow-2xs">
-              <i data-lucide="compass" class="w-3 h-3 text-clay"></i>
-              <span>重置视角</span>
-            </button>
-            <button @click="shuffleSpherePhotos" class="px-3 py-1 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-[11px] font-medium transition shadow-soft flex items-center space-x-1">
+
+            <button @click="shuffleSpherePhotos" class="px-2.5 py-1 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-[11px] font-medium transition shadow-soft flex items-center space-x-1">
               <i data-lucide="shuffle" class="w-3 h-3"></i>
-              <span>换一批照片</span>
+              <span>换一批</span>
             </button>
           </div>
         </div>
 
-        <!-- 3D Stage Viewport -->
+        <!-- 3D Stage Viewport (支持鼠标滚轮与手机双指捏合缩放) -->
         <div class="relative w-full h-[470px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
              style="touch-action: none;"
+             @wheel.passive="onSphereWheel"
              @mousedown="onSphereDragStart"
              @mousemove="onSphereDragMove"
              @mouseup="onSphereDragEnd"
@@ -1138,17 +1154,37 @@
 
           <!-- 3D Perspective Stage -->
           <div class="photo-sphere-stage" :style="{ perspective: spherePerspective }">
-            <div id="photo-sphere-world-el" class="photo-sphere-world" style="transform: rotateX(-12deg) rotateY(0deg);">
+            <div id="photo-sphere-world-el" class="photo-sphere-world" style="transform: rotateX(-12deg) rotateY(0deg) scale3d(1, 1, 1);">
               
               <!-- Photo Cards Distributed on 3D Sphere -->
               <div v-for="(photo, sIdx) in spherePhotosList" :key="photo.id || sIdx"
+                   :id="'sphere-card-' + sIdx"
                    class="sphere-photo-card group"
                    :style="getSphereCardStyle(sIdx)"
-                   @click="handleSpherePhotoClick(photo)">
+                   @click="handleSpherePhotoClick(photo, sIdx)">
                 <div class="w-full h-full p-1 sm:p-1.5 bg-white rounded-xl sm:rounded-2xl shadow-md flex flex-col border border-sand/80 relative">
                   <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/30">
-                    <img :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover pointer-events-none" loading="eager" decoding="sync" style="aspect-ratio: 3/4;" @error="onImgError($event, photo.image)">
-                    <!-- Hover Action Overlay: 支持直接从本地相册换图/动图、编辑文字、放大 -->
+                    <!-- 实况视频 / 动图双轨渲染 -->
+                    <video v-if="isVideoMedia(photo.image)"
+                           :src="getFastImg(photo.image)"
+                           autoplay loop muted playsinline webkit-playsinline disablePictureInPicture
+                           class="w-full h-full object-cover pointer-events-none"
+                           style="aspect-ratio: 3/4;"></video>
+                    <img v-else
+                         :src="getFastImg(photo.image)"
+                         :alt="photo.title || '照片'"
+                         class="w-full h-full object-cover pointer-events-none"
+                         loading="lazy" decoding="async"
+                         style="aspect-ratio: 3/4;"
+                         @error="onImgError($event, photo.image)">
+
+                    <!-- LIVE ⭕ 实况/动图标识 -->
+                    <span v-if="isMotionMedia(photo.image)" class="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-black/60 text-[8px] font-bold text-white tracking-widest flex items-center gap-1 shadow-xs z-10 pointer-events-none backdrop-filter-none">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                      LIVE ⭕
+                    </span>
+
+                    <!-- Hover Action Overlay: 本地相册换图/动图、编辑文字、放大 -->
                     <div class="absolute inset-0 bg-ink/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center space-x-1 text-white">
                       <button @click.stop="pickLocalImageForSpherePhoto(photo)" class="p-1.5 rounded-full bg-clay/90 hover:bg-rose-500 transition shadow-sm" title="从本地相册更换此位置图片/动图">
                         <span class="text-[11px] leading-none">📷</span>
@@ -1167,7 +1203,6 @@
 
             </div>
           </div>
-
           <!-- Floating Guidance Overlay -->
           <div class="absolute bottom-3 left-4 right-4 text-center pointer-events-none">
             <span class="px-3 py-1 rounded-full bg-white/85 backdrop-blur-md text-muted text-[11px] border border-sand/80 shadow-2xs inline-flex items-center space-x-1.5">
@@ -1622,11 +1657,21 @@
     </main>
   </div>
 
-  <!-- Fullscreen Lightbox Modal -->
-  <div v-if="activeLightboxImg" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 cursor-zoom-out" @click="activeLightboxImg = null">
-    <div class="max-w-4xl max-h-[90vh] relative" @click.stop>
-      <img :src="getFastImg(activeLightboxImg)" alt="Lightbox Preview" class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl" decoding="async" @error="onImgError($event, activeLightboxImg)">
-      <button @click="activeLightboxImg = null" class="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/80 transition">
+  <!-- Fullscreen Lightbox Modal (支持超清原图、GIF 动图与 LivePhoto 原声原生视频播放) -->
+  <div v-if="activeLightboxImg || activeLightboxVideo" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out select-none" @click="closeLightbox">
+    <div class="max-w-4xl max-h-[90vh] relative flex flex-col items-center justify-center" @click.stop>
+      <video v-if="activeLightboxVideo"
+             :src="getFastImg(activeLightboxVideo)"
+             controls autoplay loop playsinline webkit-playsinline
+             class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl bg-black">
+      </video>
+      <img v-else-if="activeLightboxImg"
+           :src="getFastImg(activeLightboxImg)"
+           alt="Lightbox Preview"
+           class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl pointer-events-auto"
+           decoding="async"
+           @error="onImgError($event, activeLightboxImg)">
+      <button @click="closeLightbox" class="absolute top-4 right-4 p-2 bg-black/60 text-white rounded-full hover:bg-black/80 transition shadow-md">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
@@ -3845,44 +3890,50 @@
         await savePoolToCloud();
       };
 
+      // 3D Photo Constellation Sphere (Dynamic Fibonacci Sphere, Pinch/Wheel Zoom & Backface Culling)
+      const sphereScale = ref(1.0);
+      let liveSphereScale = 1.0;
+      let pinchStartDist = 0;
+      let pinchStartScale = 1.0;
+
       const setSphereCardCount = (count) => {
         sphereCardCount.value = count;
       };
 
       const adjustSphereCount = (delta) => {
-        const poolLen = (siteData.photoPool ? siteData.photoPool.length : 32);
-        const maxVal = Math.max(32, poolLen);
-        sphereCardCount.value = Math.max(8, Math.min(maxVal, sphereCardCount.value + delta));
+        sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // Adaptive Radius based on quantity and screen width
+      // 动态球体半径自适应：R = R_base * sqrt(max(N, 16) / 16)
       const getSphereRadius = () => {
         if (typeof window === 'undefined') return 240;
-        const count = sphereCardCount.value || 24;
+        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
-        const baseR = isMobile ? 172 : (isTablet ? 230 : 272);
-        const factor = Math.sqrt(count / 24);
-        return Math.round(baseR * (0.82 + 0.22 * factor));
+        const baseR = isMobile ? 175 : (isTablet ? 230 : 280);
+        const factor = Math.sqrt(Math.max(count, 16) / 16);
+        return Math.round(baseR * factor);
       };
 
-      // Adaptive Card Dimensions based on count
+      // 动态卡片尺寸：随照片总数阶梯式自适应伸缩，杜绝碰撞挤压
       const getSphereCardDimensions = computed(() => {
-        const count = sphereCardCount.value || 24;
+        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
         if (count <= 16) {
-          return isMobile ? { w: 86, h: 116 } : { w: 110, h: 146 };
-        } else if (count <= 26) {
-          return isMobile ? { w: 76, h: 102 } : { w: 98, h: 130 };
+          return isMobile ? { w: 84, h: 112 } : { w: 104, h: 140 };
+        } else if (count <= 30) {
+          return isMobile ? { w: 72, h: 96 } : { w: 90, h: 120 };
+        } else if (count <= 50) {
+          return isMobile ? { w: 62, h: 84 } : { w: 78, h: 104 };
         } else {
-          return isMobile ? { w: 66, h: 90 } : { w: 84, h: 112 };
+          return isMobile ? { w: 54, h: 72 } : { w: 68, h: 90 };
         }
       });
 
-      // Adaptive CSS Perspective
+      // 自适应 CSS 视距
       const spherePerspective = computed(() => {
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-        const count = sphereCardCount.value || 24;
+        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         return isMobile ? (count > 24 ? '850px' : '920px') : (count > 24 ? '980px' : '1050px');
       });
 
@@ -3915,25 +3966,34 @@
         return slice;
       });
 
+      // 斐波那契球面算法 + 法线朝向校正 + 多层同心星轨 (N > 40 时分流内外错层)
       const sphereCoordinates = computed(() => {
         const N = spherePhotosList.value.length || 24;
         const phiGolden = Math.PI * (3 - Math.sqrt(5)); // ~2.3999632 rad
+        const R = getSphereRadius();
         const coords = [];
-        const r = getSphereRadius();
         for (let i = 0; i < N; i++) {
-          const y = 1 - (i / (N - 1)) * 2; // from 1 to -1
+          const y = N === 1 ? 0 : 1 - (i / (N - 1)) * 2; // from 1 to -1
           const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
           const theta = phiGolden * i;
           const x = Math.cos(theta) * radiusAtY;
           const z = Math.sin(theta) * radiusAtY;
 
-          const latDeg = Math.asin(y) * (180 / Math.PI);
+          // N > 40 时自动分流内外双层景深星轨 (偶数层 0.90R, 奇数层 1.10R)
+          const r_i = (N > 40) ? (i % 2 === 0 ? R * 0.90 : R * 1.10) : R;
+          const px = x * r_i;
+          const py = y * r_i;
+          const pz = z * r_i;
+
+          const latDeg = Math.asin(Math.max(-1, Math.min(1, y))) * (180 / Math.PI);
           const lonDeg = Math.atan2(x, z) * (180 / Math.PI);
-          coords.push({ latDeg, lonDeg, r });
+
+          coords.push({ x, y, z, px, py, pz, r: r_i, latDeg, lonDeg });
         }
         return coords;
       });
 
+      // 卡片法线朝向校正：先平移至球面外表面坐标，再旋转对齐法线，彻底消灭两极侧倾与穿模
       const getSphereCardStyle = (idx) => {
         const coord = sphereCoordinates.value[idx];
         if (!coord) return { display: 'none' };
@@ -3943,7 +4003,7 @@
           height: `${dims.h}px`,
           marginLeft: `${-dims.w / 2}px`,
           marginTop: `${-dims.h / 2}px`,
-          transform: `rotateY(${coord.lonDeg}deg) rotateX(${-coord.latDeg}deg) translateZ(${coord.r}px)`
+          transform: `translate3d(${coord.px.toFixed(1)}px, ${(-coord.py).toFixed(1)}px, ${coord.pz.toFixed(1)}px) rotateY(${coord.lonDeg.toFixed(1)}deg) rotateX(${(-coord.latDeg).toFixed(1)}deg)`
         };
       };
 
@@ -3951,20 +4011,54 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
+      // 移动端 60fps 背面不可见剔除与实况视频暂停 (Backface Culling)
+      const cullBackfaceCards = (rxDeg, ryDeg) => {
+        const coords = sphereCoordinates.value;
+        if (!coords || coords.length === 0 || typeof document === 'undefined') return;
+        const rxRad = rxDeg * (Math.PI / 180);
+        const ryRad = ryDeg * (Math.PI / 180);
+        const cosRx = Math.cos(rxRad);
+        const sinRx = Math.sin(rxRad);
+        const cosRy = Math.cos(ryRad);
+        const sinRy = Math.sin(ryRad);
+
+        for (let i = 0; i < coords.length; i++) {
+          const c = coords[i];
+          const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
+          const el = document.getElementById('sphere-card-' + i);
+          if (!el) continue;
+          if (zEye < -20) {
+            if (el.style.visibility !== 'hidden') {
+              el.style.visibility = 'hidden';
+              const vid = el.querySelector('video');
+              if (vid && !vid.paused) vid.pause();
+            }
+          } else {
+            if (el.style.visibility !== 'visible') {
+              el.style.visibility = 'visible';
+              const vid = el.querySelector('video');
+              if (vid && vid.paused) vid.play().catch(() => {});
+            }
+          }
+        }
+      };
+
       const applySphereWorldTransform = () => {
         if (!sphereWorldDomEl && typeof document !== 'undefined') {
           sphereWorldDomEl = document.getElementById('photo-sphere-world-el');
         }
         if (sphereWorldDomEl) {
-          const rx = (liveSphereRotX + liveGyroX).toFixed(2);
-          const ry = (liveSphereRotY + liveGyroY).toFixed(2);
-          sphereWorldDomEl.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+          const rx = Number((liveSphereRotX + liveGyroX).toFixed(2));
+          const ry = Number((liveSphereRotY + liveGyroY).toFixed(2));
+          const s = Number(liveSphereScale.toFixed(2));
+          sphereWorldDomEl.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale3d(${s}, ${s}, ${s})`;
+          cullBackfaceCards(rx, ry);
         }
       };
 
       const sphereTransformStyle = computed(() => {
         return {
-          transform: `rotateX(${liveSphereRotX}deg) rotateY(${liveSphereRotY}deg)`
+          transform: `rotateX(${liveSphereRotX}deg) rotateY(${liveSphereRotY}deg) scale3d(${sphereScale.value}, ${sphereScale.value}, ${sphereScale.value})`
         };
       });
 
@@ -3995,37 +4089,79 @@
         isDraggingSphere = false;
       };
 
+      // 手机双端手势：单指平滑旋转 + 双指捏合平滑缩放 (Pinch-to-Zoom 0.45x ~ 2.5x)
       const onSphereTouchStart = (e) => {
-        if (!e.touches || e.touches.length === 0) return;
-        isDraggingSphere = true;
-        hasSphereMoved = false;
-        sphereLastX = e.touches[0].clientX;
-        sphereLastY = e.touches[0].clientY;
-        sphereVelX = 0;
-        sphereVelY = 0;
+        if (!e.touches) return;
+        if (e.touches.length === 2) {
+          isDraggingSphere = false;
+          pinchStartDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          pinchStartScale = liveSphereScale;
+          return;
+        }
+        if (e.touches.length === 1) {
+          isDraggingSphere = true;
+          hasSphereMoved = false;
+          sphereLastX = e.touches[0].clientX;
+          sphereLastY = e.touches[0].clientY;
+          sphereVelX = 0;
+          sphereVelY = 0;
+        }
       };
 
       const onSphereTouchMove = (e) => {
-        if (!isDraggingSphere || !e.touches || e.touches.length === 0) return;
-        const dx = e.touches[0].clientX - sphereLastX;
-        const dy = e.touches[0].clientY - sphereLastY;
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasSphereMoved = true;
-        liveSphereRotY += dx * 0.4;
-        liveSphereRotX = Math.max(-80, Math.min(80, liveSphereRotX - dy * 0.4));
-        sphereVelY = dx * 0.4;
-        sphereVelX = -dy * 0.4;
-        sphereLastX = e.touches[0].clientX;
-        sphereLastY = e.touches[0].clientY;
+        if (!e.touches) return;
+        if (e.touches.length === 2 && pinchStartDist > 0) {
+          const curDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const ratio = curDist / pinchStartDist;
+          liveSphereScale = Math.max(0.45, Math.min(2.5, pinchStartScale * ratio));
+          sphereScale.value = Number(liveSphereScale.toFixed(2));
+          applySphereWorldTransform();
+          return;
+        }
+        if (isDraggingSphere && e.touches.length === 1) {
+          const dx = e.touches[0].clientX - sphereLastX;
+          const dy = e.touches[0].clientY - sphereLastY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasSphereMoved = true;
+          liveSphereRotY += dx * 0.4;
+          liveSphereRotX = Math.max(-80, Math.min(80, liveSphereRotX - dy * 0.4));
+          sphereVelY = dx * 0.4;
+          sphereVelX = -dy * 0.4;
+          sphereLastX = e.touches[0].clientX;
+          sphereLastY = e.touches[0].clientY;
+          applySphereWorldTransform();
+        }
+      };
+
+      const onSphereTouchEnd = (e) => {
+        if (!e.touches || e.touches.length === 0) {
+          isDraggingSphere = false;
+          pinchStartDist = 0;
+        } else if (e.touches.length === 1) {
+          isDraggingSphere = true;
+          sphereLastX = e.touches[0].clientX;
+          sphereLastY = e.touches[0].clientY;
+          pinchStartDist = 0;
+        }
+      };
+
+      // 电脑端鼠标滚轮平滑缩放
+      const onSphereWheel = (e) => {
+        const delta = e.deltaY < 0 ? 0.08 : -0.08;
+        liveSphereScale = Math.max(0.45, Math.min(2.5, liveSphereScale + delta));
+        sphereScale.value = Number(liveSphereScale.toFixed(2));
         applySphereWorldTransform();
       };
 
-      const onSphereTouchEnd = () => {
-        isDraggingSphere = false;
-      };
-
-      const handleSpherePhotoClick = (photo) => {
-        if (hasSphereMoved) return;
-        openLightbox(photo.image);
+      const zoomSphere = (delta) => {
+        liveSphereScale = Math.max(0.45, Math.min(2.5, liveSphereScale + delta));
+        sphereScale.value = Number(liveSphereScale.toFixed(2));
+        applySphereWorldTransform();
       };
 
       const toggleSphereAutoRotate = () => {
@@ -4035,6 +4171,8 @@
       const resetSphereView = () => {
         liveSphereRotX = -12;
         liveSphereRotY = 0;
+        liveSphereScale = 1.0;
+        sphereScale.value = 1.0;
         sphereVelX = 0;
         sphereVelY = 0.22;
         isSphereRotating.value = true;
@@ -4044,6 +4182,42 @@
       const shuffleSpherePhotos = () => {
         spherePhotoPoolIndex.value++;
         triggerConfetti();
+      };
+
+      // 单击卡片特写推进与全屏大图预览
+      const handleSpherePhotoClick = (photo, idx) => {
+        if (hasSphereMoved) return;
+        const coords = sphereCoordinates.value;
+        if (coords && coords[idx]) {
+          const c = coords[idx];
+          liveSphereRotY = -c.lonDeg;
+          liveSphereRotX = c.latDeg;
+          liveSphereScale = Math.min(1.4, Math.max(1.15, liveSphereScale));
+          sphereScale.value = Number(liveSphereScale.toFixed(2));
+          applySphereWorldTransform();
+        }
+        setTimeout(() => {
+          openLightbox(photo);
+        }, 220);
+      };
+
+      const pickLocalImageForNewSpherePhoto = () => {
+        openLocalAlbumPicker((newSrc, file) => {
+          const title = file && file.name ? file.name.replace(/\.[^/.]+$/, '') : '回忆星辰';
+          const newPhoto = {
+            id: 'sphere_' + Date.now(),
+            image: newSrc,
+            title: title,
+            story: '添加于 3D 浪漫回忆星球',
+            date: new Date().toISOString().split('T')[0],
+            uploader: '我们'
+          };
+          if (!siteData.photoPool) siteData.photoPool = [];
+          siteData.photoPool.unshift(newPhoto);
+          sphereCardCount.value = Math.max(sphereCardCount.value + 1, siteData.photoPool.length);
+          triggerConfetti();
+          savePoolToCloud();
+        });
       };
 
       const tickSphere = () => {
@@ -4087,6 +4261,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
@@ -4517,21 +4694,21 @@
 
       // 5. Lightbox, Letter & Confetti
       const openLightbox = (item) => {
-        if (item && typeof item === object) {
-          if (item.video || isVideoMedia(item.image)) {
-            activeLightboxVideo.value = item.video || item.image;
-            activeLightboxImg.value = null;
-          } else {
-            activeLightboxImg.value = item.image || item.cover;
-            activeLightboxVideo.value = null;
-          }
-        } else if (isVideoMedia(item)) {
-          activeLightboxVideo.value = item;
+        if (!item) return;
+        let target = '';
+        if (typeof item === 'object') {
+          target = item.video || item.image || item.cover || '';
+        } else {
+          target = String(item);
+        }
+        if (isVideoMedia(target)) {
+          activeLightboxVideo.value = target;
           activeLightboxImg.value = null;
         } else {
-          activeLightboxImg.value = item;
+          activeLightboxImg.value = target;
           activeLightboxVideo.value = null;
         }
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
       const closeLightbox = () => {
         activeLightboxImg.value = null;
@@ -4650,6 +4827,11 @@
         if (!u || typeof u !== 'string') return false;
         const c = u.split('?')[0].toLowerCase();
         return c.endsWith('.mp4') || c.endsWith('.mov') || c.endsWith('.webm') || c.startsWith('data:video/');
+      };
+      const isMotionMedia = (u) => {
+        if (!u || typeof u !== 'string') return false;
+        const c = u.split('?')[0].toLowerCase();
+        return isVideoMedia(u) || c.endsWith('.gif') || c.endsWith('.webp') || c.endsWith('.apng') || c.startsWith('data:image/gif') || c.startsWith('data:image/webp');
       };
       const readFileAsBase64 = (file) => {
         return new Promise((resolve, reject) => {
@@ -6196,6 +6378,11 @@
         setSphereCardCount,
         adjustSphereCount,
         getSphereCardDimensions,
+        sphereScale,
+        onSphereWheel,
+        zoomSphere,
+        pickLocalImageForNewSpherePhoto,
+        isMotionMedia,
         spherePerspective,
         showSphereEditModal,
         sphereEditForm,
