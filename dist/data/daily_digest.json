@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-27",
+  "updated_at": "2026-10-27 15:16:02",
+  "pc_wechat_online": true,
+  "wechat_pids": [
+    17744,
+    13540,
+    21580,
+    4468,
+    7024
+  ],
+  "today_media_count": 9,
+  "latest_activity_time": "2026-10-27 13:34:31",
+  "raw_scanned_count": 14,
+  "filtered_routine_count": 6,
+  "filtered_routine_samples": [
+    "早安",
+    "吃了吗",
+    "到家了",
+    "哈哈",
+    "嗯嗯"
+  ],
+  "filtered_trivial_count": 0,
+  "filtered_trivial_samples": [],
+  "duplicate_blocked_count": 8,
+  "duplicate_blocked_samples": [
+    "从 5月19日 22:30 牵手那一刻起，我就知道遇到了要用一生宠爱的人。吃鸡块永远给你留着最脆的皮，只要你在身边，无论逛哪个公园，晚风都是甜的。悦悦大王要每天都开开心心！",
+    "大理的洱海、丽江的雪山，都不如坐在副驾看你认真的侧脸。谢谢你一直迁就我的小脾气，做我永远的靠山。下一次旅行，我们还要一起去看更广阔的世界！",
+    "无论生活是平淡还是忙碌，只要回家能抱抱你，所有疲惫都烟消云散了。以后的每个春夏秋冬、每一个纪念日，我都陪在你身边。"
+  ],
+  "total_records_count": 4,
+  "total_messages_count": 4,
+  "new_records_added": [],
+  "new_whispers_added": []
+}
