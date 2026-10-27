@@ -2,6 +2,21 @@
 <html lang="zh-CN">
 <head>
   
+    <!-- Anti-White-Screen Global Error Guard -->
+  <script>
+    window.__appMounted = false;
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (!window.__appMounted && !document.getElementById('anti-white-toast')) {
+          var t = document.createElement('div');
+          t.id = 'anti-white-toast';
+          t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(255,253,249,0.95);backdrop-filter:blur(10px);border:1px solid #FED7D7;border-radius:9999px;padding:10px 20px;box-shadow:0 10px 25px -5px rgba(217,93,93,0.15);font-size:12px;color:#2D2A26;display:flex;align-items:center;gap:10px;font-family:sans-serif;';
+          t.innerHTML = '<span>🌸 恋爱小站正在温暖加载中... 若未及时显示可尝试：</span><button onclick=' + q + 'location.reload(true)' + q + ' style=' + q + 'background:#E87A7A;color:#fff;border:none;border-radius:9999px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;' + q + '>一键刷新</button>';
+          (document.body || document.documentElement).appendChild(t);
+        }
+      }, 3500);
+    });
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
@@ -3608,7 +3623,10 @@
       };
 
       onMounted(() => {
-        updateTimer();
+        window.__appMounted = true;
+        var _g = document.getElementById('anti-white-toast');
+        if (_g) _g.remove();
+                updateTimer();
         setInterval(updateTimer, 1000);
         nextTick(() => { 
           if (window.lucide) lucide.createIcons(); 
