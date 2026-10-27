@@ -3938,6 +3938,7 @@
       };
 
       // Helper: read file as base64
+      const isVideoMedia = (u) => { if (!u || typeof u !== string) return false; const c = u.split(?)[0].toLowerCase(); return c.endsWith(.mp4) || c.endsWith(.mov) || c.endsWith(.webm) || c.startsWith(data:video/); };
       const readFileAsBase64 = (file) => {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -3952,6 +3953,14 @@
 
       // Helper: compress static images with Canvas (skips GIFs to preserve animation)
       const processImageForUpload = (file) => {
+        const ft = file.type || ";
+        const fn = file.name.toLowerCase();
+        if (ft.startsWith(video/) || fn.endsWith(.mp4) || fn.endsWith(.mov) || fn.endsWith(.webm)) {
+          return new Promise((resolve, reject) => {
+            const ext = fn.endsWith(.mov) ? mov : (fn.endsWith(.webm) ? webm : mp4);
+            readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isVideo: true })).catch(reject);
+          });
+        }
         return new Promise((resolve, reject) => {
           if (file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')) {
             readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: 'gif', isGif: true })).catch(reject);
@@ -5317,6 +5326,7 @@
       };
 
       return {
+        isVideoMedia,
         showQuotaModal,
         openQuotaModal,
         isRefreshingQuota,
