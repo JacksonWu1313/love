@@ -3392,21 +3392,7 @@
           siteData.photoPool[idx].story = sphereEditForm.story;
           siteData.photoPool[idx].uploader = sphereEditForm.uploader;
         } else {
-          let cloudCoverUrl = ";
-            if (isVideo && processed.coverBase64) {
-              try {
-                const coverSafeName = cover__.jpg;
-                const coverCleanB64 = processed.coverBase64.replace(/^data:image\/[a-z]+;base64,/, ");
-                const coverUploadUrl = https://api.github.com/repos//contents/images/pool/;
-                const coverRes = await fetch(coverUploadUrl, {
-                  method: PUT,
-                  headers: { Authorization: Bearer , Accept: application/vnd.github.v3+json, Content-Type: application/json },
-                  body: JSON.stringify({ message: eat: Auto capture video frame cover for , content: coverCleanB64 })
-                });
-                if (coverRes.ok) cloudCoverUrl = https://raw.githubusercontent.com//main/images/pool/;
-              } catch (eCov) { console.warn(Cover upload failed:, eCov); }
-            }
-            siteData.photoPool.unshift({ ...sphereEditForm });
+          siteData.photoPool.unshift({ ...sphereEditForm });
         }
         closeSphereEditModal();
         triggerConfetti();
@@ -4066,47 +4052,47 @@
             const file = files[i];
             const processed = await processImageForUpload(file);
             const { base64, ext, isGif, isVideo } = processed;
-            const safeName = pool__.;
+            const safeName = `pool__.`;
             
             // 1. Upload to GitHub images/pool/
-            const uploadUrl = https://api.github.com/repos//contents/images/pool/;
+            const uploadUrl = `https://api.github.com/repos//contents/images/pool/`;
             const uploadRes = await fetch(uploadUrl, {
-              method: 'PUT',
+              method: "PUT",
               headers: {
-                'Authorization': Bearer ,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
+                "Authorization": `Bearer `,
+                "Accept": "application/vnd.github.v3+json",
+                "Content-Type": "application/json"
               },
               body: JSON.stringify({
-                message: eat(pool): upload  ,
+                message: `feat(pool): upload  `,
                 content: base64
               })
             });
 
             if (uploadRes.ok) {
-              const cloudImgUrl = https://raw.githubusercontent.com//main/images/pool/;
+              const cloudImgUrl = `https://raw.githubusercontent.com//main/images/pool/`;
               const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '美好视频' : '美好瞬间'));
               
               let cloudCoverUrl = '';
               if (isVideo && processed.coverBase64) {
                 try {
-                  const coverSafeName = cover__.jpg;
+                  const coverSafeName = `cover__.jpg`;
                   const coverCleanB64 = processed.coverBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-                  const coverUploadUrl = https://api.github.com/repos//contents/images/pool/;
+                  const coverUploadUrl = `https://api.github.com/repos//contents/images/pool/`;
                   const coverRes = await fetch(coverUploadUrl, {
-                    method: 'PUT',
+                    method: "PUT",
                     headers: {
-                      'Authorization': Bearer ,
-                      'Accept': 'application/vnd.github.v3+json',
-                      'Content-Type': 'application/json'
+                      "Authorization": `Bearer `,
+                      "Accept": "application/vnd.github.v3+json",
+                      "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                      message: eat: Auto capture video frame cover for ,
+                      message: `feat: Auto capture video frame cover for `,
                       content: coverCleanB64
                     })
                   });
                   if (coverRes.ok) {
-                    cloudCoverUrl = https://raw.githubusercontent.com//main/images/pool/;
+                    cloudCoverUrl = `https://raw.githubusercontent.com//main/images/pool/`;
                   }
                 } catch (eCov) {
                   console.warn('Cover upload failed:', eCov);
@@ -4144,7 +4130,6 @@
             console.error('Upload error:', err);
           }
         }
-
         // 2. Update cloud registry data/photo_pool.json on GitHub
         try {
           const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
@@ -4197,23 +4182,12 @@
         for (const rawUrl of matchedUrls) {
           const cleanUrl = rawUrl.trim();
           if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image/')) {
-            let cloudCoverUrl = ";
-            if (isVideo && processed.coverBase64) {
-              try {
-                const coverSafeName = cover__.jpg;
-                const coverCleanB64 = processed.coverBase64.replace(/^data:image\/[a-z]+;base64,/, ");
-                const coverUploadUrl = https://api.github.com/repos//contents/images/pool/;
-                const coverRes = await fetch(coverUploadUrl, {
-                  method: PUT,
-                  headers: { Authorization: Bearer , Accept: application/vnd.github.v3+json, Content-Type: application/json },
-                  body: JSON.stringify({ message: eat: Auto capture video frame cover for , content: coverCleanB64 })
-                });
-                if (coverRes.ok) cloudCoverUrl = https://raw.githubusercontent.com//main/images/pool/;
-              } catch (eCov) { console.warn(Cover upload failed:, eCov); }
-            }
+            const isVid = isVideoMedia(cleanUrl);
             siteData.photoPool.unshift({
               id: Date.now() + Math.random(),
               image: cleanUrl,
+              cover: isVid ? cleanUrl : null,
+              isVideo: isVid,
               title: cleanUrl.toLowerCase().includes('.gif') ? '微信动图瞬间' : '精选外链回忆',
               date: today,
               uploader: '我们'
