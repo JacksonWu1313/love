@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793092571170,
-  "updatedAtStr": "2026/10/27 17:16:11",
+  "updatedAt": 1793094941222,
+  "updatedAtStr": "2026/10/27 17:55:41",
   "siteData": {
     "hero": {
       "title1": "YB",
@@ -73,7 +73,7 @@
         "images": [
           "./images/timeline_08_1.jpg",
           "./images/timeline_08_2.jpg",
-          "./images/timeline_08_3.jpg"
+          "./images/uploads/slot_1793094914212_460.jpeg"
         ]
       },
       {
@@ -99,7 +99,7 @@
         "text": "全世界仅此一个的我，尽情幸福吧。",
         "author": "悦悦大王",
         "tag": "默契金句",
-        "image": "./images/quote_2.jpg"
+        "image": "./images/uploads/slot_1793094864908_217.png"
       },
       {
         "text": "再奖励你一张嘛，女神一下！",
@@ -111,13 +111,13 @@
         "text": "自驾在洱海环海路上吹晚风，太治愈了！",
         "author": "云南自驾原声",
         "tag": "彩云之南",
-        "image": "./images/quote_4.jpg"
+        "image": "./images/uploads/slot_1793094848900_455.jpeg"
       },
       {
         "text": "老婆说我坏坏我可伤心了[委屈] —— 好啦不委屈，打嘴嘴好不好？",
         "author": "两人的情绪调解",
         "tag": "温柔哄哄",
-        "image": "./images/quote_5.jpg"
+        "image": "./images/uploads/slot_1793094829842_878.jpeg"
       },
       {
         "text": "我是想通过这个让我们磨合的更好，剩下的交给我。",
@@ -131,13 +131,13 @@
         "title": "大理 · 洱海环海自驾",
         "date": "2026-08",
         "desc": "自驾穿梭在苍山洱海之间，摇下车窗吹着凉爽晚风，水天一色的蓝让人心旷神怡。",
-        "image": "./images/life_food_1.jpg"
+        "image": "./images/uploads/slot_1793094787022_785.jpeg"
       },
       {
         "title": "丽江 · 古城石板路与灯火",
         "date": "2026-08",
         "desc": "牵手漫步在古城的青石板街，檐角飞扬，挂满灯笼的夜色下是我们最惬意的时光。",
-        "image": "./images/life_food_2.jpg"
+        "image": "./images/uploads/slot_1793094756295_57.jpeg"
       },
       {
         "title": "苍山远眺 · 旅途风光",
@@ -155,7 +155,7 @@
         "title": "初夏日常 · KFC与公园漫步",
         "date": "2026-05",
         "desc": "拼好的Hello Kitty小信物，去吃最喜欢的KFC（吃鸡块不蘸酱），再去公园牵手散步吹晚风，最简单的陪伴也是幸福。",
-        "image": "./images/life_food_5.jpg"
+        "image": "./images/uploads/slot_1793094723925_94.jpeg"
       },
       {
         "title": "金秋十月 · 校园漫步与默契",
