@@ -2909,6 +2909,7 @@
       const showCmsTools = ref(false);
       const saveMessage = ref('');
       const activeLightboxImg = ref(null);
+      const activeLightboxVideo = ref(null);
       const showLetter = ref(false);
       const isMusicPlaying = ref(false);
       const audioPlayer = ref(null);
@@ -3866,7 +3867,28 @@
       };
 
       // 5. Lightbox, Letter & Confetti
-      const openLightbox = (imgSrc) => {
+      const openLightbox = (item) => {
+        if (item && typeof item === object) {
+          if (item.video || isVideoMedia(item.image)) {
+            activeLightboxVideo.value = item.video || item.image;
+            activeLightboxImg.value = null;
+          } else {
+            activeLightboxImg.value = item.image || item.cover;
+            activeLightboxVideo.value = null;
+          }
+        } else if (isVideoMedia(item)) {
+          activeLightboxVideo.value = item;
+          activeLightboxImg.value = null;
+        } else {
+          activeLightboxImg.value = item;
+          activeLightboxVideo.value = null;
+        }
+      };
+      const closeLightbox = () => {
+        activeLightboxImg.value = null;
+        activeLightboxVideo.value = null;
+      };
+      const old_openLightbox_unused = (imgSrc) => {
         if (!isEditing.value) {
           activeLightboxImg.value = imgSrc;
           nextTick(() => { lucide.createIcons(); });
@@ -5326,6 +5348,8 @@
       };
 
       return {
+        activeLightboxVideo,
+        closeLightbox,
         isVideoMedia,
         showQuotaModal,
         openQuotaModal,
