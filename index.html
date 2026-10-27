@@ -3999,7 +3999,7 @@
           height: `${dims.h}px`,
           marginLeft: `${-dims.w / 2}px`,
           marginTop: `${-dims.h / 2}px`,
-          transform: `translate3d(${coord.px.toFixed(1)}px, ${(-coord.py).toFixed(1)}px, ${coord.pz.toFixed(1)}px) rotateY(${coord.lonDeg.toFixed(1)}deg) rotateX(${(-coord.latDeg).toFixed(1)}deg)`
+          transform: `translate3d(${coord.px.toFixed(1)}px, ${(-coord.py).toFixed(1)}px, ${coord.pz.toFixed(1)}px)`
         };
       };
 
@@ -4290,6 +4290,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
