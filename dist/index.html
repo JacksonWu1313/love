@@ -3970,7 +3970,7 @@
         const R = getSphereRadius();
         const coords = [];
         for (let i = 0; i < N; i++) {
-          const y = N === 1 ? 0 : 1 - (i / (N - 1)) * 2; // from 1 to -1
+          const y = N === 1 ? 0 : 0.85 * (1 - (i / (N - 1)) * 2); // 避免极点死角，黄金曲面包裹
           const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
           const theta = phiGolden * i;
           const x = Math.cos(theta) * radiusAtY;
@@ -3990,16 +3990,18 @@
       });
 
       // 卡片法线朝向校正：先平移至球面外表面坐标，再旋转对齐法线，彻底消灭两极侧倾与穿模
+      // 卡片朝向：像一张张纸紧紧包裹住一个球 (球面切面法线外向贴合，曲面包裹质感)
       const getSphereCardStyle = (idx) => {
         const coord = sphereCoordinates.value[idx];
         if (!coord) return { display: 'none' };
         const dims = getSphereCardDimensions.value;
+        const R = getSphereRadius();
         return {
           width: `${dims.w}px`,
           height: `${dims.h}px`,
           marginLeft: `${-dims.w / 2}px`,
           marginTop: `${-dims.h / 2}px`,
-          transform: `translate3d(${coord.px.toFixed(1)}px, ${(-coord.py).toFixed(1)}px, ${coord.pz.toFixed(1)}px)`
+          transform: `rotateY(${coord.lonDeg.toFixed(1)}deg) rotateX(${(-coord.latDeg).toFixed(1)}deg) translateZ(${R}px)`
         };
       };
 
@@ -4290,6 +4292,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
