@@ -1,12 +1,12 @@
 {
-  "updatedAt": 1793089450266,
-  "updatedAtStr": "2026/10/27 16:24:10",
+  "updatedAt": 1793092571170,
+  "updatedAtStr": "2026/10/27 17:16:11",
   "siteData": {
     "hero": {
       "title1": "YB",
       "title2": "悦悦大王",
       "subtitle": "YB & YUEYUE · FOREVER TOGETHER",
-      "coverImage": "./images/hero_cover.jpg",
+      "coverImage": "./images/uploads/slot_1793090427258_811.jpeg",
       "coverCaption": "彩云之南 · 大理洱海与丽江自驾漫游记 · 2026盛夏",
       "quote": "全世界仅此一个的我，尽情幸福吧。",
       "quoteAuthor": "我们的独家默契宣言",
@@ -49,7 +49,7 @@
         "desc": "“吃鸡块不蘸酱”、去公园散步吹晚风……无论平时多忙，只要两个人在一起吃顿KFC、在公园石板路边牵手漫步，平凡的小日子就被填得满满当当。",
         "quote": "吃KFC不蘸酱，再去公园散散步。",
         "images": [
-          "./images/timeline_06_1.jpg",
+          "./images/uploads/slot_1793090471895_624.jpeg",
           "./images/timeline_06_2.jpg"
         ]
       },
@@ -143,7 +143,7 @@
         "title": "苍山远眺 · 旅途风光",
         "date": "2026-08",
         "desc": "远眺巍峨的山景与郁郁葱葱的林海，自驾在路上的每一公里都是自由的滋味。",
-        "image": "./images/life_food_3.jpg"
+        "image": "./images/uploads/slot_1793092562912_677.jpeg"
       },
       {
         "title": "七月异地 · 隔着屏幕的日常",
