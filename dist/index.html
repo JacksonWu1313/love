@@ -1081,30 +1081,57 @@
       <!-- 3D Sphere Card Stage -->
       <div class="relative glass-card rounded-3xl p-3 sm:p-5 border border-sand shadow-soft bg-gradient-to-b from-white/95 to-warmwhite/90">
         
-        <!-- Top Header: Constellation Status & Quick Add -->
-        <div class="mb-3 flex items-center justify-between px-1">
-          <div class="flex items-center gap-2">
-            <span class="px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-semibold border border-rose-200/80 flex items-center space-x-1.5">
+        <!-- Top Toolbar: Quantity Controls & Presets & Actions (100% 像素级还原经典原版) -->
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3 px-1">
+          <!-- Count Selector & Adaptive Presets -->
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span class="px-3 py-1 rounded-full bg-sand/35 text-ink text-[11px] font-medium border border-sand/60 flex items-center space-x-1.5">
               <span class="w-2 h-2 rounded-full bg-rose-500" :class="isSphereRotating ? 'animate-pulse' : ''"></span>
-              <span>3D 记忆星系：<strong>{{ spherePhotosList.length }}</strong> 颗星辰</span>
+              <span>球体星辰：<strong>{{ spherePhotosList.length }}</strong> 张</span>
             </span>
-            <!-- 预设档位 (桌面端显示) -->
-            <div class="hidden sm:inline-flex rounded-full bg-sand/30 p-0.5 text-[11px] text-muted border border-sand/50">
-              <button @click="setSphereCardCount(16)" class="px-2 py-0.5 rounded-full transition" :class="sphereCardCount === 16 ? 'bg-white text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">16张</button>
-              <button @click="setSphereCardCount(24)" class="px-2 py-0.5 rounded-full transition" :class="sphereCardCount === 24 ? 'bg-white text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">24张</button>
-              <button @click="setSphereCardCount(32)" class="px-2 py-0.5 rounded-full transition" :class="sphereCardCount === 32 ? 'bg-white text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">32张</button>
-              <button @click="setSphereCardCount(48)" class="px-2 py-0.5 rounded-full transition" :class="sphereCardCount === 48 ? 'bg-white text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">48张 (漫天星)</button>
+
+            <!-- Quantity Adjuster Presets -->
+            <div class="inline-flex rounded-full bg-sand/35 p-0.5 text-[11px] text-muted border border-sand/60">
+              <button @click="setSphereCardCount(16)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 16 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">16张</button>
+              <button @click="setSphereCardCount(24)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 24 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">24张</button>
+              <button @click="setSphereCardCount(32)" class="px-2.5 py-0.5 rounded-full transition" :class="sphereCardCount === 32 ? 'bg-warmwhite text-rose-600 font-semibold shadow-xs' : 'hover:text-ink'">32张 (满天星)</button>
             </div>
+
+            <!-- Stepper for Custom Quantity (Unlimited) -->
+            <div class="inline-flex items-center space-x-1.5 bg-sand/25 px-2.5 py-0.5 rounded-full border border-sand/50 text-[11px]">
+              <span class="text-muted">数量:</span>
+              <button @click="adjustSphereCount(-2)" class="w-4 h-4 rounded-full bg-warmwhite hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">-</button>
+              <span class="font-bold text-rose-600 min-w-[20px] text-center">{{ sphereCardCount }}</span>
+              <button @click="adjustSphereCount(2)" class="w-4 h-4 rounded-full bg-warmwhite hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">+</button>
+            </div>
+
+            <!-- Add Photo / Live Media Button -->
+            <button @click="pickLocalImageForNewSpherePhoto" class="px-2.5 py-0.5 rounded-full bg-blush-100 hover:bg-blush-200 text-rose-600 text-[11px] font-medium transition flex items-center space-x-1 border border-blush-200 shadow-2xs" title="从本地相册追加一张照片或实况动图到星球">
+              <span>➕ 追加照片/动图</span>
+            </button>
           </div>
 
-          <!-- Add Photo / Live Media Button -->
-          <button @click="pickLocalImageForNewSpherePhoto" class="px-3 py-1 rounded-full bg-gradient-to-r from-clay to-blush-500 hover:opacity-95 text-white text-xs font-medium transition flex items-center space-x-1 shadow-soft" title="从本地相册追加一张照片或实况动图到星球">
-            <span>➕ 追加照片/动图</span>
-          </button>
+          <!-- Controls: Auto-Rotate, Reset, Shuffle -->
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
+            <button @click="toggleSphereAutoRotate" class="px-2.5 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1 shadow-2xs">
+              <i data-lucide="refresh-cw" class="w-3 h-3 text-clay" :class="isSphereRotating ? 'animate-spin' : ''"></i>
+              <span>{{ isSphereRotating ? '自转中' : '已暂停' }}</span>
+            </button>
+
+            <button @click="resetSphereView" class="px-2.5 py-1 rounded-full border border-sand hover:bg-sand/40 text-ink text-[11px] transition flex items-center space-x-1 shadow-2xs" title="复位星球朝向与视角缩放">
+              <i data-lucide="compass" class="w-3 h-3 text-clay"></i>
+              <span>🎯 重置视角</span>
+            </button>
+
+            <button @click="shuffleSpherePhotos" class="px-2.5 py-1 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 hover:to-blush-600 text-white text-[11px] font-medium transition shadow-soft flex items-center space-x-1">
+              <i data-lucide="shuffle" class="w-3 h-3"></i>
+              <span>换一批照片</span>
+            </button>
+          </div>
         </div>
 
-        <!-- 3D Stage Viewport (支持鼠标滚轮与手机双指捏合缩放) -->
-        <div class="relative w-full h-[540px] sm:h-[620px] md:h-[700px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        <!-- 3D Stage Viewport (经典高度 & 原版紧凑球面包裹) -->
+        <div class="relative w-full h-[520px] sm:h-[600px] md:h-[680px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
              style="touch-action: none;"
              @wheel.passive="onSphereWheel"
              @mousedown="onSphereDragStart"
@@ -1171,47 +1198,9 @@
             </div>
           </div>
 
-          <!-- Unified Glass Floating Control Console (底部悬浮 HUD 统一控制台) -->
-          <div class="absolute bottom-2.5 sm:bottom-3.5 left-2 right-2 flex flex-col items-center gap-1.5 pointer-events-none z-20">
-            <div class="glass-card px-2.5 py-1.5 rounded-full border border-sand/90 shadow-float bg-white/95 flex flex-wrap items-center justify-center gap-1 sm:gap-2 text-[11px] pointer-events-auto">
-              <!-- 数量调节 -->
-              <div class="inline-flex items-center space-x-1 bg-sand/30 px-2 py-0.5 rounded-full border border-sand/50">
-                <span class="text-muted text-[10px]">数量:</span>
-                <button @click="adjustSphereCount(-2)" class="w-4 h-4 rounded-full bg-white hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">-</button>
-                <span class="font-bold text-rose-600 min-w-[18px] text-center text-[10px]">{{ sphereCardCount }}</span>
-                <button @click="adjustSphereCount(2)" class="w-4 h-4 rounded-full bg-white hover:bg-sand/60 text-ink flex items-center justify-center font-bold text-xs shadow-2xs">+</button>
-              </div>
-
-              <!-- 缩放控制 -->
-              <div class="inline-flex items-center space-x-0.5 bg-sand/30 px-1.5 py-0.5 rounded-full border border-sand/50">
-                <button @click="zoomSphere(-0.15)" class="px-1.5 py-0.5 rounded-full hover:bg-white text-ink transition shadow-2xs text-[10px]" title="缩小视角">🔍-</button>
-                <span class="text-[10px] font-mono text-muted min-w-[28px] text-center">{{ Math.round(sphereScale * 100) }}%</span>
-                <button @click="zoomSphere(0.15)" class="px-1.5 py-0.5 rounded-full hover:bg-white text-ink transition shadow-2xs text-[10px]" title="放大视角">🔍+</button>
-              </div>
-
-              <!-- 复位 -->
-              <button @click="resetSphereView" class="px-2 py-0.5 rounded-full border border-sand/70 hover:bg-sand/40 text-ink transition flex items-center space-x-1 shadow-2xs" title="复位星球朝向与视角缩放">
-                <i data-lucide="compass" class="w-3 h-3 text-clay"></i>
-                <span class="hidden xs:inline">🎯 复位</span>
-              </button>
-
-              <!-- 自转切换 -->
-              <button @click="toggleSphereAutoRotate" class="px-2 py-0.5 rounded-full border border-sand/70 hover:bg-sand/40 text-ink transition flex items-center space-x-1 shadow-2xs">
-                <i data-lucide="refresh-cw" class="w-3 h-3 text-clay" :class="isSphereRotating ? 'animate-spin' : ''"></i>
-                <span>{{ isSphereRotating ? '自转中' : '暂停' }}</span>
-              </button>
-
-              <!-- 换一批 -->
-              <button @click="shuffleSpherePhotos" class="px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-blush-500 hover:from-rose-600 text-white font-medium transition shadow-2xs flex items-center space-x-1">
-                <i data-lucide="shuffle" class="w-2.5 h-2.5"></i>
-                <span>换一批</span>
-              </button>
-            </div>
-
-            <!-- 操作小提示 -->
-            <span class="px-2.5 py-0.5 rounded-full bg-black/40 text-white/90 text-[9px] sm:text-[10px] pointer-events-none">
-              🪐 任意方向滑动可 360° 旋转 · 双指或滚轮缩放 · 点击卡片拉近特写
-            </span>
+          <!-- Bottom Floating Guidance Overlay (原版底部提示条) -->
+          <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 text-white/90 text-[10px] sm:text-xs pointer-events-none tracking-wide text-center whitespace-nowrap shadow-sm">
+            🪐 任意方向滑动可 360° 旋转球体 · 点击照片放大 · 悬停可编辑文字
           </div>
 
         </div>
@@ -3908,30 +3897,37 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // V8 纯单层急剧扩大半径：纯单层大球壳 R = R_base * sqrt(max(N, 16) / 16) * 1.4
+      // 经典原版紧凑包裹球面算法：R = R_base * sqrt(max(N, 16) / 16)
       const getSphereRadius = () => {
-        if (typeof window === 'undefined') return 390;
+        if (typeof window === 'undefined') return 240;
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
-        const isMobile = window.innerWidth < 768;
-        const baseR = isMobile ? 280 : 450;
+        const isMobile = window.innerWidth < 640;
+        const isTablet = window.innerWidth < 1024;
+        const baseR = isMobile ? 175 : (isTablet ? 230 : 280);
         const factor = Math.sqrt(Math.max(count, 16) / 16);
-        return Math.round(baseR * factor * 1.4);
+        return Math.round(baseR * factor);
       };
 
-      // 动态卡片尺寸：长宽比约 1:1.15 拍立得样式，结合大半径提供极其充裕的呼吸感安全间距
+      // 动态卡片尺寸：随照片总数阶梯式自适应伸缩，紧凑抱团包裹
       const getSphereCardDimensions = computed(() => {
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-        if (isMobile) {
-          return { w: 76, h: 88 };
+        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        if (count <= 16) {
+          return isMobile ? { w: 84, h: 112 } : { w: 104, h: 140 };
+        } else if (count <= 30) {
+          return isMobile ? { w: 72, h: 96 } : { w: 90, h: 120 };
+        } else if (count <= 50) {
+          return isMobile ? { w: 62, h: 84 } : { w: 78, h: 104 };
         } else {
-          return { w: 90, h: 104 };
+          return isMobile ? { w: 54, h: 72 } : { w: 68, h: 90 };
         }
       });
 
       // 自适应 CSS 视距
       const spherePerspective = computed(() => {
-        const R = getSphereRadius();
-        return `${Math.max(1200, Math.round(R * 2.8))}px`;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
+        return isMobile ? (count > 24 ? '850px' : '920px') : (count > 24 ? '980px' : '1050px');
       });
 
       const spherePhotosList = computed(() => {
@@ -3970,7 +3966,7 @@
         const R = getSphereRadius();
         const coords = [];
         for (let i = 0; i < N; i++) {
-          const y = N === 1 ? 0 : 0.85 * (1 - (i / (N - 1)) * 2); // 避免极点死角，黄金曲面包裹
+          const y = N === 1 ? 0 : 1 - (i / (N - 1)) * 2; // from 1 to -1
           const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
           const theta = phiGolden * i;
           const x = Math.cos(theta) * radiusAtY;
@@ -3989,8 +3985,7 @@
         return coords;
       });
 
-      // 卡片法线朝向校正：先平移至球面外表面坐标，再旋转对齐法线，彻底消灭两极侧倾与穿模
-      // 卡片朝向：像一张张纸紧紧包裹住一个球 (球面切面法线外向贴合，曲面包裹质感)
+      // 经典原版球面法线贴合包裹 (Tangential Wrapping around Sphere: 像一张张纸包裹住一个球)
       const getSphereCardStyle = (idx) => {
         const coord = sphereCoordinates.value[idx];
         if (!coord) return { display: 'none' };
@@ -4292,6 +4287,15 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
