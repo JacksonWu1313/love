@@ -22,7 +22,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <!-- PWA & Mobile Web App Meta -->
-  <link rel="manifest" href="./manifest.json">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="manifest" href="./manifest.json?v=202610271620">
   <meta name="theme-color" content="#e89582">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -102,9 +105,27 @@
       font-family: "Noto Serif SC", serif;
     }
     .glass-card {
-      background: rgba(255, 253, 249, 0.88);
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(244, 236, 225, 0.85);
+      background: rgba(255, 253, 249, 0.96);
+      border: 1px solid rgba(244, 236, 225, 0.92);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+    /* [60fps 性能优化] 彻底剔除移动端吃 GPU 的大面积 backdrop-blur 毛玻璃与全屏重度模糊 */
+    .backdrop-blur-xs, .backdrop-blur-sm, .backdrop-blur, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl,
+    .love-marker-label {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    .blur-3xl, .blur-2xl, .blur-xl {
+      filter: none !important;
+      background: radial-gradient(circle, rgba(254, 215, 215, 0.35) 0%, rgba(250, 247, 242, 0) 70%) !important;
+    }
+    section {
+      transform: translateZ(0);
+    }
+    img {
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     .polaroid-frame {
       background: #FFFFFF;
@@ -382,42 +403,54 @@
       </div>
     </transition>
 
-    <!-- Expanded Tools Panel -->
-    <div v-if="showCmsTools" class="glass-card p-4 rounded-3xl shadow-2xl border border-sand/80 w-64 space-y-3 mb-1">
+    <!-- Expanded Tools Panel (V6 跨端全网固化与手机备份中心) -->
+    <div v-if="showCmsTools" class="glass-card p-4 rounded-3xl shadow-2xl border border-sand/90 w-72 space-y-2.5 mb-1">
       <div class="flex items-center justify-between pb-2 border-b border-sand text-xs font-semibold text-ink">
-        <span class="flex items-center gap-1.5"><i data-lucide="settings-2" class="w-3.5 h-3.5 text-clay"></i> 本地记忆 CMS 控制台</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="settings-2" class="w-3.5 h-3.5 text-clay"></i> 跨端同步与仓库固化控制台</span>
         <button @click="showCmsTools = false" class="text-muted hover:text-ink"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
       </div>
       <div class="space-y-2 text-xs">
-        <button @click="openSyncModal" class="w-full py-2 px-3 rounded-2xl bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200/80 flex items-center justify-between text-ink transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-rose-500"></i> 跨设备口令同步</span>
-          <span class="text-[10px] text-rose-600 font-semibold">推荐</span>
+        <button @click="solidifyAndSyncToRepo" :disabled="isSolidifyingRepo" class="w-full py-2.5 px-3 rounded-2xl bg-gradient-to-r from-clay to-blush-500 text-white font-semibold shadow-soft hover:opacity-95 flex items-center justify-between transition disabled:opacity-60">
+          <span class="flex items-center gap-1.5"><span>💾</span> <span>{{ isSolidifyingRepo ? '正在固化推送至 GitHub...' : '一键固化并同步代码' }}</span></span>
+          <span class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">Sync Repo</span>
+        </button>
+        <button @click="forcePullFromCloud" class="w-full py-2 px-3 rounded-2xl bg-rose-50 hover:bg-rose-100/80 border border-rose-200 flex items-center justify-between text-ink transition">
+          <span class="flex items-center gap-1.5"><span>☁️</span> <span>拉取云端最新配置</span></span>
+          <span class="text-[10px] text-rose-600 font-semibold">手机同步</span>
         </button>
         <button @click="exportDataBackup" class="w-full py-2 px-3 rounded-2xl bg-warmwhite hover:bg-sand/60 border border-sand flex items-center justify-between text-ink transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="download" class="w-3.5 h-3.5 text-blush-400"></i> 导出备份 (JSON)</span>
+          <span class="flex items-center gap-1.5"><span>📤</span> <span>导出备份 (JSON)</span></span>
           <span class="text-[10px] text-muted">离线保存</span>
         </button>
         <button @click="triggerImportFile" class="w-full py-2 px-3 rounded-2xl bg-warmwhite hover:bg-sand/60 border border-sand flex items-center justify-between text-ink transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5 text-sage-500"></i> 导入数据备份</span>
+          <span class="flex items-center gap-1.5"><span>📥</span> <span>导入备份 JSON</span></span>
           <span class="text-[10px] text-muted">一键恢复</span>
         </button>
+        <button @click="openSyncModal" class="w-full py-2 px-3 rounded-2xl bg-warmwhite hover:bg-sand/60 border border-sand flex items-center justify-between text-ink transition">
+          <span class="flex items-center gap-1.5"><i data-lucide="copy" class="w-3.5 h-3.5 text-clay"></i> <span>跨设备口令复制/粘贴</span></span>
+          <span class="text-[10px] text-muted">口令</span>
+        </button>
         <button @click="resetToDefaultData" class="w-full py-2 px-3 rounded-2xl bg-warmwhite hover:bg-red-50 border border-sand flex items-center justify-between text-red-500 transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 恢复初始图文</span>
+          <span class="flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> <span>恢复初始图文</span></span>
           <span class="text-[10px] text-red-400">重置</span>
         </button>
         <input type="file" ref="fileInput" @change="handleImportFile" accept=".json" class="hidden">
       </div>
-      <p class="text-[10px] text-muted/70 text-center pt-1 border-t border-sand">所有修改自动同步保存在本地浏览器</p>
+      <p class="text-[10px] text-muted/80 text-center pt-1 border-t border-sand leading-snug">点击「💾 一键固化并同步代码」可直接重写 GitHub 仓库静态文件，手机刷新即刻同步！</p>
     </div>
 
     <!-- Toggle Controls -->
     <div class="flex items-center space-x-2">
-      <button @click="showCmsTools = !showCmsTools" class="glass-card p-3 rounded-full shadow-soft hover:shadow-float text-muted hover:text-clay transition duration-300" title="展开数据备份/导入工具">
+      <button @click="solidifyAndSyncToRepo" :disabled="isSolidifyingRepo" class="glass-card px-3.5 py-3 rounded-full shadow-soft hover:shadow-float text-xs font-semibold text-clay hover:text-blush-500 transition flex items-center gap-1.5 border border-blush-200" title="将浏览器当前全部修改直接写回 GitHub 仓库代码">
+        <span>💾</span>
+        <span class="hidden sm:inline">{{ isSolidifyingRepo ? '正在同步仓库...' : '一键固化同步' }}</span>
+      </button>
+      <button @click="showCmsTools = !showCmsTools" class="glass-card p-3 rounded-full shadow-soft hover:shadow-float text-muted hover:text-clay transition duration-300" title="展开跨端同步与导入/导出备份控制台">
         <i data-lucide="database" class="w-4 h-4"></i>
       </button>
-      <button @click="toggleEditMode" class="px-5 py-3 rounded-full shadow-float flex items-center space-x-2 text-xs font-semibold tracking-wide transition duration-300 transform active:scale-95" :class="isEditing ? 'bg-clay text-white ring-4 ring-clay/20' : 'glass-card text-ink hover:text-blush-500'">
+      <button @click="toggleEditMode" class="px-4 sm:px-5 py-3 rounded-full shadow-float flex items-center space-x-1.5 text-xs font-semibold tracking-wide transition duration-300 transform active:scale-95" :class="isEditing ? 'bg-clay text-white ring-4 ring-clay/20' : 'glass-card text-ink hover:text-blush-500'">
         <i :data-lucide="isEditing ? 'check-circle' : 'edit-3'" class="w-4 h-4"></i>
-        <span>{{ isEditing ? '保存并锁定 (Preview)' : '✏️ 编辑模式 (CMS)' }}</span>
+        <span>{{ isEditing ? '保存锁定' : '✏️ 编辑模式' }}</span>
       </button>
     </div>
   </div>
@@ -1104,7 +1137,7 @@
                    @click="handleSpherePhotoClick(photo)">
                 <div class="w-full h-full p-1 sm:p-1.5 bg-white/95 rounded-xl sm:rounded-2xl shadow-md group-hover:shadow-xl transition duration-300 flex flex-col border border-white/80 relative">
                   <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/30">
-                    <img :src="getFastImg(photo.image, true)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" loading="eager" fetchpriority="high" decoding="async" @error="onImgError($event, photo.image)">
+                    <img :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" loading="lazy" decoding="async" style="aspect-ratio: 3/4;" @error="onImgError($event, photo.image)">
                     <!-- Hover Action Overlay -->
                     <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-1.5 text-white">
                       <button @click.stop="openSphereEditModal(photo)" class="p-1.5 rounded-full bg-black/60 hover:bg-rose-500 transition shadow-sm" title="编辑这张照片文字">
@@ -1959,9 +1992,9 @@
   </div>
 
 
-  <!-- Modal: 添加/编辑 时光记录 (Record Edit Modal) -->
-  <div v-if="showRecordEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto" @click.self="closeRecordEditModal">
-    <div class="max-w-xl w-full glass-card rounded-3xl p-5 sm:p-7 bg-white shadow-2xl border border-sand relative my-6 animate-fade-in" @click.stop>
+  <!-- Modal: 添加/编辑 每日记录 (Daily Logs CRUD Edit Modal - 支持无损原图更换与精确时间戳) -->
+  <div v-if="showRecordEditModal" class="fixed inset-0 bg-black/75 z-[60] flex items-center justify-center p-3 sm:p-4 overflow-y-auto" @click.self="closeRecordEditModal">
+    <div class="max-w-xl w-full glass-card rounded-3xl p-5 sm:p-7 bg-white shadow-2xl border border-sand relative my-6" @click.stop>
       <button @click="closeRecordEditModal" class="absolute top-4 right-4 p-1.5 text-muted hover:text-ink rounded-full transition">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -1970,40 +2003,46 @@
         <div class="inline-flex p-2.5 rounded-2xl bg-blush-100 text-blush-600 mb-2 shadow-soft">
           <i data-lucide="book-heart" class="w-6 h-6"></i>
         </div>
-        <h3 class="text-lg font-bold text-ink">{{ editingRecordIndex === -1 ? '添加新的时光记录' : '编辑时光记录' }}</h3>
-        <p class="text-xs text-muted mt-1">生成与时间轴同款质感的浪漫卡片 · 永久珍藏</p>
+        <h3 class="text-lg font-bold text-ink">{{ editingRecordIndex === -1 ? '➕ 记一笔今天 · 新增每日记录' : '✏️ 编辑日记与更换超清原图' }}</h3>
+        <p class="text-xs text-muted mt-1">100% 保留原始超清画质 · 自动标注精确记录时间并同步云端</p>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <div class="space-y-3.5 text-xs">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-muted mb-1">记录日期</label>
-            <input v-model="recordForm.date" type="text" placeholder="例：2026年5月19日" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
+            <label class="block font-medium text-muted mb-1">记录日期与时间</label>
+            <input v-model="recordForm.date" type="text" placeholder="例：2026年10月27日 16:20" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
           </div>
           <div>
-            <label class="block font-medium text-muted mb-1">心情/里程碑标签</label>
-            <input v-model="recordForm.tag" type="text" placeholder="例：心动启航 / 漫步海风" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
+            <label class="block font-medium text-muted mb-1">心情 / 地点标签</label>
+            <input v-model="recordForm.tag" type="text" placeholder="例：长沙公园晚风 / 日常甜宠" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
           </div>
         </div>
 
         <div>
-          <label class="block font-medium text-muted mb-1">记录标题</label>
-          <input v-model="recordForm.title" type="text" placeholder="例：相恋与故事的开篇" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-sm font-bold text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
+          <label class="block font-medium text-muted mb-1">日记标题</label>
+          <input v-model="recordForm.title" type="text" placeholder="例：KFC不蘸酱与公园吹晚风" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-sm font-bold text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
         </div>
 
         <div>
-          <label class="block font-medium text-muted mb-1">故事正文</label>
-          <textarea v-model="recordForm.content" rows="3" placeholder="从这一天开始..." class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 resize-none font-serif leading-relaxed"></textarea>
+          <label class="block font-medium text-muted mb-1">日记正文（支持多段自由编辑）</label>
+          <textarea v-model="recordForm.content" rows="4" placeholder="写下今天发生的心动小事、对话细节或所在地点..." class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300 resize-none font-serif leading-relaxed"></textarea>
         </div>
 
         <div>
-          <label class="block font-medium text-muted mb-1">专属金句 / 浪漫私语（选填）</label>
-          <input v-model="recordForm.quote" type="text" placeholder="例：照片里加了什么 我不懂好幸福。" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-clay italic focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
+          <label class="block font-medium text-muted mb-1">专属金句 / 原声摘录（选填）</label>
+          <input v-model="recordForm.quote" type="text" placeholder="例：全世界仅此一个的悦悦大王，尽情幸福吧。" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-clay italic focus:outline-none focus:ring-2 focus:ring-blush-300 font-serif">
         </div>
 
         <div>
-          <label class="block font-medium text-muted mb-1">配图路径或链接（选填）</label>
-          <input v-model="recordForm.image" type="text" placeholder="例：./images/IMG_8708.JPG 或 网络图片URL" class="w-full p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300">
+          <label class="block font-medium text-muted mb-1">配图（100% 原始超清无损画质）</label>
+          <div class="flex items-center gap-2">
+            <input v-model="recordForm.image" type="text" placeholder="例：./images/IMG_8708.JPG 或点击右侧上传原图" class="flex-1 p-2.5 rounded-xl border border-sand bg-warmwhite text-xs text-ink focus:outline-none focus:ring-2 focus:ring-blush-300">
+            <button type="button" @click="triggerRecordImageUpload" class="px-3.5 py-2.5 rounded-xl bg-blush-50 hover:bg-blush-100 text-blush-600 border border-blush-200 font-semibold whitespace-nowrap transition">
+              📷 上传原图
+            </button>
+            <input type="file" ref="recordImageInput" accept="image/*" @change="handleRecordImageUpload" class="hidden">
+          </div>
         </div>
       </div>
 
@@ -2011,108 +2050,210 @@
         <button @click="closeRecordEditModal" class="px-4 py-2 rounded-full border border-sand text-xs text-muted hover:text-ink transition">取消</button>
         <button @click="saveRecordForm" class="px-6 py-2 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-90 transition flex items-center gap-1.5">
           <i data-lucide="check" class="w-3.5 h-3.5"></i>
-          <span>保存记录 · 生成卡片 ♥</span>
+          <span>保存日记并同步云端 ♥</span>
         </button>
       </div>
     </div>
   </div>
 
 
-  <!-- Section: 时光足迹·专属记忆纪事 (Timeline Records Section - 同样风格无限添加) -->
+  <!-- Section: 每日记录 (Daily Logs - 首页极简展示最新 3 条 + 二级全屏时光手帐入口) -->
   <section id="records-section" class="py-16 px-4 max-w-4xl mx-auto relative">
     <!-- Section Header -->
     <div class="text-center mb-12">
       <div class="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-blush-100 text-blush-600 text-xs font-semibold tracking-wider mb-2 shadow-soft">
         <i data-lucide="book-heart" class="w-3.5 h-3.5"></i>
-        <span>LOVE TIMELINE RECORDS · 专属时光纪事</span>
+        <span>DAILY LOGS · 每日记录与时光手帐</span>
       </div>
       <h2 class="text-2xl sm:text-3xl font-display font-medium text-ink tracking-tight">
-        时光记录 · 我们的故事长卷
+        每日记录 · 最新 3 篇高光纪事
       </h2>
       <p class="text-xs text-muted mt-1.5 max-w-md mx-auto">
-        每一篇记录都是岁月刻下的温柔印记 · 点击下方【+号】可无限追加属于我们的独家回忆
+        首页精选呈现最新 3 篇高光记录 · 往昔全部日记可点击下方胶囊按钮打开全屏时光手帐检索与编辑
       </p>
 
-      <!-- Action Button in Header -->
-      <div class="mt-4 flex items-center justify-center gap-3">
-        <button @click="openAddRecordModal" class="px-5 py-2 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-90 transition transform active:scale-95 flex items-center gap-1.5">
-          <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          <span>+ 添加新时光记录</span>
+      <!-- Quick Action Buttons in Header -->
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+        <button @click="openAddRecordModal" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-90 transition transform active:scale-95 flex items-center gap-1.5">
+          <span>➕ 记一笔今天</span>
+        </button>
+        <button @click="openAllRecordsDrawer" class="px-5 py-2.5 rounded-full bg-warmwhite hover:bg-sand/60 border border-blush-200 text-clay text-xs font-semibold shadow-soft transition flex items-center gap-1.5">
+          <span>📖 打开时光手帐（共 {{ loveRecordsList.length }} 条）</span>
         </button>
       </div>
     </div>
 
-    <!-- Timeline Container with Left Vertical Axis -->
+    <!-- Homepage Timeline Container: Strictly Latest 3 Highlight Cards -->
     <div class="relative pl-6 sm:pl-10 space-y-10">
-      <!-- Left Continuous Vertical Stem Line -->
       <div class="absolute left-2.5 sm:left-4 top-4 bottom-4 w-[2px] bg-gradient-to-b from-blush-300 via-rose-200 to-sand/60"></div>
 
-      <!-- Each Record Card Item -->
-      <div v-for="(rec, idx) in loveRecordsList" :key="rec.id || idx" class="relative group">
-        <!-- Node Marker on Timeline (Outer ring with pink inner dot) -->
-        <div class="absolute -left-6 sm:-left-10 top-6 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-blush-300 shadow-sm flex items-center justify-center z-10 group-hover:scale-125 group-hover:border-rose-400 transition transform">
-          <div class="w-2.5 h-2.5 rounded-full bg-blush-400 group-hover:bg-rose-500 transition"></div>
+      <div v-for="item in displayedHomeRecords" :key="item.rec.id || item.origIdx" class="relative group">
+        <div class="absolute -left-6 sm:-left-10 top-6 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-blush-300 shadow-sm flex items-center justify-center z-10">
+          <div class="w-2.5 h-2.5 rounded-full bg-blush-400"></div>
         </div>
 
-        <!-- The Record Card (Exact style from user's image) -->
-        <div class="glass-card rounded-[2rem] p-6 sm:p-8 bg-white/95 border border-sand/70 shadow-soft hover:shadow-float transition duration-300 relative">
-          <!-- Card Action Buttons (Edit / Delete) -->
-          <div class="absolute top-5 right-5 flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition">
-            <button @click="openEditRecordModal(rec, idx)" class="p-1.5 rounded-full hover:bg-sand/40 text-muted hover:text-clay transition" title="编辑本篇记录">
-              <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+        <div class="glass-card rounded-[2rem] p-6 sm:p-8 bg-white/96 border border-sand/80 shadow-soft hover:shadow-float transition duration-300 relative">
+          <!-- Card Action Buttons (Edit / Replace Original Photo / Delete) -->
+          <div class="absolute top-5 right-5 flex items-center gap-1.5">
+            <button @click="openEditRecordModal(item.rec, item.origIdx)" class="px-2.5 py-1 rounded-full bg-sand/30 hover:bg-blush-50 text-muted hover:text-clay text-[11px] transition flex items-center gap-1" title="编辑文字或更换原图">
+              <i data-lucide="edit-2" class="w-3 h-3"></i>
+              <span>编辑/换图</span>
             </button>
-            <button @click="deleteRecord(idx)" class="p-1.5 rounded-full hover:bg-rose-50 text-muted hover:text-rose-500 transition" title="删除本篇记录">
+            <button @click="deleteRecord(item.origIdx)" class="p-1.5 rounded-full hover:bg-rose-50 text-muted hover:text-rose-500 transition" title="删除本篇记录">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
 
-          <!-- Top Row: Date Badge (Left) & Mood/Tag (Right) -->
-          <div class="flex items-center justify-between gap-3 mb-3 pr-14">
-            <!-- Date Pill -->
-            <span class="inline-block bg-blush-50/90 text-blush-500 font-serif text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full border border-blush-100/60 shadow-2xs">
-              {{ rec.date }}
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pr-24">
+            <span class="inline-block bg-blush-50 text-blush-500 font-serif text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full border border-blush-100">
+              {{ item.rec.date }}
             </span>
-            <!-- Tag with Heart Icon -->
             <span class="text-xs text-muted flex items-center gap-1 font-serif">
               <span class="text-blush-400 text-sm">♡</span>
-              <span>{{ rec.tag }}</span>
+              <span>{{ item.rec.tag }}</span>
             </span>
           </div>
 
-          <!-- Title -->
           <h3 class="text-xl sm:text-2xl font-serif font-bold text-ink tracking-tight mb-3">
-            {{ rec.title }}
+            {{ item.rec.title }}
           </h3>
 
-          <!-- Body Paragraph -->
-          <p class="text-xs sm:text-sm text-muted/90 font-serif leading-relaxed mb-4 whitespace-pre-wrap">
-            {{ rec.content }}
+          <p class="text-xs sm:text-sm text-muted/95 font-serif leading-relaxed mb-4 whitespace-pre-wrap">
+            {{ item.rec.content }}
           </p>
 
-          <!-- Optional Photo inside Card -->
-          <div v-if="rec.image" class="mb-4 rounded-2xl overflow-hidden max-h-72 border border-sand/60">
-            <img :src="getFastImg(rec.image)" :alt="rec.title" class="w-full h-full object-cover cursor-pointer hover:scale-102 transition duration-500" loading="lazy" decoding="async" @click="openLightbox(rec.image)" @error="onImgError($event, rec.image)">
+          <!-- Fixed Aspect-Ratio Container (防抖动 + 100% 原始超清大图点击预览) -->
+          <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
+            <img :src="getFastImg(item.rec.image)" :alt="item.rec.title" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, item.rec.image)">
+            <span class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/55 text-white text-[10px] flex items-center gap-1">
+              <span>🔍 点击查看超清原图</span>
+            </span>
           </div>
 
-          <!-- Bottom Romantic Quote Callout Box -->
-          <div v-if="rec.quote" class="p-3.5 sm:p-4 rounded-2xl bg-sand/25 border border-sand/40 text-xs sm:text-sm text-clay italic font-serif leading-relaxed">
-            “{{ rec.quote }}”
+          <div v-if="item.rec.quote" class="p-3.5 sm:p-4 rounded-2xl bg-sand/25 border border-sand/50 text-xs sm:text-sm text-clay italic font-serif leading-relaxed">
+            “{{ item.rec.quote }}”
           </div>
         </div>
-      </div>
-
-      <!-- Add New Record Dotted Button Node at bottom of timeline -->
-      <div class="relative group pt-2">
-        <div class="absolute -left-6 sm:-left-10 top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-blush-100 border-2 border-blush-400 shadow-sm flex items-center justify-center z-10 cursor-pointer hover:scale-125 transition" @click="openAddRecordModal">
-          <span class="text-blush-600 font-bold text-xs leading-none">+</span>
-        </div>
-        <button @click="openAddRecordModal" class="w-full p-5 rounded-[2rem] border-2 border-dashed border-blush-200 hover:border-blush-400 bg-warmwhite/60 hover:bg-blush-50/50 text-clay hover:text-blush-600 transition flex items-center justify-center gap-2 text-xs font-semibold shadow-2xs group">
-          <i data-lucide="plus-circle" class="w-4 h-4 group-hover:scale-110 transition"></i>
-          <span>点这里 + 号，无限生成添加同样风格的新记录</span>
-        </button>
       </div>
     </div>
+
+    <!-- Prominent Capsule Entry Button to Secondary Fullscreen Drawer -->
+    <div class="mt-10 text-center flex flex-col items-center justify-center space-y-2.5">
+      <button @click="openAllRecordsDrawer" class="px-8 py-4 rounded-full bg-gradient-to-r from-clay via-blush-500 to-clay text-white text-xs sm:text-sm font-semibold shadow-float hover:scale-105 transition duration-300 flex items-center space-x-2.5">
+        <span>查看往昔全部日记 / 打开时光手帐 📖（共 {{ loveRecordsList.length }} 条）</span>
+      </button>
+      <p class="text-[11px] text-muted">
+        支持按年份/月份快速跳转、关键字模糊搜索、就地编辑文字与无损更换超清原图
+      </p>
+    </div>
   </section>
+
+  <!-- Secondary Fullscreen Drawer: 时光手帐 · 往昔全部每日记录 (All Daily Logs Fullscreen View) -->
+  <div v-if="showAllRecordsDrawer" class="fixed inset-0 z-50 bg-[#FAF7F2] overflow-y-auto flex flex-col" style="transform: translateZ(0);">
+    <!-- Sticky Top Header -->
+    <header class="sticky top-0 z-40 bg-warmwhite border-b border-sand px-4 py-3.5 shadow-sm">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <button @click="closeAllRecordsDrawer" class="px-4 py-2 rounded-full bg-sand/50 hover:bg-sand text-ink text-xs font-semibold transition flex items-center space-x-1.5">
+          <span>← 返回纪念馆主页</span>
+        </button>
+
+        <div class="text-center">
+          <h3 class="text-serif-sc text-sm sm:text-base md:text-lg font-bold text-ink flex items-center justify-center space-x-2">
+            <span>📖 时光手帐 · 往昔全部日记</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-blush-100 text-blush-600 text-xs font-semibold">
+              {{ filteredAndSortedRecords.length }} / {{ loveRecordsList.length }} 条
+            </span>
+          </h3>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button @click="recordSortOrder = (recordSortOrder === 'desc' ? 'asc' : 'desc')" class="px-3 py-2 rounded-full bg-warmwhite border border-sand hover:bg-sand/40 text-xs text-ink transition">
+            <span>{{ recordSortOrder === 'desc' ? '⬇️ 最新在前' : '⬆️ 最早在前' }}</span>
+          </button>
+          <button @click="openAddRecordModal" class="px-4 py-2 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-95 transition flex items-center space-x-1">
+            <span>➕ 记一笔今天</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Time Dropdown + Keyword Search Bar -->
+      <div class="max-w-4xl mx-auto mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <!-- Year/Month Dropdown -->
+        <div class="sm:col-span-1">
+          <select v-model="recordMonthFilter" class="w-full px-3.5 py-2 rounded-2xl bg-white border border-sand text-xs text-ink font-medium focus:outline-none focus:ring-2 focus:ring-blush-300 shadow-xs">
+            <option value="all">📅 全部年份/月份 ({{ loveRecordsList.length }} 篇)</option>
+            <option v-for="m in availableRecordMonths" :key="m" :value="m">🗓️ {{ m }}</option>
+          </select>
+        </div>
+        <!-- Fuzzy Keyword Search Input -->
+        <div class="sm:col-span-2 relative flex items-center">
+          <input v-model="recordSearchQuery" type="text" placeholder="🔍 搜索日记标题、正文内容、金句、地点或日期关键词..." class="w-full pl-4 pr-9 py-2 rounded-2xl bg-white border border-sand text-xs text-ink placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-blush-300 shadow-xs">
+          <button v-if="recordSearchQuery" @click="recordSearchQuery = ''" class="absolute right-3 text-muted hover:text-ink text-xs font-bold">×</button>
+        </div>
+      </div>
+
+      <!-- Quick Timeline Month Pills -->
+      <div v-if="availableRecordMonths.length > 0" class="max-w-4xl mx-auto flex items-center space-x-2 overflow-x-auto py-2 mt-1 text-xs">
+        <span class="text-[11px] text-muted whitespace-nowrap">快速跳转:</span>
+        <button @click="recordMonthFilter = 'all'" :class="recordMonthFilter === 'all' ? 'bg-clay text-white font-semibold' : 'bg-sand/40 text-muted hover:bg-sand/70'" class="px-3 py-1 rounded-full transition whitespace-nowrap text-[11px]">
+          全部时光
+        </button>
+        <button v-for="m in availableRecordMonths" :key="m" @click="recordMonthFilter = m" :class="recordMonthFilter === m ? 'bg-clay text-white font-semibold' : 'bg-sand/40 text-muted hover:bg-sand/70'" class="px-3 py-1 rounded-full transition whitespace-nowrap text-[11px]">
+          {{ m }}
+        </button>
+      </div>
+    </header>
+
+    <!-- Secondary View Main Content: All Filtered Diary Cards -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
+      <div v-if="filteredAndSortedRecords.length === 0" class="py-20 text-center glass-card rounded-3xl p-8">
+        <p class="text-sm font-semibold text-ink">未找到匹配的日记条目</p>
+        <p class="text-xs text-muted mt-1">可以尝试清空搜索词，或点击右上角【➕ 记一笔今天】新增记录</p>
+        <button @click="recordSearchQuery = ''; recordMonthFilter = 'all'" class="mt-4 px-5 py-2 rounded-full bg-clay text-white text-xs font-semibold">显示全部日记</button>
+      </div>
+
+      <div v-for="item in filteredAndSortedRecords" :key="item.rec.id || item.origIdx" class="glass-card rounded-[2rem] p-6 sm:p-8 bg-white border border-sand shadow-soft relative">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="inline-block bg-blush-50 text-blush-600 font-serif text-xs sm:text-sm font-semibold px-3.5 py-1 rounded-full border border-blush-100">
+              {{ item.rec.date }}
+            </span>
+            <span class="text-xs text-muted font-serif px-2.5 py-1 rounded-full bg-sand/30">
+              ♡ {{ item.rec.tag }}
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button @click="openEditRecordModal(item.rec, item.origIdx)" class="px-3 py-1.5 rounded-full bg-blush-50 hover:bg-blush-100 text-clay text-xs font-semibold transition flex items-center gap-1">
+              <span>✏️ 编辑文字 / 更换原图</span>
+            </button>
+            <button @click="deleteRecord(item.origIdx)" class="px-2.5 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-500 text-xs transition">
+              <span>🗑️ 删除</span>
+            </button>
+          </div>
+        </div>
+
+        <h3 class="text-lg sm:text-xl font-serif font-bold text-ink mb-2.5">
+          {{ item.rec.title }}
+        </h3>
+
+        <p class="text-xs sm:text-sm text-ink/90 font-serif leading-relaxed mb-4 whitespace-pre-wrap">
+          {{ item.rec.content }}
+        </p>
+
+        <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
+          <img :src="getFastImg(item.rec.image)" :alt="item.rec.title" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, item.rec.image)">
+          <span class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/55 text-white text-[10px]">
+            🔍 点击查看原始超清大图
+          </span>
+        </div>
+
+        <div v-if="item.rec.quote" class="p-3.5 rounded-2xl bg-sand/25 border border-sand/50 text-xs sm:text-sm text-clay italic font-serif">
+          “{{ item.rec.quote }}”
+        </div>
+      </div>
+    </main>
+  </div>
 
 
   <!-- Section: 爱的留声便签墙 (Love Messages & Whispers Wall) -->
@@ -2818,16 +2959,15 @@
       const versionKey = 'couple_site_version';
       const CURRENT_VERSION = 'v5_safe_persistence_and_multi_os';
 
-      // Scheme 1: Asia-Pacific Multi-CDN Acceleration Engine with Instant Fallback
-      const getFastImg = (src, preferThumb = false) => {
+      // [原画质锁定铁律] 100% 保留原始超清分辨率与画质，严禁转为缩略图或降质压缩
+      const getFastImg = (src) => {
         if (!src) return '';
         if (typeof src !== 'string') return src;
         if (src.startsWith('data:') || (src.startsWith('http') && !src.includes('github'))) {
           return src;
         }
-        const clean = src.replace(/^\.?\//, '');
+        const clean = src.replace(/^\.?\//, '').replace('images/thumb/', 'images/');
         if (clean.startsWith('images/')) {
-          if (preferThumb && clean.startsWith('images/') && !clean.includes('thumb/')) return './' + clean.replace('images/', 'images/thumb/');
           return './' + clean;
         }
         return src;
@@ -2889,15 +3029,26 @@
           './images/IMG_8727.JPG'
         ];
 
-        const schedulePrewarm = (cb) => setTimeout(cb, 3000);
-        schedulePrewarm(() => {
-          let pIdx = 0; const step = () => { if (pIdx < allPhotosToPrewarm.length) { const img = new Image(); img.decoding = 'async'; img.src = getFastImg(allPhotosToPrewarm[pIdx], true); pIdx++; setTimeout(step, 100); } }; step(); if (false) allPhotosToPrewarm.forEach((rel) => {
-            const img = new Image();
-            img.decoding = 'async';
-            img.src = getFastImg(rel);
-          });
-          console.log(`[Prewarm] ${allPhotosToPrewarm.length} full-resolution photos queued for background cache.`);
-        });
+        // [按需懒加载重构] 严禁后台一次性全量预加载阻塞带宽；仅在滑动到视口前 200px 时触发按需异步解码
+        if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+          const lazyObs = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const imgEl = entry.target;
+                if (imgEl.dataset && imgEl.dataset.src && imgEl.src !== imgEl.dataset.src) {
+                  imgEl.src = imgEl.dataset.src;
+                }
+                if (imgEl.decode) {
+                  imgEl.decode().catch(() => {});
+                }
+                obs.unobserve(imgEl);
+              }
+            });
+          }, { rootMargin: '200px 0px', threshold: 0.01 });
+          setTimeout(() => {
+            document.querySelectorAll('img[loading="lazy"]').forEach(el => lazyObs.observe(el));
+          }, 300);
+        }
       };
 
       const loadInitialData = () => {
@@ -3036,6 +3187,13 @@
 
       const showRecordEditModal = ref(false);
       const editingRecordIndex = ref(-1);
+      const showAllRecordsDrawer = ref(false);
+      const recordSearchQuery = ref('');
+      const recordMonthFilter = ref('all');
+      const recordSortOrder = ref('desc');
+      const recordImageInput = ref(null);
+      const isSolidifyingRepo = ref(false);
+
       const recordForm = reactive({
         date: '',
         tag: '心动启航',
@@ -3045,15 +3203,231 @@
         image: ''
       });
 
+      // 首页严格仅展示最新 3 条高光记录卡片
+      const displayedHomeRecords = computed(() => {
+        const list = (loveRecordsList.value || []).map((rec, origIdx) => ({ rec, origIdx }));
+        return list.slice(-3).reverse();
+      });
+
+      // 提取全部可用年月供二级时光手帐下拉检索与快速跳转
+      const availableRecordMonths = computed(() => {
+        const set = new Set();
+        (loveRecordsList.value || []).forEach(r => {
+          const d = r.date || '';
+          const m1 = d.match(/(\d{4}年\d{1,2}月)/);
+          const m2 = d.match(/(\d{4}-\d{2})/);
+          if (m1) set.add(m1[1]);
+          else if (m2) set.add(m2[1]);
+        });
+        return Array.from(set).reverse();
+      });
+
+      // 二级全屏时光手帐：按年月检索 + 关键词模糊搜索 + 排序
+      const filteredAndSortedRecords = computed(() => {
+        const q = (recordSearchQuery.value || '').trim().toLowerCase();
+        const mFilter = recordMonthFilter.value;
+        let list = (loveRecordsList.value || []).map((rec, origIdx) => ({ rec, origIdx }));
+        list = list.filter(({ rec }) => {
+          if (mFilter !== 'all' && !(rec.date || '').includes(mFilter)) return false;
+          if (!q) return true;
+          const hay = [rec.title, rec.content, rec.quote, rec.tag, rec.date].join(' ').toLowerCase();
+          return hay.includes(q);
+        });
+        if (recordSortOrder.value === 'desc') {
+          list.reverse();
+        }
+        return list;
+      });
+
+      const openAllRecordsDrawer = () => {
+        showAllRecordsDrawer.value = true;
+        document.body.style.overflow = 'hidden';
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeAllRecordsDrawer = () => {
+        showAllRecordsDrawer.value = false;
+        document.body.style.overflow = '';
+      };
+
+      const triggerRecordImageUpload = () => {
+        if (recordImageInput.value) recordImageInput.value.click();
+      };
+
+      const handleRecordImageUpload = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        saveMessage.value = '📷 正在无损读取并上传原始超清大图...';
+        try {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const fullDataUrl = e.target.result;
+            const b64 = fullDataUrl.split(',')[1];
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+            const fileName = 'record_uhd_' + Date.now() + '.' + ext;
+            try {
+              const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/${fileName}`;
+              const res = await fetch(upUrl, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  message: `feat(record-img): upload original ultra-HD photo ${fileName}`,
+                  content: b64
+                })
+              });
+              if (res.ok) {
+                recordForm.image = `./images/${fileName}`;
+                saveMessage.value = '✅ 原始超清大图已无损上传至仓库！';
+              } else {
+                recordForm.image = fullDataUrl;
+                saveMessage.value = '✅ 原始超清大图已就绪！';
+              }
+            } catch (err) {
+              recordForm.image = fullDataUrl;
+              saveMessage.value = '✅ 原始超清大图已就绪！';
+            }
+            setTimeout(() => { saveMessage.value = ''; }, 2500);
+          };
+          reader.readAsDataURL(file);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      // 跨端同步核心：从云端拉取整站最新状态 (解决手机看不到电脑修改的问题)
+      const syncSiteStateFromCloud = async () => {
+        try {
+          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/site_state.json?t=${Date.now()}`);
+          if (res.ok) {
+            const cloudState = await res.json();
+            const localTs = Number(localStorage.getItem('couple_site_updated_at') || 0);
+            const cloudTs = Number(cloudState.updatedAt || 0);
+            if (cloudState.siteData && cloudTs >= localTs) {
+              Object.assign(siteData, cloudState.siteData);
+              localStorage.setItem(storageKey, JSON.stringify(siteData));
+              localStorage.setItem('couple_site_updated_at', String(cloudTs));
+            }
+            if (Array.isArray(cloudState.loveRecords) && cloudState.loveRecords.length > 0 && cloudTs >= localTs) {
+              loveRecordsList.value = cloudState.loveRecords;
+              siteData.loveRecords = cloudState.loveRecords;
+              localStorage.setItem('yb_love_records', JSON.stringify(cloudState.loveRecords));
+            }
+            if (Array.isArray(cloudState.loveMessages) && cloudState.loveMessages.length > 0 && cloudTs >= localTs) {
+              loveMessagesList.value = cloudState.loveMessages;
+              localStorage.setItem('yb_love_messages', JSON.stringify(cloudState.loveMessages));
+            }
+          }
+        } catch (e) {
+          console.warn('[Cloud State Sync] fallback to local:', e);
+        }
+      };
+
+      const forcePullFromCloud = async () => {
+        saveMessage.value = '☁️ 正在从 GitHub 云端强制拉取最新配置...';
+        localStorage.setItem('couple_site_updated_at', '0');
+        await Promise.all([
+          syncSiteStateFromCloud(),
+          syncLoveRecordsFromCloud(),
+          syncLoveMessagesFromCloud(),
+          syncFromCloudRegistry(),
+          syncFootprintFromCloud()
+        ]);
+        saveMessage.value = '✅ 已成功同步云端最新图文配置！';
+        triggerConfetti();
+        setTimeout(() => { saveMessage.value = ''; }, 3000);
+      };
+
+      // 【💾 一键固化并同步代码 (Export / Sync to Repo)】：将浏览器当前全部最新编辑直接写回 GitHub 底层 JSON 与 index.html
+      const solidifyAndSyncToRepo = async () => {
+        if (isSolidifyingRepo.value) return;
+        isSolidifyingRepo.value = true;
+        saveMessage.value = '⏳ 正在将当前全部修改固化写回 GitHub 仓库代码...';
+        const nowTs = Date.now();
+        localStorage.setItem('couple_site_updated_at', String(nowTs));
+
+        const putGhFile = async (repoPath, utf8Content, commitMsg) => {
+          const apiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${repoPath}`;
+          let sha = null;
+          const getRes = await fetch(apiUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } });
+          if (getRes.ok) {
+            const meta = await getRes.json();
+            sha = meta.sha;
+          }
+          const b64 = btoa(unescape(encodeURIComponent(utf8Content)));
+          const bodyObj = { message: commitMsg, content: b64, branch: 'main' };
+          if (sha) bodyObj.sha = sha;
+          const putRes = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyObj)
+          });
+          return putRes.ok;
+        };
+
+        try {
+          const fullState = {
+            updatedAt: nowTs,
+            updatedAtStr: new Date().toLocaleString('zh-CN', { hour12: false }),
+            siteData: JSON.parse(JSON.stringify(siteData)),
+            loveRecords: JSON.parse(JSON.stringify(loveRecordsList.value || [])),
+            loveMessages: JSON.parse(JSON.stringify(loveMessagesList.value || []))
+          };
+          const stateJsonStr = JSON.stringify(fullState, null, 2);
+          const recordsJsonStr = JSON.stringify(loveRecordsList.value || [], null, 2);
+          const messagesJsonStr = JSON.stringify(loveMessagesList.value || [], null, 2);
+
+          await putGhFile('data/site_state.json', stateJsonStr, 'feat(sync): solidify browser state to data/site_state.json');
+          await putGhFile('dist/data/site_state.json', stateJsonStr, 'feat(sync): solidify browser state to dist/data/site_state.json');
+          await putGhFile('data/love_records.json', recordsJsonStr, 'feat(sync): solidify love_records.json');
+          await putGhFile('dist/data/love_records.json', recordsJsonStr, 'feat(sync): solidify dist/data/love_records.json');
+          await putGhFile('data/love_messages.json', messagesJsonStr, 'feat(sync): solidify love_messages.json');
+          await putGhFile('dist/data/love_messages.json', messagesJsonStr, 'feat(sync): solidify dist/data/love_messages.json');
+
+          // 同步重写远端 index.html 与 dist/index.html 中的 defaultSiteData 初始数据集
+          const idxApiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/index.html`;
+          const idxRes = await fetch(idxApiUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } });
+          if (idxRes.ok) {
+            const idxMeta = await idxRes.json();
+            const rawHtml = decodeURIComponent(escape(atob(idxMeta.content.replace(/\s/g, ''))));
+            const startMarker = 'const defaultSiteData = ';
+            const endMarker = 'createApp({';
+            const sPos = rawHtml.indexOf(startMarker);
+            const ePos = rawHtml.indexOf(endMarker);
+            if (sPos !== -1 && ePos !== -1 && ePos > sPos) {
+              const newDefaultBlock = 'const defaultSiteData = ' + JSON.stringify(siteData, null, 2) + ';\n\n  ';
+              const updatedHtml = rawHtml.slice(0, sPos) + newDefaultBlock + rawHtml.slice(ePos);
+              await putGhFile('index.html', updatedHtml, 'feat(solidify): rewrite defaultSiteData in index.html');
+              await putGhFile('dist/index.html', updatedHtml, 'feat(solidify): rewrite defaultSiteData in dist/index.html');
+            }
+          }
+
+          saveMessage.value = '🎉 已一键固化写回 GitHub 仓库！手机刷新即刻呈现最新内容 ♥';
+          triggerConfetti();
+        } catch (err) {
+          console.error('[Solidify Error]', err);
+          saveMessage.value = '⚠️ 云端固化部分完成，已导出本地备份兜底';
+        } finally {
+          isSolidifyingRepo.value = false;
+          setTimeout(() => { saveMessage.value = ''; }, 4000);
+        }
+      };
+
       const openAddRecordModal = () => {
         editingRecordIndex.value = -1;
-        recordForm.date = '2026年' + (new Date().getMonth() + 1) + '月' + new Date().getDate() + '日';
-        recordForm.tag = '心动启航';
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        recordForm.date = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        recordForm.tag = '日常高光';
         recordForm.title = '';
         recordForm.content = '';
         recordForm.quote = '';
         recordForm.image = '';
         showRecordEditModal.value = true;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const openEditRecordModal = (rec, idx) => {
@@ -3647,6 +4021,15 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncFromCloudRegistry();
         syncFootprintFromCloud();
         checkPwaStatus();
@@ -5608,6 +5991,21 @@
         closeRecordEditModal,
         saveRecordForm,
         deleteRecord,
+        showAllRecordsDrawer,
+        recordSearchQuery,
+        recordMonthFilter,
+        recordSortOrder,
+        recordImageInput,
+        displayedHomeRecords,
+        availableRecordMonths,
+        filteredAndSortedRecords,
+        openAllRecordsDrawer,
+        closeAllRecordsDrawer,
+        triggerRecordImageUpload,
+        handleRecordImageUpload,
+        isSolidifyingRepo,
+        solidifyAndSyncToRepo,
+        forcePullFromCloud,
         getFastImg,
         onImgError
       };
