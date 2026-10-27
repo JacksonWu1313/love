@@ -3897,38 +3897,49 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // 经典原版紧凑包裹球面算法：R = R_base * sqrt(max(N, 16) / 16)
+      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~40% 紧凑包覆)，杜绝空旷荒漠
+      const getSphereCardDimensions = computed(() => {
+        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        const isTablet = typeof window !== 'undefined' && window.innerWidth < 1024;
+        if (count <= 18) {
+          return isMobile ? { w: 82, h: 108 } : (isTablet ? { w: 94, h: 124 } : { w: 102, h: 136 });
+        } else if (count <= 32) {
+          return isMobile ? { w: 74, h: 98 } : (isTablet ? { w: 86, h: 114 } : { w: 92, h: 122 });
+        } else if (count <= 60) {
+          return isMobile ? { w: 68, h: 90 } : (isTablet ? { w: 78, h: 102 } : { w: 84, h: 110 });
+        } else if (count <= 90) {
+          return isMobile ? { w: 62, h: 82 } : (isTablet ? { w: 72, h: 94 } : { w: 76, h: 100 });
+        } else {
+          return isMobile ? { w: 56, h: 74 } : (isTablet ? { w: 66, h: 86 } : { w: 70, h: 92 });
+        }
+      });
+
       const getSphereRadius = () => {
         if (typeof window === 'undefined') return 240;
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
-        const baseR = isMobile ? 175 : (isTablet ? 230 : 280);
-        const factor = Math.sqrt(Math.max(count, 16) / 16);
-        return Math.round(baseR * factor);
+        
+        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，彻底解决卡片稀疏空洞
+        const dims = getSphereCardDimensions.value;
+        const cardArea = dims.w * dims.h;
+        const targetCoverage = isMobile ? 0.38 : 0.40; // 黄金包裹密度 ~40%
+        const idealR = Math.sqrt((count * cardArea) / (4 * Math.PI * targetCoverage));
+        
+        // 视口安全阻尼：移动端限制在 165~275px，平板 210~315px，桌面 240~355px
+        const minR = isMobile ? 165 : (isTablet ? 210 : 240);
+        const maxR = isMobile ? 275 : (isTablet ? 315 : 355);
+        return Math.round(Math.max(minR, Math.min(maxR, idealR)));
       };
-
-      // 动态卡片尺寸：随照片总数阶梯式自适应伸缩，紧凑抱团包裹
-      const getSphereCardDimensions = computed(() => {
-        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-        if (count <= 16) {
-          return isMobile ? { w: 84, h: 112 } : { w: 104, h: 140 };
-        } else if (count <= 30) {
-          return isMobile ? { w: 72, h: 96 } : { w: 90, h: 120 };
-        } else if (count <= 50) {
-          return isMobile ? { w: 62, h: 84 } : { w: 78, h: 104 };
-        } else {
-          return isMobile ? { w: 54, h: 72 } : { w: 68, h: 90 };
-        }
-      });
 
       // 自适应 CSS 视距
       const spherePerspective = computed(() => {
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-        const count = spherePhotosList.value.length || sphereCardCount.value || 24;
-        return isMobile ? (count > 24 ? '850px' : '920px') : (count > 24 ? '980px' : '1050px');
+        const R = getSphereRadius();
+        return `${Math.max(isMobile ? 850 : 950, Math.round(R * 3.0))}px`;
       });
+
 
       const spherePhotosList = computed(() => {
         const all = [];
@@ -4287,6 +4298,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
