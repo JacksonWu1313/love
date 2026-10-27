@@ -1142,7 +1142,7 @@
         </div>
 
         <!-- 3D Stage Viewport (经典高度 & 原版紧凑球面包裹) -->
-        <div class="relative w-full h-[470px] sm:h-[550px] md:h-[600px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        <div class="relative w-full h-[520px] sm:h-[600px] md:h-[680px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
              style="touch-action: none;"
              @wheel.passive="onSphereWheel"
              @mousedown="onSphereDragStart"
@@ -4051,26 +4051,18 @@
 
           const inner = el.querySelector('.sphere-card-inner') || el;
 
+          // 彻底修复透明问题：所有正反面卡片永久 100% 纯实色不透明，严禁任何半透明度
+          inner.style.opacity = '1';
           if (zEye >= 0) {
-            // 正前方卡片 (zEye >= 0): opacity: 1, 比例 100%, 无模糊
-            inner.style.opacity = '1';
+            // 正前方卡片 (zEye >= 0): 比例 100%, 正常亮度
             inner.style.transform = 'scale(1)';
             inner.style.filter = 'brightness(1)';
           } else {
-            // 背面卡片 (zEye < 0): 深度系数 norm 从 0 (最远端 -R) 到 1 (赤道 0)
+            // 背面卡片 (zEye < 0): 纯实色不透明，轻微立体远近比例 (0.85~1.0)
             const norm = Math.max(0, Math.min(1, (zEye + R) / R));
-            // opacity: 0.45 ~ 0.65
-            const depthOpacity = (0.45 + 0.20 * norm).toFixed(2);
-            // 比例: 75% ~ 85%
-            const depthScale = (0.75 + 0.10 * norm).toFixed(2);
-            // 轻微景深模糊 0.6px ~ 0px
-            const blurPx = ((1 - norm) * 0.6).toFixed(1);
-            // 景深明暗: 85% ~ 100%
-            const brightness = (0.85 + 0.15 * norm).toFixed(2);
-
-            inner.style.opacity = depthOpacity;
+            const depthScale = (0.85 + 0.15 * norm).toFixed(2);
             inner.style.transform = `scale(${depthScale})`;
-            inner.style.filter = blurPx > 0 ? `blur(${blurPx}px) brightness(${brightness})` : `brightness(${brightness})`;
+            inner.style.filter = 'brightness(0.95)';
           }
 
           // 动图与实况视频全程保持播放，严禁暂停
@@ -4309,6 +4301,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
