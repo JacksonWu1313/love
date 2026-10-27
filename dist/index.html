@@ -3900,12 +3900,6 @@
       let pinchStartDist = 0;
       let pinchStartScale = 1.0;
 
-      // 3D Photo Constellation Sphere (Dynamic Fibonacci Sphere, Pinch/Wheel Zoom & Backface Culling)
-      const sphereScale = ref(1.0);
-      let liveSphereScale = 1.0;
-      let pinchStartDist = 0;
-      let pinchStartScale = 1.0;
-
       const setSphereCardCount = (count) => {
         sphereCardCount.value = count;
       };
@@ -4296,6 +4290,12 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
