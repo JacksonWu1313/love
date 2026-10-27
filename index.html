@@ -7,11 +7,12 @@
     window.__appMounted = false;
     window.addEventListener('DOMContentLoaded', function() {
       setTimeout(function() {
+        var appEl = document.getElementById('app'); if (appEl) appEl.removeAttribute('v-cloak');
         if (!window.__appMounted && !document.getElementById('anti-white-toast')) {
           var t = document.createElement('div');
           t.id = 'anti-white-toast';
           t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(255,253,249,0.95);backdrop-filter:blur(10px);border:1px solid #FED7D7;border-radius:9999px;padding:10px 20px;box-shadow:0 10px 25px -5px rgba(217,93,93,0.15);font-size:12px;color:#2D2A26;display:flex;align-items:center;gap:10px;font-family:sans-serif;';
-          t.innerHTML = '<span>🌸 恋爱小站正在温暖加载中... 若未及时显示可尝试：</span><button onclick=' + q + 'location.reload(true)' + q + ' style=' + q + 'background:#E87A7A;color:#fff;border:none;border-radius:9999px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;' + q + '>一键刷新</button>';
+          t.innerHTML = '<span>🌸 恋爱小站正在温暖加载中... 若未及时显示可尝试：</span><button onclick="location.reload(true)" style="background:#E87A7A;color:#fff;border:none;border-radius:9999px;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:600;">一键刷新</button>';
           (document.body || document.documentElement).appendChild(t);
         }
       }, 3500);
@@ -33,14 +34,14 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Vue 3 CDN -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://registry.npmmirror.com/vue/3.4.21/files/dist/vue.global.prod.js"></script>
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://registry.npmmirror.com/lucide/0.344.0/files/dist/umd/lucide.min.js"></script>
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <!-- Leaflet CSS & JS for Interactive World Footprint Map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://registry.npmmirror.com/leaflet/1.9.4/files/dist/leaflet.css" />
+  <script src="https://registry.npmmirror.com/leaflet/1.9.4/files/dist/leaflet.js"></script>
   <!-- Non-blocking Google Fonts with domestic mirror fallback -->
   <link rel="preconnect" href="https://fonts.font.im">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,6 +90,7 @@
     }
   </script>
   <style>
+    [v-cloak] { display: none !important; }
     body {
       background-color: #FAF7F2;
       color: #2D2A26;
@@ -314,7 +316,7 @@
   </style>
 </head>
 <body class="selection:bg-blush-200 selection:text-ink">
-<div id="app"  class="relative min-h-screen">
+<div id="app" v-cloak class="relative min-h-screen">
 
   <!-- Floating Multi-OS App Guide Button & Arrow Tip for 小悦悦 -->
   <div class="fixed top-4 left-4 z-40 flex flex-col items-start select-none">
@@ -1798,14 +1800,14 @@
           </div>
         </div>
         <div class="p-3 rounded-2xl bg-warmwhite border border-sand/60 text-[11px] text-muted space-y-1.5">
-          <div class=flex items-center justify-between text-ink font-medium>
-            <span class=flex items-center gap-1.5><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i> 防抖节流队列保护</span>
+          <div class="flex items-center justify-between text-ink font-medium">
+            <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i> 防抖节流队列保护</span>
             <span class="text-xs text-emerald-600 font-semibold">{{ debouncePending ? '⏳ 队列合并中...' : '● 待命就绪 (500ms)' }}</span>
           </div>
           <p class="text-muted/80 text-[10px] leading-relaxed">连续快速编辑愿望或便签时，系统自动执行 500ms 智能合并防抖，将多次高频写入压缩为单次云端提交，API 消耗缩减 80% 以上。</p>
         </div>
         <button @click="fetchQuotaStatus" :disabled="isRefreshingQuota" class="w-full py-2.5 px-4 rounded-2xl bg-clay text-white text-xs font-semibold hover:opacity-90 flex items-center justify-center gap-2 transition shadow-soft disabled:opacity-50">
-          <i data-lucide=rotate-cw class=w-3.5 h-3.5 :class=isRefreshingQuota ? 'animate-spin' : ''></i>
+          <i data-lucide="rotate-cw" class="w-3.5 h-3.5" :class="isRefreshingQuota ? 'animate-spin' : ''"></i>
           <span>{{ isRefreshingQuota ? '正在获取官方配额...' : '立即刷新额度' }}</span>
         </button>
       </div>
