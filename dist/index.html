@@ -123,10 +123,7 @@
     section {
       transform: translateZ(0);
     }
-    img {
-      transform: translateZ(0);
-      backface-visibility: hidden;
-    }
+    /* [动图与3D防闪烁] 严禁对全局 img 强制施加 backface-visibility: hidden，避免与 3D 星球容器产生深度缓冲区冲突 (Z-fighting) */
     .polaroid-frame {
       background: #FFFFFF;
       padding: 10px 10px 22px 10px;
@@ -315,14 +312,23 @@
       height: 110px;
       margin-left: -41px;
       margin-top: -55px;
-      transform-style: preserve-3d;
+      /* [根治3D闪烁] 卡片内部强制使用 flat 平面光栅化隔离，将相框+图片合并为单一 GPU 纹理贴图，100% 消除多层共面 Z-fighting 闪烁 */
+      transform-style: flat;
+      isolation: isolate;
+      contain: layout paint;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
       backface-visibility: visible;
+      -webkit-backface-visibility: visible;
       will-change: transform;
-      transition: filter 0.2s ease, box-shadow 0.2s ease;
       pointer-events: auto;
+    }
+    .sphere-photo-card img,
+    .sphere-photo-card video {
+      transform: none !important;
+      backface-visibility: visible !important;
+      -webkit-backface-visibility: visible !important;
     }
     @media (min-width: 640px) {
       .sphere-photo-card {
@@ -339,6 +345,8 @@
 </head>
 <body class="selection:bg-blush-200 selection:text-ink">
 <div id="app" v-cloak class="relative min-h-screen">
+  <!-- 全站通用本地相册选图器 (支持超清原图、GIF/WebP/APNG 动图与 LivePhoto 动态视频) -->
+  <input type="file" ref="universalAlbumInput" accept="image/*,.gif,.webp,.apng,.png,.jpg,.jpeg,.avif,video/mp4,video/quicktime,video/webm" @change="handleUniversalAlbumPicked" class="hidden">
 
   <!-- Floating Multi-OS App Guide Button & Arrow Tip for 小悦悦 -->
   <div class="fixed top-4 left-4 z-40 flex flex-col items-start select-none">
@@ -495,10 +503,9 @@
           {{ siteData.hero.coverCaption || '定格在海风与日光里的我们 · 2026' }}
         </p>
       </div>
-      <!-- Edit Image Action Button -->
-      <button v-if="isEditing" @click.stop="promptChangeImage('hero', 'coverImage')" class="absolute top-4 right-4 p-2 bg-clay text-white rounded-full shadow-lg text-xs flex items-center gap-1 hover:bg-clay/90 transition">
-        <i data-lucide="camera" class="w-3.5 h-3.5"></i>
-        <span>换封面</span>
+      <!-- Edit Image Action Button (常驻悬浮可点，直接唤起本地相册) -->
+      <button @click.stop="promptChangeImage('hero', 'coverImage')" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover:opacity-100'" class="absolute top-4 right-4 px-3 py-1.5 bg-clay/95 text-white rounded-full shadow-lg text-xs flex items-center gap-1 hover:bg-rose-500 transition z-20">
+        <span>📷 换封面/动图</span>
       </button>
     </div>
 
@@ -648,8 +655,8 @@
                   <img :src="getFastImg(imgSrc)" :alt="item.title" class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, imgSrc)">
                 </div>
               </div>
-              <button v-if="isEditing" @click.stop="promptChangeTimelineImage(idx, imgIdx)" class="absolute top-3 right-3 p-1.5 bg-clay/90 text-white rounded-full shadow text-[10px] flex items-center gap-1 hover:bg-clay transition">
-                <i data-lucide="camera" class="w-3 h-3"></i> 换图
+              <button @click.stop="promptChangeTimelineImage(idx, imgIdx)" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover/img:opacity-100'" class="absolute top-3 right-3 px-2.5 py-1 bg-clay/95 text-white rounded-full shadow text-[11px] flex items-center gap-1 hover:bg-rose-500 transition z-20">
+                <span>📷 相册换图</span>
               </button>
             </div>
           </div>
@@ -689,8 +696,8 @@
             <!-- Associated Photo -->
             <div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="openLightbox(q.image)">
               <img :src="getFastImg(q.image)" :alt="q.author" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, q.image)">
-              <button v-if="isEditing" @click.stop="promptChangeArrayImage('quotes', qIdx, 'image')" class="absolute top-2 left-2 p-1 bg-clay text-white rounded-full text-[10px] flex items-center gap-1 shadow">
-                <i data-lucide="camera" class="w-3 h-3"></i> 换图
+              <button @click.stop="promptChangeArrayImage('quotes', qIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover:opacity-100'" class="absolute top-2.5 right-2.5 px-2.5 py-1 bg-clay/95 text-white rounded-full text-[11px] flex items-center gap-1 shadow hover:bg-rose-500 transition z-20">
+                <span>📷 相册换图</span>
               </button>
             </div>
 
@@ -746,8 +753,8 @@
 
         <div class="overflow-hidden rounded-xl aspect-square bg-sand/40 mb-3 relative">
           <img :src="getFastImg(item.image)" :alt="item.title" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, item.image)">
-          <button v-if="isEditing" @click.stop="promptChangeArrayImage('gallery', fIdx, 'image')" class="absolute bottom-2 right-2 p-1 bg-clay text-white rounded-full text-[10px] flex items-center gap-1 shadow">
-            <i data-lucide="camera" class="w-3 h-3"></i> 换相片
+          <button @click.stop="promptChangeArrayImage('gallery', fIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover:opacity-100'" class="absolute bottom-2.5 right-2.5 px-2.5 py-1 bg-clay/95 text-white rounded-full text-[11px] flex items-center gap-1 shadow hover:bg-rose-500 transition z-20">
+            <span>📷 相册换图</span>
           </button>
         </div>
 
@@ -941,9 +948,12 @@
               <span class="text-[11px] text-muted">{{ selectedMapCity.province }} · {{ selectedMapCity.date }}</span>
             </div>
 
-            <!-- Optional City Image Thumbnail -->
-            <div v-if="selectedMapCity.image" class="mt-3 w-full h-28 rounded-xl overflow-hidden bg-sand/20 border border-sand/60">
-              <img :src="getFastImg(selectedMapCity.image)" :alt="selectedMapCity.name" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, selectedMapCity.image)">
+            <!-- Optional City Image Thumbnail + Local Album Picker -->
+            <div class="mt-3 w-full h-32 rounded-xl overflow-hidden bg-sand/20 border border-sand/60 relative group cursor-pointer" @click="selectedMapCity.image && openLightbox(selectedMapCity.image)">
+              <img v-if="selectedMapCity.image" :src="getFastImg(selectedMapCity.image)" :alt="selectedMapCity.name" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, selectedMapCity.image)">
+              <button @click.stop="pickLocalImageForMapCity(selectedMapCity)" class="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-clay/95 hover:bg-rose-500 text-white text-[11px] font-semibold shadow flex items-center gap-1 transition z-20">
+                <span>📷 相册换图/动图</span>
+              </button>
             </div>
 
             <!-- City Story Note -->
@@ -1128,22 +1138,25 @@
 
           <!-- 3D Perspective Stage -->
           <div class="photo-sphere-stage" :style="{ perspective: spherePerspective }">
-            <div class="photo-sphere-world" :style="sphereTransformStyle">
+            <div id="photo-sphere-world-el" class="photo-sphere-world" style="transform: rotateX(-12deg) rotateY(0deg);">
               
               <!-- Photo Cards Distributed on 3D Sphere -->
               <div v-for="(photo, sIdx) in spherePhotosList" :key="photo.id || sIdx"
                    class="sphere-photo-card group"
                    :style="getSphereCardStyle(sIdx)"
                    @click="handleSpherePhotoClick(photo)">
-                <div class="w-full h-full p-1 sm:p-1.5 bg-white/95 rounded-xl sm:rounded-2xl shadow-md group-hover:shadow-xl transition duration-300 flex flex-col border border-white/80 relative">
+                <div class="w-full h-full p-1 sm:p-1.5 bg-white rounded-xl sm:rounded-2xl shadow-md flex flex-col border border-sand/80 relative">
                   <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/30">
-                    <img :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-110 transition duration-500 pointer-events-none" loading="lazy" decoding="async" style="aspect-ratio: 3/4;" @error="onImgError($event, photo.image)">
-                    <!-- Hover Action Overlay -->
-                    <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-1.5 text-white">
-                      <button @click.stop="openSphereEditModal(photo)" class="p-1.5 rounded-full bg-black/60 hover:bg-rose-500 transition shadow-sm" title="编辑这张照片文字">
+                    <img :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover pointer-events-none" loading="eager" decoding="sync" style="aspect-ratio: 3/4;" @error="onImgError($event, photo.image)">
+                    <!-- Hover Action Overlay: 支持直接从本地相册换图/动图、编辑文字、放大 -->
+                    <div class="absolute inset-0 bg-ink/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center space-x-1 text-white">
+                      <button @click.stop="pickLocalImageForSpherePhoto(photo)" class="p-1.5 rounded-full bg-clay/90 hover:bg-rose-500 transition shadow-sm" title="从本地相册更换此位置图片/动图">
+                        <span class="text-[11px] leading-none">📷</span>
+                      </button>
+                      <button @click.stop="openSphereEditModal(photo)" class="p-1.5 rounded-full bg-black/65 hover:bg-rose-500 transition shadow-sm" title="编辑这张照片文字与更换相片">
                         <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                       </button>
-                      <span class="p-1.5 rounded-full bg-black/60"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i></span>
+                      <span class="p-1.5 rounded-full bg-black/65"><i data-lucide="maximize-2" class="w-3 h-3"></i></span>
                     </div>
                   </div>
                   <div class="pt-1 px-0.5 text-center truncate">
@@ -1179,9 +1192,12 @@
           <button @click="closeSphereEditModal" class="p-1 text-muted hover:text-ink rounded-lg transition"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
 
-        <!-- Thumbnail -->
-        <div class="w-full h-36 rounded-2xl overflow-hidden bg-sand/30 border border-sand/60">
-          <img :src="sphereEditForm.image" :alt="sphereEditForm.title" class="w-full h-full object-cover">
+        <!-- Thumbnail + Local Album Picker -->
+        <div class="relative w-full h-40 rounded-2xl overflow-hidden bg-sand/30 border border-sand/60 group">
+          <img :src="getFastImg(sphereEditForm.image)" :alt="sphereEditForm.title" class="w-full h-full object-cover">
+          <button type="button" @click="pickLocalImageForSphereModal" class="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-full bg-clay/95 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg flex items-center gap-1.5 transition">
+            <span>📷 从本地相册换图/动图</span>
+          </button>
         </div>
 
         <!-- Fields -->
@@ -1234,8 +1250,9 @@
 
       <!-- On This Day Time Machine Banner (那年今日 / 时光机) -->
       <div v-if="onThisDayMemory" class="mt-6 mb-2 max-w-2xl mx-auto glass-card rounded-3xl p-4 sm:p-5 border border-blush-200/80 bg-gradient-to-r from-blush-50/70 via-warmwhite to-blush-50/70 shadow-soft text-left flex items-center space-x-4">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-sand/30 flex-shrink-0 cursor-pointer shadow-xs" @click="openLightbox(onThisDayMemory.photo.image)">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-sand/30 flex-shrink-0 cursor-pointer shadow-xs relative group" @click="openLightbox(onThisDayMemory.photo.image)">
           <img :src="getFastImg(onThisDayMemory.photo.image)" :alt="onThisDayMemory.title" class="w-full h-full object-cover hover:scale-105 transition duration-300" loading="lazy" decoding="async" @error="onImgError($event, onThisDayMemory.photo.image)">
+          <button @click.stop="pickLocalImageForPoolPhoto(onThisDayMemory.photo)" class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-clay/90 text-white text-[9px] shadow">📷</button>
         </div>
         <div class="flex-1 min-w-0 pr-1">
           <div class="flex items-center space-x-1.5 mb-1">
@@ -1296,6 +1313,9 @@
             </div>
           </div>
           <div class="flex items-center space-x-0.5">
+            <button @click.stop="pickLocalImageForPoolPhoto(photo)" class="p-1 text-clay hover:text-rose-500 rounded-lg hover:bg-blush-50 transition" title="从本地相册替换此位置照片/动图">
+              <span class="text-[11px] leading-none">📷</span>
+            </button>
             <button @click.stop="openPhotoStoryModal(photo)" class="p-1 text-clay hover:text-blush-500 rounded-lg hover:bg-blush-50 transition" title="回忆便签与故事">
               <i data-lucide="book-heart" class="w-3.5 h-3.5"></i>
             </button>
@@ -1361,8 +1381,8 @@
           <div class="flex items-center space-x-2">
             <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="openLightbox(w.image)">
               <img :src="getFastImg(w.image)" :alt="w.text" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, w.image)">
-              <button v-if="isEditing" @click.stop="promptChangeArrayImage('wishes', wIdx, 'image')" class="absolute inset-0 bg-black/50 text-white text-[9px] flex items-center justify-center opacity-0 group-hover/wish:opacity-100 transition">
-                换图
+              <button @click.stop="promptChangeArrayImage('wishes', wIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-0 group-hover/wish:opacity-100'" class="absolute inset-0 bg-black/55 text-white text-[10px] font-semibold flex items-center justify-center transition z-20">
+                📷 换图
               </button>
             </div>
             <button v-if="isEditing" @click="removeItem('wishes', wIdx)" class="p-1 text-muted hover:text-red-500">
@@ -1423,8 +1443,8 @@
 
       <div class="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5 bg-sand/40">
         <img :src="getFastImg(siteData.letter.bgImage)" alt="Letter Visual" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, siteData.letter.bgImage)">
-        <button v-if="isEditing" @click="promptChangeImage('letter', 'bgImage')" class="absolute top-2 right-2 p-1.5 bg-clay text-white rounded-full text-xs shadow flex items-center gap-1">
-          <i data-lucide="camera" class="w-3 h-3"></i> 换信件插图
+        <button @click.stop="promptChangeImage('letter', 'bgImage')" class="absolute top-2.5 right-2.5 px-3 py-1 bg-clay/95 hover:bg-rose-500 text-white rounded-full text-xs shadow flex items-center gap-1 transition z-20">
+          <span>📷 相册换插图/动图</span>
         </button>
       </div>
 
@@ -1584,6 +1604,9 @@
                   </div>
                 </div>
                 <div class="flex items-center space-x-0.5">
+                  <button @click.stop="pickLocalImageForPoolPhoto(photo)" class="p-1 text-clay hover:text-rose-500 rounded-lg hover:bg-blush-50 transition" title="从本地相册替换此位置照片/动图">
+                    <span class="text-[11px] leading-none">📷</span>
+                  </button>
                   <button @click.stop="openPhotoStoryModal(photo)" class="p-1 text-clay hover:text-blush-500 rounded-lg hover:bg-blush-50 transition" title="回忆便签与故事">
                     <i data-lucide="book-heart" class="w-3.5 h-3.5"></i>
                   </button>
@@ -1971,8 +1994,13 @@
         </div>
 
         <div>
-          <label class="block font-medium text-ink mb-1">照片缩略图路径 (选填)</label>
-          <input v-model="newCityForm.image" type="text" placeholder="./images/timeline_08_1.jpg 或图片链接" class="w-full px-3 py-1.5 rounded-xl bg-sand/20 border border-sand/80 focus:outline-none focus:border-rose-400 text-xs">
+          <label class="block font-medium text-ink mb-1">城市专属照片 / 动图</label>
+          <div class="flex items-center gap-2">
+            <input v-model="newCityForm.image" type="text" placeholder="./images/timeline_08_1.jpg 或点击右侧从相册选择" class="flex-1 px-3 py-1.5 rounded-xl bg-sand/20 border border-sand/80 focus:outline-none focus:border-rose-400 text-xs">
+            <button type="button" @click="pickLocalImageForNewCity" class="px-3 py-1.5 rounded-xl bg-blush-50 hover:bg-blush-100 text-blush-600 border border-blush-200 font-semibold text-xs whitespace-nowrap transition">
+              📷 本地相册选择
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2095,9 +2123,12 @@
         <div class="glass-card rounded-[2rem] p-6 sm:p-8 bg-white/96 border border-sand/80 shadow-soft hover:shadow-float transition duration-300 relative">
           <!-- Card Action Buttons (Edit / Replace Original Photo / Delete) -->
           <div class="absolute top-5 right-5 flex items-center gap-1.5">
-            <button @click="openEditRecordModal(item.rec, item.origIdx)" class="px-2.5 py-1 rounded-full bg-sand/30 hover:bg-blush-50 text-muted hover:text-clay text-[11px] transition flex items-center gap-1" title="编辑文字或更换原图">
+            <button @click.stop="pickLocalImageForRecord(item.origIdx)" class="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-clay text-[11px] font-semibold transition flex items-center gap-1" title="直接从本地相册选择图片或动图替换">
+              <span>📷 相册换图</span>
+            </button>
+            <button @click="openEditRecordModal(item.rec, item.origIdx)" class="px-2.5 py-1 rounded-full bg-sand/30 hover:bg-blush-50 text-muted hover:text-clay text-[11px] transition flex items-center gap-1" title="编辑文字内容">
               <i data-lucide="edit-2" class="w-3 h-3"></i>
-              <span>编辑/换图</span>
+              <span>编辑</span>
             </button>
             <button @click="deleteRecord(item.origIdx)" class="p-1.5 rounded-full hover:bg-rose-50 text-muted hover:text-rose-500 transition" title="删除本篇记录">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -2224,8 +2255,11 @@
           </div>
 
           <div class="flex items-center gap-2">
+            <button @click.stop="pickLocalImageForRecord(item.origIdx)" class="px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition flex items-center gap-1">
+              <span>📷 本地相册换图/动图</span>
+            </button>
             <button @click="openEditRecordModal(item.rec, item.origIdx)" class="px-3 py-1.5 rounded-full bg-blush-50 hover:bg-blush-100 text-clay text-xs font-semibold transition flex items-center gap-1">
-              <span>✏️ 编辑文字 / 更换原图</span>
+              <span>✏️ 编辑文字</span>
             </button>
             <button @click="deleteRecord(item.origIdx)" class="px-2.5 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-500 text-xs transition">
               <span>🗑️ 删除</span>
@@ -2427,7 +2461,7 @@
     "coverCaption": "彩云之南 · 大理洱海与丽江自驾漫游记 · 2026盛夏",
     "quote": "全世界仅此一个的我，尽情幸福吧。",
     "quoteAuthor": "我们的独家默契宣言",
-    "startDate": "2026-04-30T18:23:10"
+    "startDate": "2026-05-19T22:30:00"
   },
   "stats": [
     {
@@ -2582,263 +2616,263 @@
     }
   ],
   "photoPool": [
-    {
-      "id": 1,
-      "image": "./images/timeline_08_1.jpg",
-      "title": "大理洱海蓝天与晚风",
-      "date": "2026-08-01",
-      "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
-      "uploader": "我们"
-    },
-    {
-      "id": 2,
-      "image": "./images/timeline_08_2.jpg",
-      "title": "丽江古城檐角与石板街",
-      "date": "2026-08-03",
-      "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
-      "uploader": "我们"
-    },
-    {
-      "id": 3,
-      "image": "./images/life_food_5.jpg",
-      "title": "初夏拼好的Hello Kitty挂件",
-      "date": "2026-05-18",
-      "story": "你亲手拼好送我的小挂件，挂在车钥匙上，每天出门看到都觉得心里甜甜的。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 4,
-      "image": "./images/timeline_08_3.jpg",
-      "title": "彩云之南环海公路自驾",
-      "date": "2026-08-05",
-      "story": "车窗摇下一半，音乐轻轻放着，一路上看云、看路，看身边的你。",
-      "uploader": "YB"
-    },
-    {
-      "id": 5,
-      "image": "./images/quote_3.jpg",
-      "title": "异地分开时的专属自拍福利",
-      "date": "2026-07-15",
-      "story": "“再奖励你一张嘛，女神一下”，每一张搞怪又可爱的自拍都是治愈想念的良药。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 6,
-      "image": "./images/timeline_06_1.jpg",
-      "title": "KFC鸡块不蘸酱与公园散步",
-      "date": "2026-06-12",
-      "story": "记下你不蘸酱的独特吃法，记下你喜欢的奶茶糖度，把心意都写在日常里。",
-      "uploader": "YB"
-    },
-    {
-      "id": 7,
-      "image": "./images/life_food_1.jpg",
-      "title": "洱海生态廊道车窗水色",
-      "date": "2026-08-02",
-      "story": "蔚蓝水面上波光粼粼，微风把发梢吹乱，那一刻真希望时间就此慢下来。",
-      "uploader": "我们"
-    },
-    {
-      "id": 8,
-      "image": "./images/life_food_2.jpg",
-      "title": "丽江古城挂满灯笼的夜色",
-      "date": "2026-08-04",
-      "story": "华灯初上的古镇小巷，牵着手在石板路上慢慢走，街旁飘来民谣吉他的歌声。",
-      "uploader": "我们"
-    },
-    {
-      "id": 9,
-      "image": "./images/timeline_07_1.jpg",
-      "title": "盛夏七月的日常早安播报",
-      "date": "2026-07-08",
-      "story": "哪怕相隔两地，早起的第一声早安和睡前的晚安，永远是我们不变的默契。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 10,
-      "image": "./images/timeline_10_1.jpg",
-      "title": "金秋十月校园漫步",
-      "date": "2026-10-12",
-      "story": "秋意渐浓的林荫道，落叶铺了一地，踩在上面沙沙作响，有你在身边就很安心。",
-      "uploader": "我们"
-    },
-    {
-      "id": 11,
-      "image": "./images/life_food_3.jpg",
-      "title": "苍山与远方郁郁葱葱的林海",
-      "date": "2026-08-06",
-      "story": "站在山腰远眺，远处是水天一色的洱海，身边是全世界仅此一个的悦悦大王。",
-      "uploader": "YB"
-    },
-    {
-      "id": 12,
-      "image": "./images/timeline_10_2.jpg",
-      "title": "常态里最踏实温暖的模样",
-      "date": "2026-10-18",
-      "story": "不需要惊天动地的波澜，平平淡淡的陪伴就是世界上最深沉的喜欢。",
-      "uploader": "我们"
-    },
-    {
-      "id": 13,
-      "image": "./images/timeline_05_1.jpg",
-      "title": "初见心动的浪漫五月",
-      "date": "2026-05-01",
-      "story": "出站口第一次手牵手的那一刻，夏天的微风吹过，一切心动都如期而至。",
-      "uploader": "我们"
-    },
-    {
-      "id": 14,
-      "image": "./images/timeline_05_2.jpg",
-      "title": "洱海边的粉色落日晚霞",
-      "date": "2026-05-03",
-      "story": "夕阳把苍山染成了金色，把湖面映成了粉紫色，浪漫至死不渝。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 15,
-      "image": "./images/timeline_06_2.jpg",
-      "title": "期末自习与晚安视频电话",
-      "date": "2026-06-18",
-      "story": "图书馆出来最期待的就是听你讲一整天的趣事，哪怕隔着屏幕也觉得就在身旁。",
-      "uploader": "YB"
-    },
-    {
-      "id": 16,
-      "image": "./images/timeline_07_2.jpg",
-      "title": "七夕前夕的专属密语甜话",
-      "date": "2026-07-20",
-      "story": "分开的日子里，每一条微信分享和搞怪表情包都是我们相爱的印记。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 17,
-      "image": "./images/timeline_09_1.jpg",
-      "title": "初秋重聚的温暖拥抱",
-      "date": "2026-09-02",
-      "story": "跨越千里再次见面的那一秒，扑进怀里的踏实感胜过千言万语。",
-      "uploader": "我们"
-    },
-    {
-      "id": 18,
-      "image": "./images/timeline_09_2.jpg",
-      "title": "操场夜跑与橘子味汽水",
-      "date": "2026-09-15",
-      "story": "并肩走在微凉的秋风里，耳机里一人一只，听着喜欢的歌，影子拉得很长。",
-      "uploader": "YB"
-    },
-    {
-      "id": 19,
-      "image": "./images/life_food_4.jpg",
-      "title": "一起打卡的地道牛肉米粉",
-      "date": "2026-05-12",
-      "story": "红油牛肉粉配溏心荷包蛋，看着你大口嗦粉满足的样子，心里满是欢喜。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 20,
-      "image": "./images/life_food_6.jpg",
-      "title": "深夜投喂的热气腾腾烧烤",
-      "date": "2026-06-25",
-      "story": "散步到街角的小店，点两杯冰奶茶和烤串，人间烟火气最抚凡人心。",
-      "uploader": "我们"
-    },
-    {
-      "id": 21,
-      "image": "./images/quote_1.jpg",
-      "title": "手写信笺里的纯粹喜欢",
-      "date": "2026-05-20",
-      "story": "信纸上一笔一划写下对未来的期许，工整写着属于悦悦大王的小情话。",
-      "uploader": "YB"
-    },
-    {
-      "id": 22,
-      "image": "./images/quote_2.jpg",
-      "title": "并肩看过的每一场暮色晚霞",
-      "date": "2026-06-08",
-      "story": "天空是渐变橘粉色，身边是最喜欢的人，世界再大也不及身边的温度。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 23,
-      "image": "./images/quote_4.jpg",
-      "title": "人潮夜市里牵紧不放的手",
-      "date": "2026-07-05",
-      "story": "人潮拥挤的街市中，掌心传来的坚定温度是世界上最踏实的港湾。",
-      "uploader": "我们"
-    },
-    {
-      "id": 24,
-      "image": "./images/quote_5.jpg",
-      "title": "专属副驾的甜蜜兜风歌单",
-      "date": "2026-08-14",
-      "story": "音乐轻轻流淌，看着窗外的风景和你带笑的侧脸，这一路都是幸福。",
-      "uploader": "YB"
-    },
-    {
-      "id": 25,
-      "image": "./images/quote_6.jpg",
-      "title": "藏在备忘录里的专属心意",
-      "date": "2026-09-28",
-      "story": "记下你的小喜好和小脾气，用心去包容和宠爱全世界唯一的你。",
-      "uploader": "YB"
-    },
-    {
-      "id": 26,
-      "image": "./images/wish_cook.jpg",
-      "title": "未来厨房的双人料理愿望",
-      "date": "2026-10-01",
-      "story": "心愿第一条：系上围裙，一人洗菜切配一人下厨掌勺，做出充满爱意的家的味道。",
-      "uploader": "我们"
-    },
-    {
-      "id": 27,
-      "image": "./images/wish_concert.jpg",
-      "title": "并肩去听一场心心念念的演唱会",
-      "date": "2026-10-05",
-      "story": "在荧光棒挥舞的浪漫灯海里，手牵手大声合唱属于我们的旋律。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 28,
-      "image": "./images/wish_dali.jpg",
-      "title": "二刷大理苍山洱海二度蜜月",
-      "date": "2026-10-10",
-      "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
-      "uploader": "我们"
-    },
-    {
-      "id": 29,
-      "image": "./images/wish_drive.jpg",
-      "title": "川西自驾与雪山日照金山之约",
-      "date": "2026-10-15",
-      "story": "开着车一路向西，在海拔三千米的草甸上看满天银河与日出晨光。",
-      "uploader": "YB"
-    },
-    {
-      "id": 30,
-      "image": "./images/wish_ball.jpg",
-      "title": "盛夏海岛冲浪与沙滩落日野餐",
-      "date": "2026-10-20",
-      "story": "在细软的沙滩上铺开野餐垫，吹着海风听海浪翻涌，看夕阳缓缓沉入海平线。",
-      "uploader": "悦悦大王"
-    },
-    {
-      "id": 31,
-      "image": "./images/wish_grad.jpg",
-      "title": "手牵手拍毕业照与未来见证",
-      "date": "2026-10-22",
-      "story": "穿上学士服，把鲜花递到你怀里，携手迈入属于我们的下一个人生旅途。",
-      "uploader": "我们"
-    },
-    {
-      "id": 32,
-      "image": "./images/hero_cover.jpg",
-      "title": "大理晴空下的浪漫心动剪影",
-      "date": "2026-05-02",
-      "story": "阳光正好，微风不燥，全世界仅此一个的悦悦大王，我好喜欢你。",
-      "uploader": "YB"
-    }
-  ],
+  {
+    "id": 1,
+    "image": "./images/timeline_08_1.jpg",
+    "title": "大理洱海蓝天与晚风",
+    "date": "2026-08-01",
+    "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
+    "uploader": "我们"
+  },
+  {
+    "id": 2,
+    "image": "./images/timeline_08_2.jpg",
+    "title": "丽江古城檐角与石板街",
+    "date": "2026-08-03",
+    "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
+    "uploader": "我们"
+  },
+  {
+    "id": 3,
+    "image": "./images/life_food_5.jpg",
+    "title": "初夏拼好的Hello Kitty挂件",
+    "date": "2026-05-18",
+    "story": "你亲手拼好送我的小挂件，挂在车钥匙上，每天出门看到都觉得心里甜甜的。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 4,
+    "image": "./images/timeline_08_3.jpg",
+    "title": "彩云之南环海公路自驾",
+    "date": "2026-08-05",
+    "story": "车窗摇下一半，音乐轻轻放着，一路上看云、看路，看身边的你。",
+    "uploader": "YB"
+  },
+  {
+    "id": 5,
+    "image": "./images/quote_3.jpg",
+    "title": "异地分开时的专属自拍福利",
+    "date": "2026-07-15",
+    "story": "“再奖励你一张嘛，女神一下”，每一张搞怪又可爱的自拍都是治愈想念的良药。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 6,
+    "image": "./images/timeline_06_1.jpg",
+    "title": "KFC鸡块不蘸酱与公园散步",
+    "date": "2026-06-12",
+    "story": "记下你不蘸酱的独特吃法，记下你喜欢的奶茶糖度，把心意都写在日常里。",
+    "uploader": "YB"
+  },
+  {
+    "id": 7,
+    "image": "./images/life_food_1.jpg",
+    "title": "洱海生态廊道车窗水色",
+    "date": "2026-08-02",
+    "story": "蔚蓝水面上波光粼粼，微风把发梢吹乱，那一刻真希望时间就此慢下来。",
+    "uploader": "我们"
+  },
+  {
+    "id": 8,
+    "image": "./images/life_food_2.jpg",
+    "title": "丽江古城挂满灯笼的夜色",
+    "date": "2026-08-04",
+    "story": "华灯初上的古镇小巷，牵着手在石板路上慢慢走，街旁飘来民谣吉他的歌声。",
+    "uploader": "我们"
+  },
+  {
+    "id": 9,
+    "image": "./images/timeline_07_1.jpg",
+    "title": "盛夏七月的日常早安播报",
+    "date": "2026-07-08",
+    "story": "哪怕相隔两地，早起的第一声早安和睡前的晚安，永远是我们不变的默契。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 10,
+    "image": "./images/timeline_10_1.jpg",
+    "title": "金秋十月校园漫步",
+    "date": "2026-10-12",
+    "story": "秋意渐浓的林荫道，落叶铺了一地，踩在上面沙沙作响，有你在身边就很安心。",
+    "uploader": "我们"
+  },
+  {
+    "id": 11,
+    "image": "./images/life_food_3.jpg",
+    "title": "苍山与远方郁郁葱葱的林海",
+    "date": "2026-08-06",
+    "story": "站在山腰远眺，远处是水天一色的洱海，身边是全世界仅此一个的悦悦大王。",
+    "uploader": "YB"
+  },
+  {
+    "id": 12,
+    "image": "./images/timeline_10_2.jpg",
+    "title": "常态里最踏实温暖的模样",
+    "date": "2026-10-18",
+    "story": "不需要惊天动地的波澜，平平淡淡的陪伴就是世界上最深沉的喜欢。",
+    "uploader": "我们"
+  },
+  {
+    "id": 13,
+    "image": "./images/timeline_05_1.jpg",
+    "title": "初见心动的浪漫五月",
+    "date": "2026-05-01",
+    "story": "出站口第一次手牵手的那一刻，夏天的微风吹过，一切心动都如期而至。",
+    "uploader": "我们"
+  },
+  {
+    "id": 14,
+    "image": "./images/timeline_05_2.jpg",
+    "title": "洱海边的粉色落日晚霞",
+    "date": "2026-05-03",
+    "story": "夕阳把苍山染成了金色，把湖面映成了粉紫色，浪漫至死不渝。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 15,
+    "image": "./images/timeline_06_2.jpg",
+    "title": "期末自习与晚安视频电话",
+    "date": "2026-06-18",
+    "story": "图书馆出来最期待的就是听你讲一整天的趣事，哪怕隔着屏幕也觉得就在身旁。",
+    "uploader": "YB"
+  },
+  {
+    "id": 16,
+    "image": "./images/timeline_07_2.jpg",
+    "title": "七夕前夕的专属密语甜话",
+    "date": "2026-07-20",
+    "story": "分开的日子里，每一条微信分享和搞怪表情包都是我们相爱的印记。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 17,
+    "image": "./images/timeline_09_1.jpg",
+    "title": "初秋重聚的温暖拥抱",
+    "date": "2026-09-02",
+    "story": "跨越千里再次见面的那一秒，扑进怀里的踏实感胜过千言万语。",
+    "uploader": "我们"
+  },
+  {
+    "id": 18,
+    "image": "./images/timeline_09_2.jpg",
+    "title": "操场夜跑与橘子味汽水",
+    "date": "2026-09-15",
+    "story": "并肩走在微凉的秋风里，耳机里一人一只，听着喜欢的歌，影子拉得很长。",
+    "uploader": "YB"
+  },
+  {
+    "id": 19,
+    "image": "./images/life_food_4.jpg",
+    "title": "一起打卡的地道牛肉米粉",
+    "date": "2026-05-12",
+    "story": "红油牛肉粉配溏心荷包蛋，看着你大口嗦粉满足的样子，心里满是欢喜。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 20,
+    "image": "./images/life_food_6.jpg",
+    "title": "深夜投喂的热气腾腾烧烤",
+    "date": "2026-06-25",
+    "story": "散步到街角的小店，点两杯冰奶茶和烤串，人间烟火气最抚凡人心。",
+    "uploader": "我们"
+  },
+  {
+    "id": 21,
+    "image": "./images/quote_1.jpg",
+    "title": "手写信笺里的纯粹喜欢",
+    "date": "2026-05-20",
+    "story": "信纸上一笔一划写下对未来的期许，工整写着属于悦悦大王的小情话。",
+    "uploader": "YB"
+  },
+  {
+    "id": 22,
+    "image": "./images/quote_2.jpg",
+    "title": "并肩看过的每一场暮色晚霞",
+    "date": "2026-06-08",
+    "story": "天空是渐变橘粉色，身边是最喜欢的人，世界再大也不及身边的温度。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 23,
+    "image": "./images/quote_4.jpg",
+    "title": "人潮夜市里牵紧不放的手",
+    "date": "2026-07-05",
+    "story": "人潮拥挤的街市中，掌心传来的坚定温度是世界上最踏实的港湾。",
+    "uploader": "我们"
+  },
+  {
+    "id": 24,
+    "image": "./images/quote_5.jpg",
+    "title": "专属副驾的甜蜜兜风歌单",
+    "date": "2026-08-14",
+    "story": "音乐轻轻流淌，看着窗外的风景和你带笑的侧脸，这一路都是幸福。",
+    "uploader": "YB"
+  },
+  {
+    "id": 25,
+    "image": "./images/quote_6.jpg",
+    "title": "藏在备忘录里的专属心意",
+    "date": "2026-09-28",
+    "story": "记下你的小喜好和小脾气，用心去包容和宠爱全世界唯一的你。",
+    "uploader": "YB"
+  },
+  {
+    "id": 26,
+    "image": "./images/wish_cook.jpg",
+    "title": "未来厨房的双人料理愿望",
+    "date": "2026-10-01",
+    "story": "心愿第一条：系上围裙，一人洗菜切配一人下厨掌勺，做出充满爱意的家的味道。",
+    "uploader": "我们"
+  },
+  {
+    "id": 27,
+    "image": "./images/wish_concert.jpg",
+    "title": "并肩去听一场心心念念的演唱会",
+    "date": "2026-10-05",
+    "story": "在荧光棒挥舞的浪漫灯海里，手牵手大声合唱属于我们的旋律。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 28,
+    "image": "./images/wish_dali.jpg",
+    "title": "二刷大理苍山洱海二度蜜月",
+    "date": "2026-10-10",
+    "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
+    "uploader": "我们"
+  },
+  {
+    "id": 29,
+    "image": "./images/wish_drive.jpg",
+    "title": "川西自驾与雪山日照金山之约",
+    "date": "2026-10-15",
+    "story": "开着车一路向西，在海拔三千米的草甸上看满天银河与日出晨光。",
+    "uploader": "YB"
+  },
+  {
+    "id": 30,
+    "image": "./images/wish_ball.jpg",
+    "title": "盛夏海岛冲浪与沙滩落日野餐",
+    "date": "2026-10-20",
+    "story": "在细软的沙滩上铺开野餐垫，吹着海风听海浪翻涌，看夕阳缓缓沉入海平线。",
+    "uploader": "悦悦大王"
+  },
+  {
+    "id": 31,
+    "image": "./images/wish_grad.jpg",
+    "title": "手牵手拍毕业照与未来见证",
+    "date": "2026-10-22",
+    "story": "穿上学士服，把鲜花递到你怀里，携手迈入属于我们的下一个人生旅途。",
+    "uploader": "我们"
+  },
+  {
+    "id": 32,
+    "image": "./images/hero_cover.jpg",
+    "title": "大理晴空下的浪漫心动剪影",
+    "date": "2026-05-02",
+    "story": "阳光正好，微风不燥，全世界仅此一个的悦悦大王，我好喜欢你。",
+    "uploader": "YB"
+  }
+],
   "wishes": [
     {
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
@@ -2883,45 +2917,7 @@
     "content": "从2026年4月30日的初夏，到现在的金秋十月，我们一起走过了180个日日夜夜。\n\n还记得五六月份在学校里，我们一起吃最喜欢的KFC、去公园散步吹晚风，你说吃鸡块不要蘸酱；还记得七月份放暑假各自回家，我们相隔两地整整分开了一个月，每天靠着长长的视频通话和互发自拍熬过异地，你说“再奖励你一张嘛，女神一下”，我说“我越来越离不开你了，我只想好好和你在一起”；\n\n更难忘的是八月份我们久别重逢，一起飞往云南开启自驾之旅。在苍山洱海边的环海路上吹晚风，在丽江古城的石板路上漫步看夜市灯火，那515张照片里全是你最灿烂开心的笑脸。\n\n谢谢你每次在我大声说话后给我的温柔与宽恕，也谢谢你在每一次小情绪后愿意听我那句“剩下的交给我”。从初夏的怦然心动，到云南自驾的浪漫，再到如今常态里的默契温存，全世界仅此一个的你，我们要一直一直尽情幸福下去。",
     "from": "爱你的 YB ♥",
     "bgImage": "./images/capsule_bg.jpg"
-  },
-  "loveRecords": [
-    {
-      "id": "rec_1",
-      "date": "2026年4月30日",
-      "tag": "心动启航",
-      "title": "相恋与故事的开篇",
-      "content": "从这一天开始，两人的宇宙有了专属的频率。“全世界仅此一个的我，尽情幸福吧。”对话框亮起的每一次震动，都是初夏最心动的回响。",
-      "quote": "照片里加了什么 我不懂好幸福。",
-      "image": "./images/IMG_8708.JPG"
-    },
-    {
-      "id": "rec_2",
-      "date": "2026年5月19日",
-      "tag": "命中注定",
-      "title": "正式确立关系 · 22:30 的心跳同频",
-      "content": "在这个美好的夜晚 22:30，两颗心紧紧相扣。决定把手交给你，走向同一个未来。从此以后，每一声晚安、每一个微笑，都是独属于我们的浪漫默契。",
-      "quote": "从 5月19日 开始，以后的每个春夏秋冬，我都陪着你。",
-      "image": "./images/IMG_8716.JPG"
-    },
-    {
-      "id": "rec_3",
-      "date": "2026年8月15日",
-      "tag": "漫游苍山洱海",
-      "title": "彩云之南 · 大理自驾与夏日微风",
-      "content": "在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。",
-      "quote": "苍山的雪，洱海的月，身边的悦悦大王。",
-      "image": "./images/hero_cover.jpg"
-    },
-    {
-      "id": "rec_4",
-      "date": "2026年10月26日",
-      "tag": "日常甜宠",
-      "title": "KFC不蘸酱与公园吹晚风",
-      "content": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。",
-      "quote": "全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。",
-      "image": "./images/IMG_8727.JPG"
-    }
-  ]
+  }
 };
 
   createApp({
@@ -2997,15 +2993,25 @@
       const versionKey = 'couple_site_version';
       const CURRENT_VERSION = 'v5_safe_persistence_and_multi_os';
 
-      // [原画质锁定铁律] 100% 保留原始超清分辨率与画质，严禁转为缩略图或降质压缩
+      // [原画质 & 动图 100% 保真铁律] 优先命中本机内存即时预览缓冲池，100% 保留原始超清细节与 GIF/WebP/APNG 动图帧
+      if (typeof window !== 'undefined' && !window.__liveUploadedBlobMap) {
+        window.__liveUploadedBlobMap = {};
+        window.__liveVideoBlobSet = new Set();
+      }
       const getFastImg = (src) => {
         if (!src) return '';
         if (typeof src !== 'string') return src;
-        if (src.startsWith('data:') || (src.startsWith('http') && !src.includes('github'))) {
+        if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap[src]) {
+          return window.__liveUploadedBlobMap[src];
+        }
+        if (src.startsWith('blob:') || src.startsWith('data:') || (src.startsWith('http') && !src.includes('github'))) {
           return src;
         }
         const clean = src.replace(/^\.?\//, '').replace('images/thumb/', 'images/');
         if (clean.startsWith('images/')) {
+          if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap['./' + clean]) {
+            return window.__liveUploadedBlobMap['./' + clean];
+          }
           return './' + clean;
         }
         return src;
@@ -3076,9 +3082,7 @@
                 if (imgEl.dataset && imgEl.dataset.src && imgEl.src !== imgEl.dataset.src) {
                   imgEl.src = imgEl.dataset.src;
                 }
-                if (imgEl.decode) {
-                  imgEl.decode().catch(() => {});
-                }
+                // [动图保护] 不对已挂载的 GIF/WebP 调用 decode()，防止移动端动图解码状态机重置
                 obs.unobserve(imgEl);
               }
             });
@@ -3705,19 +3709,21 @@
         }, 1800);
       };
 
-      // --- Scheme 2: Mobile Gyroscope / DeviceOrientation for 3D Sphere ---
+      // --- Scheme 2: Mobile Gyroscope / DeviceOrientation for 3D Sphere (无 VDOM 抖动原生驱动) ---
       const gyroTiltX = ref(0);
       const gyroTiltY = ref(0);
       const isGyroActive = ref(false);
+      let liveGyroX = 0;
+      let liveGyroY = 0;
 
       if (typeof window !== 'undefined' && window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (e) => {
           if (e.gamma === null || e.beta === null) return;
-          isGyroActive.value = true;
+          if (!isGyroActive.value) isGyroActive.value = true;
           const targetY = Math.max(-22, Math.min(22, e.gamma * 0.38));
           const targetX = Math.max(-18, Math.min(18, (e.beta - 45) * 0.3));
-          gyroTiltX.value += (targetX - gyroTiltX.value) * 0.12;
-          gyroTiltY.value += (targetY - gyroTiltY.value) * 0.12;
+          liveGyroX += (targetX - liveGyroX) * 0.12;
+          liveGyroY += (targetY - liveGyroY) * 0.12;
         }, { passive: true });
       }
 
@@ -3941,9 +3947,24 @@
         };
       };
 
+      let liveSphereRotX = -12;
+      let liveSphereRotY = 0;
+      let sphereWorldDomEl = null;
+
+      const applySphereWorldTransform = () => {
+        if (!sphereWorldDomEl && typeof document !== 'undefined') {
+          sphereWorldDomEl = document.getElementById('photo-sphere-world-el');
+        }
+        if (sphereWorldDomEl) {
+          const rx = (liveSphereRotX + liveGyroX).toFixed(2);
+          const ry = (liveSphereRotY + liveGyroY).toFixed(2);
+          sphereWorldDomEl.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+        }
+      };
+
       const sphereTransformStyle = computed(() => {
         return {
-          transform: `rotateX(${sphereRotX.value + gyroTiltX.value}deg) rotateY(${sphereRotY.value + gyroTiltY.value}deg)`
+          transform: `rotateX(${liveSphereRotX}deg) rotateY(${liveSphereRotY}deg)`
         };
       });
 
@@ -3961,12 +3982,13 @@
         const dx = e.clientX - sphereLastX;
         const dy = e.clientY - sphereLastY;
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasSphereMoved = true;
-        sphereRotY.value += dx * 0.35;
-        sphereRotX.value = Math.max(-80, Math.min(80, sphereRotX.value - dy * 0.35));
+        liveSphereRotY += dx * 0.35;
+        liveSphereRotX = Math.max(-80, Math.min(80, liveSphereRotX - dy * 0.35));
         sphereVelY = dx * 0.35;
         sphereVelX = -dy * 0.35;
         sphereLastX = e.clientX;
         sphereLastY = e.clientY;
+        applySphereWorldTransform();
       };
 
       const onSphereDragEnd = () => {
@@ -3988,12 +4010,13 @@
         const dx = e.touches[0].clientX - sphereLastX;
         const dy = e.touches[0].clientY - sphereLastY;
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasSphereMoved = true;
-        sphereRotY.value += dx * 0.4;
-        sphereRotX.value = Math.max(-80, Math.min(80, sphereRotX.value - dy * 0.4));
+        liveSphereRotY += dx * 0.4;
+        liveSphereRotX = Math.max(-80, Math.min(80, liveSphereRotX - dy * 0.4));
         sphereVelY = dx * 0.4;
         sphereVelX = -dy * 0.4;
         sphereLastX = e.touches[0].clientX;
         sphereLastY = e.touches[0].clientY;
+        applySphereWorldTransform();
       };
 
       const onSphereTouchEnd = () => {
@@ -4010,11 +4033,12 @@
       };
 
       const resetSphereView = () => {
-        sphereRotX.value = -12;
-        sphereRotY.value = 0;
+        liveSphereRotX = -12;
+        liveSphereRotY = 0;
         sphereVelX = 0;
         sphereVelY = 0.22;
         isSphereRotating.value = true;
+        applySphereWorldTransform();
       };
 
       const shuffleSpherePhotos = () => {
@@ -4025,12 +4049,16 @@
       const tickSphere = () => {
         if (!isDraggingSphere) {
           if (Math.abs(sphereVelX) > 0.02 || Math.abs(sphereVelY) > 0.02) {
-            sphereRotX.value = Math.max(-80, Math.min(80, sphereRotX.value + sphereVelX));
-            sphereRotY.value += sphereVelY;
+            liveSphereRotX = Math.max(-80, Math.min(80, liveSphereRotX + sphereVelX));
+            liveSphereRotY += sphereVelY;
             sphereVelX *= 0.93;
             sphereVelY *= 0.93;
+            applySphereWorldTransform();
           } else if (isSphereRotating.value) {
-            sphereRotY.value += 0.22;
+            liveSphereRotY += 0.22;
+            applySphereWorldTransform();
+          } else if (isGyroActive.value) {
+            applySphereWorldTransform();
           }
         }
         requestAnimationFrame(tickSphere);
@@ -4059,6 +4087,9 @@
           tickSphere();
           tryAutoPlay();
         });
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
@@ -4121,28 +4152,193 @@
         }
       };
 
-      // Image Change Handlers (File upload to Base64 or URL)
-      const promptChangeImage = (section, field) => {
-        const choice = prompt('请输入新图片路径（如 ./images/xxx.jpg）或图片网络链接：', siteData[section][field]);
-        if (choice && choice.trim()) {
-          siteData[section][field] = choice.trim();
+      // ---------------- 全站通用本地相册选图与动图无损直传引擎 (100% 保留超清画质与 GIF/WebP/APNG/Live 动图帧) ----------------
+      const universalAlbumInput = ref(null);
+      let pendingAlbumPickCallback = null;
+
+      // 自动水合动图视频槽位：当任意位置选择了手机相册中的 LivePhoto / 微信动态视频 (.mp4/.mov/.webm) 时，自动挂载循环静音 <video> 让动图动起来
+      const hydrateMotionVideoSlots = () => {
+        if (typeof document === 'undefined') return;
+        document.querySelectorAll('img').forEach(imgEl => {
+          const rawSrc = imgEl.getAttribute('src') || '';
+          const isVid = isVideoMedia(rawSrc) || (typeof window !== 'undefined' && window.__liveVideoBlobSet && window.__liveVideoBlobSet.has(rawSrc));
+          const parent = imgEl.parentElement;
+          if (!parent) return;
+          let existingVid = parent.querySelector('video[data-live-motion="true"]');
+          if (isVid) {
+            if (!existingVid) {
+              existingVid = document.createElement('video');
+              existingVid.setAttribute('data-live-motion', 'true');
+              existingVid.autoplay = true;
+              existingVid.loop = true;
+              existingVid.muted = true;
+              existingVid.playsInline = true;
+              existingVid.setAttribute('playsinline', '');
+              existingVid.setAttribute('webkit-playsinline', '');
+              existingVid.className = imgEl.className;
+              existingVid.style.cssText = imgEl.style.cssText;
+              parent.insertBefore(existingVid, imgEl);
+            }
+            if (existingVid.src !== rawSrc) {
+              existingVid.src = rawSrc;
+              existingVid.play().catch(() => {});
+            }
+            imgEl.style.display = 'none';
+          } else if (existingVid) {
+            existingVid.remove();
+            imgEl.style.display = '';
+          }
+        });
+      };
+
+      const openLocalAlbumPicker = (onPicked) => {
+        pendingAlbumPickCallback = onPicked;
+        if (universalAlbumInput.value) {
+          universalAlbumInput.value.value = '';
+          universalAlbumInput.value.click();
         }
+      };
+
+      const handleUniversalAlbumPicked = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file || typeof pendingAlbumPickCallback !== 'function') return;
+        const callback = pendingAlbumPickCallback;
+        pendingAlbumPickCallback = null;
+
+        const rawExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const isVid = (file.type && file.type.startsWith('video/')) || ['mp4', 'mov', 'webm'].includes(rawExt);
+        const isAnim = isVid || rawExt === 'gif' || rawExt === 'webp' || rawExt === 'apng' || (file.type && (file.type.includes('gif') || file.type.includes('webp') || file.type.includes('apng')));
+
+        // 1. 0ms 本地即时预览（直接用原生 Blob URL 渲染，100% 保留 GIF/WebP/APNG 多帧动画与超清分辨率）
+        const localBlobUrl = URL.createObjectURL(file);
+        if (isVid && typeof window !== 'undefined' && window.__liveVideoBlobSet) {
+          window.__liveVideoBlobSet.add(localBlobUrl);
+        }
+        callback(localBlobUrl, file);
+        saveMessage.value = isAnim ? '🎞️ 动图已即时生效，正在无损同步至云端...' : '📷 原图已即时生效，正在无损同步至云端...';
+        nextTick(() => { hydrateMotionVideoSlots(); });
+
+        // 2. 后台无损读取原始二进制并上传至 GitHub 仓库 images/uploads/
+        try {
+          const b64 = await readFileAsBase64(file);
+          const safeExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'apng', 'avif', 'mp4', 'mov', 'webm'].includes(rawExt) ? rawExt : 'jpg';
+          const fileName = `slot_${Date.now()}_${Math.floor(Math.random() * 1000)}.${safeExt}`;
+          const repoRelPath = `./images/uploads/${fileName}`;
+          if (typeof window !== 'undefined' && window.__liveUploadedBlobMap) {
+            window.__liveUploadedBlobMap[repoRelPath] = localBlobUrl;
+            window.__liveUploadedBlobMap[`images/uploads/${fileName}`] = localBlobUrl;
+          }
+          if (isVid && typeof window !== 'undefined' && window.__liveVideoBlobSet) {
+            window.__liveVideoBlobSet.add(repoRelPath);
+          }
+
+          const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${fileName}`;
+          const upRes = await fetch(upUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${GITHUB_TOKEN}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `feat(media): upload original ${isAnim ? 'animated ' : ''}media ${fileName}`,
+              content: b64
+            })
+          });
+
+          if (upRes.ok) {
+            callback(repoRelPath, file);
+            localStorage.setItem('couple_site_updated_at', String(Date.now()));
+            localStorage.setItem(storageKey, JSON.stringify(siteData));
+            saveMessage.value = isAnim ? '✅ 动图已无损上传云端，永久保持动态播放 ♥' : '✅ 原始超清图片已无损上传云端 ♥';
+          } else {
+            const mime = file.type || (rawExt === 'gif' ? 'image/gif' : (rawExt === 'webp' ? 'image/webp' : (rawExt === 'png' ? 'image/png' : 'image/jpeg')));
+            const dataUrl = `data:${mime};base64,${b64}`;
+            callback(dataUrl, file);
+            saveMessage.value = '✅ 已无损保存在本地与当前页面 ♥';
+          }
+        } catch (err) {
+          console.warn('[Universal Album Upload]', err);
+          saveMessage.value = '✅ 已在当前页面生效 ♥';
+        }
+        nextTick(() => { hydrateMotionVideoSlots(); });
+        setTimeout(() => { saveMessage.value = ''; }, 3000);
+      };
+
+      // 各模块图片位置的本地相册一键替换入口
+      const promptChangeImage = (section, field) => {
+        openLocalAlbumPicker((newSrc) => {
+          siteData[section][field] = newSrc;
+        });
       };
 
       const promptChangeArrayImage = (arrName, idx, field) => {
-        const current = siteData[arrName][idx][field];
-        const choice = prompt('请输入新图片路径或网络链接：', current);
-        if (choice && choice.trim()) {
-          siteData[arrName][idx][field] = choice.trim();
-        }
+        openLocalAlbumPicker((newSrc) => {
+          if (siteData[arrName] && siteData[arrName][idx]) {
+            siteData[arrName][idx][field] = newSrc;
+          }
+        });
       };
 
       const promptChangeTimelineImage = (mIdx, imgIdx) => {
-        const current = siteData.timeline[mIdx].images[imgIdx];
-        const choice = prompt('请输入该卡片新图片路径：', current);
-        if (choice && choice.trim()) {
-          siteData.timeline[mIdx].images[imgIdx] = choice.trim();
-        }
+        openLocalAlbumPicker((newSrc) => {
+          if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
+            siteData.timeline[mIdx].images[imgIdx] = newSrc;
+          }
+        });
+      };
+
+      const pickLocalImageForSpherePhoto = (photo) => {
+        openLocalAlbumPicker((newSrc) => {
+          const oldSrc = photo.image;
+          photo.image = newSrc;
+          if (siteData.photoPool) {
+            const pItem = siteData.photoPool.find(p => (p.id && p.id === photo.id) || p.image === oldSrc);
+            if (pItem) pItem.image = newSrc;
+          }
+        });
+      };
+
+      const pickLocalImageForSphereModal = () => {
+        openLocalAlbumPicker((newSrc) => {
+          const oldSrc = sphereEditForm.image;
+          sphereEditForm.image = newSrc;
+          if (siteData.photoPool) {
+            const pItem = siteData.photoPool.find(p => (p.id && p.id === sphereEditForm.id) || p.image === oldSrc);
+            if (pItem) pItem.image = newSrc;
+          }
+        });
+      };
+
+      const pickLocalImageForPoolPhoto = (photo) => {
+        openLocalAlbumPicker((newSrc) => {
+          photo.image = newSrc;
+        });
+      };
+
+      const pickLocalImageForMapCity = (city) => {
+        if (!city) return;
+        openLocalAlbumPicker((newSrc) => {
+          city.image = newSrc;
+          debouncedCloudSync('footprint', saveFootprintToCloud, 600);
+        });
+      };
+
+      const pickLocalImageForNewCity = () => {
+        openLocalAlbumPicker((newSrc) => {
+          newCityForm.image = newSrc;
+        });
+      };
+
+      const pickLocalImageForRecord = (recIdx) => {
+        openLocalAlbumPicker((newSrc) => {
+          if (loveRecordsList.value && loveRecordsList.value[recIdx]) {
+            loveRecordsList.value[recIdx].image = newSrc;
+            localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value));
+            siteData.loveRecords = loveRecordsList.value;
+            debouncedCloudSync('records', saveLoveRecordsToCloud, 600);
+          }
+        });
       };
 
       // Add New Items
@@ -4504,25 +4700,30 @@
             const file = files[i];
             const processed = await processImageForUpload(file);
             const { base64, ext, isGif, isVideo } = processed;
-            const safeName = `pool__.`;
+            const safeName = `pool_${Date.now()}_${i}.${ext}`;
+            const localPreviewUrl = URL.createObjectURL(file);
+            if (typeof window !== 'undefined' && window.__liveUploadedBlobMap) {
+              window.__liveUploadedBlobMap[`./images/pool/${safeName}`] = localPreviewUrl;
+              window.__liveUploadedBlobMap[`https://raw.githubusercontent.com/${GITHUB_REPO}/main/images/pool/${safeName}`] = localPreviewUrl;
+            }
             
-            // 1. Upload to GitHub images/pool/
-            const uploadUrl = `https://api.github.com/repos//contents/images/pool/`;
+            // 1. Upload to GitHub images/pool/ (100% 原始字节流，保留 GIF/WebP 动图全部帧)
+            const uploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/pool/${safeName}`;
             const uploadRes = await fetch(uploadUrl, {
               method: "PUT",
               headers: {
-                "Authorization": `Bearer `,
+                "Authorization": `Bearer ${GITHUB_TOKEN}`,
                 "Accept": "application/vnd.github.v3+json",
                 "Content-Type": "application/json"
               },
               body: JSON.stringify({
-                message: `feat(pool): upload  `,
+                message: `feat(pool): upload ${safeName}`,
                 content: base64
               })
             });
 
             if (uploadRes.ok) {
-              const cloudImgUrl = `https://raw.githubusercontent.com//main/images/pool/`;
+              const cloudImgUrl = `./images/pool/${safeName}`;
               const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '美好视频' : '美好瞬间'));
               
               let cloudCoverUrl = '';
@@ -4568,7 +4769,7 @@
               console.warn('GitHub upload failed, falling back to local storage');
               siteData.photoPool.unshift({
                 id: Date.now() + Math.random(),
-                image: (isVideo ? 'data:video/mp4;base64,' : 'data:image/jpeg;base64,') + base64,
+                image: (isVideo ? 'data:video/mp4;base64,' : (`data:${file.type || (isGif ? 'image/gif' : 'image/jpeg')};base64,`)) + base64,
                 cover: processed.coverBase64 || null,
                 duration: processed.durationStr || '',
                 isVideo: !!isVideo,
@@ -6044,6 +6245,15 @@
         isSolidifyingRepo,
         solidifyAndSyncToRepo,
         forcePullFromCloud,
+        universalAlbumInput,
+        openLocalAlbumPicker,
+        handleUniversalAlbumPicked,
+        pickLocalImageForSpherePhoto,
+        pickLocalImageForSphereModal,
+        pickLocalImageForPoolPhoto,
+        pickLocalImageForMapCity,
+        pickLocalImageForNewCity,
+        pickLocalImageForRecord,
         getFastImg,
         onImgError
       };
