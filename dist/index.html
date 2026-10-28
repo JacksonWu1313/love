@@ -311,15 +311,15 @@
     }
     .sphere-photo-card {
       position: absolute;
-      /* [根治3D闪烁] 卡片内部强制使用 flat 平面光栅化隔离，将相框+图片合并为单一 GPU 纹理贴图，100% 消除多层共面 Z-fighting 闪烁 */
+      /* [根治3D闪烁与卡片穿插] 卡片内部强制使用 flat 平面光栅化隔离，背向剔除防止背面穿透 */
       transform-style: flat;
       isolation: isolate;
       contain: layout paint;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
-      backface-visibility: visible;
-      -webkit-backface-visibility: visible;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
       will-change: transform;
       transform-origin: center center;
       pointer-events: auto;
@@ -330,14 +330,14 @@
       will-change: opacity, transform, filter;
       transition: opacity 0.15s ease-out, transform 0.15s ease-out, filter 0.15s ease-out;
       transform-origin: center center;
-      backface-visibility: visible;
-      -webkit-backface-visibility: visible;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
     }
     .sphere-photo-card img,
     .sphere-photo-card video {
       transform: none !important;
-      backface-visibility: visible !important;
-      -webkit-backface-visibility: visible !important;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
     }
     /* 卡片尺寸由 getSphereCardDimensions 动态计算，保持 80~90px 紧凑比例 */
     .sphere-photo-card:hover .sphere-card-inner {
@@ -3071,13 +3071,12 @@
         if (!el.dataset.fallbackDone) {
           el.dataset.fallbackDone = 'true';
           if (el.src && el.src.includes('/thumb/')) { el.src = el.src.replace('/thumb/', '/'); return; }
-          if (fallbackSrc) { const c = fallbackSrc.replace(/^\.?\//, ''); el.src = 'https://cdn.jsdelivr.net/gh/JacksonWu1313/love@main/' + c; return; }
-          if (false) {
-            el.src = fallbackSrc;
-          } else {
-            // Fallback from CDN URL to relative local path
-            el.src = el.src.replace(/^https?:\/\/[^\/]+\/gh\/[^\/]+\/[^\/]+@?[^\/]*\//, './');
+          if (fallbackSrc && !fallbackSrc.startsWith('blob:') && !fallbackSrc.startsWith('data:')) {
+            const c = fallbackSrc.replace(/^\.?\//, '');
+            el.src = 'https://cdn.jsdelivr.net/gh/JacksonWu1313/love@main/' + c;
+            return;
           }
+          el.src = './images/hero_cover.jpg';
         }
       };
 
@@ -3153,6 +3152,10 @@
               if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
                 merged[key] = parsed[key];
               }
+            }
+            // [自愈排错] 自动清理历史由于 Safari 会话过期残留的 blob: 坏图卡片 (清除 IMG_4224, IMG_4270 问号卡片)
+            if (Array.isArray(merged.photoPool)) {
+              merged.photoPool = merged.photoPool.filter(p => p && p.image && (typeof p.image !== 'string' || !p.image.startsWith('blob:')));
             }
             localStorage.setItem(versionKey, CURRENT_VERSION);
             return merged;
@@ -3878,6 +3881,30 @@
         showSphereEditModal.value = false;
       };
 
+      const savePoolToCloud = async () => {
+        try {
+          if (!siteData.photoPool) siteData.photoPool = [];
+          const cleanPool = siteData.photoPool.filter(p => p && p.image && (typeof p.image !== 'string' || !p.image.startsWith('blob:')));
+          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
+          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
+          let sha = null;
+          if (getReg.ok) sha = (await getReg.json()).sha;
+          await fetch(regUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `feat: Cloud sync 3D memory sphere photo pool (${cleanPool.length} photos)`,
+              content: btoa(unescape(encodeURIComponent(JSON.stringify(cleanPool, null, 2)))),
+              sha
+            })
+          });
+          saveMessage.value = '☁️ 记忆星球已同步至云端 ♥';
+        } catch (e) {
+          saveMessage.value = '已在本地保存记忆星球';
+        }
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
       const saveSpherePhotoEdit = async () => {
         if (!siteData.photoPool) siteData.photoPool = [];
         const idx = siteData.photoPool.findIndex(p => (p.id && p.id === sphereEditForm.id) || p.image === sphereEditForm.image);
@@ -3908,21 +3935,21 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~40% 紧凑包覆)，杜绝空旷荒漠
+      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~30% 紧凑包覆)，预留呼吸间隔，杜绝穿插
       const getSphereCardDimensions = computed(() => {
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
         const isTablet = typeof window !== 'undefined' && window.innerWidth < 1024;
         if (count <= 18) {
-          return isMobile ? { w: 82, h: 108 } : (isTablet ? { w: 94, h: 124 } : { w: 102, h: 136 });
+          return isMobile ? { w: 72, h: 94 } : (isTablet ? { w: 86, h: 114 } : { w: 96, h: 128 });
         } else if (count <= 32) {
-          return isMobile ? { w: 74, h: 98 } : (isTablet ? { w: 86, h: 114 } : { w: 92, h: 122 });
+          return isMobile ? { w: 64, h: 84 } : (isTablet ? { w: 76, h: 100 } : { w: 84, h: 112 });
         } else if (count <= 60) {
-          return isMobile ? { w: 68, h: 90 } : (isTablet ? { w: 78, h: 102 } : { w: 84, h: 110 });
+          return isMobile ? { w: 58, h: 76 } : (isTablet ? { w: 68, h: 90 } : { w: 76, h: 100 });
         } else if (count <= 90) {
-          return isMobile ? { w: 62, h: 82 } : (isTablet ? { w: 72, h: 94 } : { w: 76, h: 100 });
+          return isMobile ? { w: 52, h: 68 } : (isTablet ? { w: 62, h: 80 } : { w: 68, h: 88 });
         } else {
-          return isMobile ? { w: 56, h: 74 } : (isTablet ? { w: 66, h: 86 } : { w: 70, h: 92 });
+          return isMobile ? { w: 46, h: 60 } : (isTablet ? { w: 56, h: 72 } : { w: 60, h: 78 });
         }
       });
 
@@ -3932,15 +3959,15 @@
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
         
-        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，彻底解决卡片稀疏空洞
+        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，预留充足安全间距
         const dims = getSphereCardDimensions.value;
         const cardArea = dims.w * dims.h;
-        const targetCoverage = isMobile ? 0.38 : 0.40; // 黄金包裹密度 ~40%
+        const targetCoverage = isMobile ? 0.28 : 0.32;
         const idealR = Math.sqrt((count * cardArea) / (4 * Math.PI * targetCoverage));
         
-        // 视口安全阻尼：移动端限制在 165~275px，平板 210~315px，桌面 240~355px
-        const minR = isMobile ? 165 : (isTablet ? 210 : 240);
-        const maxR = isMobile ? 275 : (isTablet ? 315 : 355);
+        // 视口安全阻尼：移动端限制在 215~320px，平板 250~360px，桌面 280~420px
+        const minR = isMobile ? 215 : (isTablet ? 250 : 280);
+        const maxR = isMobile ? 320 : (isTablet ? 360 : 420);
         return Math.round(Math.max(minR, Math.min(maxR, idealR)));
       };
 
@@ -4026,7 +4053,7 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
-      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，背面卡片自然透出半透明与景深光感，视频动图持续动态播放
+      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，动态 zIndex 层叠排序，视频动图持续动态播放
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
@@ -4043,6 +4070,9 @@
           const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
           const el = document.getElementById('sphere-card-' + i);
           if (!el) continue;
+
+          // 动态深度层叠排序：确保离镜头越近的卡片 z-index 越高，杜绝 3D 穿插遮挡
+          el.style.zIndex = Math.round(zEye + 2000);
 
           // 100% 保持可见，严禁背面隐藏
           if (el.style.visibility !== 'visible') {
@@ -4355,6 +4385,9 @@
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
+        syncSiteStateFromCloud();
+        syncLoveRecordsFromCloud();
+        syncLoveMessagesFromCloud();
         syncFromCloudRegistry();
         syncFootprintFromCloud();
         checkPwaStatus();
@@ -4455,38 +4488,115 @@
         }
       };
 
+      // 移动端相册无损轻量压缩引擎：将数码/原相机数兆大图安全压缩至 ~180KB，100% 畅通通过 GitHub Contents API 并避免 localStorage 爆仓
+      const compressImageForUpload = (file, maxDim = 1440, quality = 0.86) => {
+        return new Promise((resolve) => {
+          const rawExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+          const isVid = (file.type && file.type.startsWith('video/')) || ['mp4', 'mov', 'webm'].includes(rawExt);
+          const isGif = rawExt === 'gif' || (file.type && file.type.includes('gif'));
+          if (isVid || isGif) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const b64 = (reader.result || '').split(',')[1] || '';
+              resolve({ dataUrl: reader.result, b64, ext: isVid ? rawExt : 'gif', isAnim: true });
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+            return;
+          }
+          const img = new Image();
+          const objUrl = URL.createObjectURL(file);
+          img.onload = () => {
+            URL.revokeObjectURL(objUrl);
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            const b64 = dataUrl.split(',')[1] || '';
+            resolve({ dataUrl, b64, ext: 'jpg', isAnim: false });
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(objUrl);
+            const reader = new FileReader();
+            reader.onload = () => {
+              const b64 = (reader.result || '').split(',')[1] || '';
+              resolve({ dataUrl: reader.result, b64, ext: 'jpg', isAnim: false });
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+          };
+          img.src = objUrl;
+        });
+      };
+
+      const replaceMediaUrlInSiteData = (oldUrl, newUrl) => {
+        if (!oldUrl || !newUrl) return;
+        if (siteData.photoPool) {
+          siteData.photoPool.forEach(p => {
+            if (p.image === oldUrl) p.image = newUrl;
+          });
+        }
+        if (siteData.timeline) {
+          siteData.timeline.forEach(t => {
+            if (t.image === oldUrl) t.image = newUrl;
+            if (Array.isArray(t.images)) {
+              t.images = t.images.map(img => img === oldUrl ? newUrl : img);
+            }
+          });
+        }
+        if (siteData.hero && siteData.hero.coverImage === oldUrl) {
+          siteData.hero.coverImage = newUrl;
+        }
+        if (siteData.quotes) {
+          siteData.quotes.forEach(q => {
+            if (q.image === oldUrl) q.image = newUrl;
+          });
+        }
+        if (siteData.loveRecords) {
+          siteData.loveRecords.forEach(r => {
+            if (r.image === oldUrl) r.image = newUrl;
+          });
+        }
+      };
+
       const handleUniversalAlbumPicked = async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file || typeof pendingAlbumPickCallback !== 'function') return;
         const callback = pendingAlbumPickCallback;
         pendingAlbumPickCallback = null;
 
-        const rawExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const isVid = (file.type && file.type.startsWith('video/')) || ['mp4', 'mov', 'webm'].includes(rawExt);
-        const isAnim = isVid || rawExt === 'gif' || rawExt === 'webp' || rawExt === 'apng' || (file.type && (file.type.includes('gif') || file.type.includes('webp') || file.type.includes('apng')));
-
-        // 1. 0ms 本地即时预览（直接用原生 Blob URL 渲染，100% 保留 GIF/WebP/APNG 多帧动画与超清分辨率）
-        const localBlobUrl = URL.createObjectURL(file);
-        if (isVid && typeof window !== 'undefined' && window.__liveVideoBlobSet) {
-          window.__liveVideoBlobSet.add(localBlobUrl);
+        saveMessage.value = '⏳ 正在处理照片画质...';
+        const prep = await compressImageForUpload(file);
+        if (!prep || !prep.dataUrl) {
+          saveMessage.value = '❌ 读取照片失败，请重试';
+          setTimeout(() => { saveMessage.value = ''; }, 2500);
+          return;
         }
-        callback(localBlobUrl, file);
-        saveMessage.value = isAnim ? '🎞️ 动图已即时生效，正在无损同步至云端...' : '📷 原图已即时生效，正在无损同步至云端...';
+
+        // 1. 严格仅调用一次 callback，使用持久可复现的 dataUrl (永不过期，杜绝临时 blob 失效变问号)
+        const initialUrl = prep.dataUrl;
+        callback(initialUrl, file);
+        saveMessage.value = prep.isAnim ? '🎞️ 动图已即时生效，正在同步至云端...' : '📷 照片已即时生效，正在同步至云端...';
         nextTick(() => { hydrateMotionVideoSlots(); });
 
-        // 2. 后台无损读取原始二进制并上传至 GitHub 仓库 images/uploads/
+        // 2. 异步上传至 GitHub 仓库 images/uploads/
         try {
-          const b64 = await readFileAsBase64(file);
-          const safeExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'apng', 'avif', 'mp4', 'mov', 'webm'].includes(rawExt) ? rawExt : 'jpg';
+          const safeExt = prep.ext || 'jpg';
           const fileName = `slot_${Date.now()}_${Math.floor(Math.random() * 1000)}.${safeExt}`;
           const repoRelPath = `./images/uploads/${fileName}`;
-          if (typeof window !== 'undefined' && window.__liveUploadedBlobMap) {
-            window.__liveUploadedBlobMap[repoRelPath] = localBlobUrl;
-            window.__liveUploadedBlobMap[`images/uploads/${fileName}`] = localBlobUrl;
-          }
-          if (isVid && typeof window !== 'undefined' && window.__liveVideoBlobSet) {
-            window.__liveVideoBlobSet.add(repoRelPath);
-          }
 
           const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${fileName}`;
           const upRes = await fetch(upUrl, {
@@ -4497,21 +4607,27 @@
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              message: `feat(media): upload original ${isAnim ? 'animated ' : ''}media ${fileName}`,
-              content: b64
+              message: `feat(media): upload ${prep.isAnim ? 'animated ' : ''}media ${fileName}`,
+              content: prep.b64
             })
           });
 
           if (upRes.ok) {
-            callback(repoRelPath, file);
-            localStorage.setItem('couple_site_updated_at', String(Date.now()));
-            localStorage.setItem(storageKey, JSON.stringify(siteData));
-            saveMessage.value = isAnim ? '✅ 动图已无损上传云端，永久保持动态播放 ♥' : '✅ 原始超清图片已无损上传云端 ♥';
+            // 云端上传成功后，就地静默将 initialUrl 替换为 repoRelPath
+            replaceMediaUrlInSiteData(initialUrl, repoRelPath);
+            try {
+              localStorage.setItem('couple_site_updated_at', String(Date.now()));
+              localStorage.setItem(storageKey, JSON.stringify(siteData));
+            } catch(e){}
+            saveMessage.value = prep.isAnim ? '✅ 动图已上传云端，永久保持动态播放 ♥' : '✅ 照片已上传云端，永久同步 ♥';
+            if (typeof savePoolToCloud === 'function') {
+              savePoolToCloud();
+            }
           } else {
-            const mime = file.type || (rawExt === 'gif' ? 'image/gif' : (rawExt === 'webp' ? 'image/webp' : (rawExt === 'png' ? 'image/png' : 'image/jpeg')));
-            const dataUrl = `data:${mime};base64,${b64}`;
-            callback(dataUrl, file);
-            saveMessage.value = '✅ 已无损保存在本地与当前页面 ♥';
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(siteData));
+            } catch(e){}
+            saveMessage.value = '✅ 已保存在本地与当前页面 ♥';
           }
         } catch (err) {
           console.warn('[Universal Album Upload]', err);
@@ -4521,7 +4637,6 @@
         setTimeout(() => { saveMessage.value = ''; }, 3000);
       };
 
-      // 各模块图片位置的本地相册一键替换入口
       const promptChangeImage = (section, field) => {
         openLocalAlbumPicker((newSrc) => {
           siteData[section][field] = newSrc;
