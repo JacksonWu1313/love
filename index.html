@@ -1706,9 +1706,20 @@
         </div>
       </div>
 
-      <!-- Story Textarea / Display -->
-      <div class="space-y-2">
-        <label class="text-[11px] text-muted font-medium">写下当时心动的小故事或悄悄话：</label>
+      <!-- Story Textarea / Display (支持自由编辑标题与正文 + AI 润色/换文案) -->
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] text-muted font-medium">标题与回忆故事（可自由编写）：</label>
+          <button @click="generateAICopyForActiveStory" type="button" class="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-blush-600 text-[11px] font-semibold transition flex items-center space-x-1 shadow-2xs">
+            <span>✨ AI灵感润色/换文案</span>
+          </button>
+        </div>
+        <input 
+          v-model="editingStoryTitle" 
+          type="text"
+          placeholder="回忆标题（支持自主修改）" 
+          class="w-full px-3 py-1.5 rounded-xl bg-sand/20 border border-sand text-xs text-ink font-semibold placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-blush-300 transition"
+        />
         <textarea 
           v-model="editingStoryText" 
           rows="4" 
@@ -2088,6 +2099,11 @@
         </div>
         <h3 class="text-lg font-bold text-ink">{{ editingRecordIndex === -1 ? '➕ 记一笔今天 · 新增每日记录' : '✏️ 编辑日记与更换超清原图' }}</h3>
         <p class="text-xs text-muted mt-1">100% 保留原始超清画质 · 自动标注精确记录时间并同步云端</p>
+        <div class="mt-2.5">
+          <button @click="generateAICopyForRecordForm" type="button" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-blush-50 to-blush-100 border border-blush-200 text-blush-600 text-xs font-semibold shadow-2xs hover:bg-blush-200 transition inline-flex items-center space-x-1">
+            <span>✨ AI 灵感文案 · 换一换</span>
+          </button>
+        </div>
       </div>
 
       <div class="space-y-3.5 text-xs">
@@ -3386,6 +3402,19 @@
                 recordForm.image = fullDataUrl;
                 saveMessage.value = '✅ 原始超清大图已就绪！';
               }
+              const copy = generateRomanticCopy(file, 'record');
+              if (!recordForm.title || recordForm.title.includes('新增') || recordForm.title.includes('KFC')) {
+                recordForm.title = copy.title;
+              }
+              if (!recordForm.content || recordForm.content.length < 5) {
+                recordForm.content = copy.content;
+              }
+              if (!recordForm.quote) {
+                recordForm.quote = copy.quote;
+              }
+              if (!recordForm.tag || recordForm.tag.includes('日常高光')) {
+                recordForm.tag = copy.tag;
+              }
             } catch (err) {
               recordForm.image = fullDataUrl;
               saveMessage.value = '✅ 原始超清大图已就绪！';
@@ -3941,21 +3970,21 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~40% 紧凑包覆)，杜绝空旷荒漠
+      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~30% 紧凑包覆)，预留呼吸间隔，杜绝穿插
       const getSphereCardDimensions = computed(() => {
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
         const isTablet = typeof window !== 'undefined' && window.innerWidth < 1024;
         if (count <= 18) {
-          return isMobile ? { w: 82, h: 108 } : (isTablet ? { w: 94, h: 124 } : { w: 102, h: 136 });
+          return isMobile ? { w: 72, h: 94 } : (isTablet ? { w: 86, h: 114 } : { w: 96, h: 128 });
         } else if (count <= 32) {
-          return isMobile ? { w: 74, h: 98 } : (isTablet ? { w: 86, h: 114 } : { w: 92, h: 122 });
+          return isMobile ? { w: 64, h: 84 } : (isTablet ? { w: 76, h: 100 } : { w: 84, h: 112 });
         } else if (count <= 60) {
-          return isMobile ? { w: 68, h: 90 } : (isTablet ? { w: 78, h: 102 } : { w: 84, h: 110 });
+          return isMobile ? { w: 58, h: 76 } : (isTablet ? { w: 68, h: 90 } : { w: 76, h: 100 });
         } else if (count <= 90) {
-          return isMobile ? { w: 62, h: 82 } : (isTablet ? { w: 72, h: 94 } : { w: 76, h: 100 });
+          return isMobile ? { w: 52, h: 68 } : (isTablet ? { w: 62, h: 80 } : { w: 68, h: 88 });
         } else {
-          return isMobile ? { w: 56, h: 74 } : (isTablet ? { w: 66, h: 86 } : { w: 70, h: 92 });
+          return isMobile ? { w: 46, h: 60 } : (isTablet ? { w: 56, h: 72 } : { w: 60, h: 78 });
         }
       });
 
@@ -3965,15 +3994,15 @@
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
         
-        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，彻底解决卡片稀疏空洞
+        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，预留充足安全间距
         const dims = getSphereCardDimensions.value;
         const cardArea = dims.w * dims.h;
-        const targetCoverage = isMobile ? 0.38 : 0.40; // 黄金包裹密度 ~40%
+        const targetCoverage = isMobile ? 0.28 : 0.32;
         const idealR = Math.sqrt((count * cardArea) / (4 * Math.PI * targetCoverage));
         
-        // 视口安全阻尼：移动端限制在 165~275px，平板 210~315px，桌面 240~355px
-        const minR = isMobile ? 165 : (isTablet ? 210 : 240);
-        const maxR = isMobile ? 275 : (isTablet ? 315 : 355);
+        // 视口安全阻尼：移动端限制在 215~320px，平板 250~360px，桌面 280~420px
+        const minR = isMobile ? 215 : (isTablet ? 250 : 280);
+        const maxR = isMobile ? 320 : (isTablet ? 360 : 420);
         return Math.round(Math.max(minR, Math.min(maxR, idealR)));
       };
 
@@ -4059,46 +4088,17 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
-      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，背面卡片自然透出半透明与景深光感，视频动图持续动态播放
+      // 真实立体景深视觉：纯GPU硬件深度缓冲，0 DOM变更杜绝闪烁
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
+        // 卡片由 GPU preserve-3d 与 backface-visibility: hidden 原生深度剔除，0 DOM 变更消除 60fps 刷新闪烁
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
-        const rxRad = rxDeg * (Math.PI / 180);
-        const ryRad = ryDeg * (Math.PI / 180);
-        const cosRx = Math.cos(rxRad);
-        const sinRx = Math.sin(rxRad);
-        const cosRy = Math.cos(ryRad);
-        const sinRy = Math.sin(ryRad);
-
-        const R = getSphereRadius();
         for (let i = 0; i < coords.length; i++) {
-          const c = coords[i];
-          const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
           const el = document.getElementById('sphere-card-' + i);
           if (!el) continue;
-
-          // 100% 保持可见，严禁背面隐藏
           if (el.style.visibility !== 'visible') {
             el.style.visibility = 'visible';
           }
-
-          const inner = el.querySelector('.sphere-card-inner') || el;
-
-          // 彻底修复透明问题：所有正反面卡片永久 100% 纯实色不透明，严禁任何半透明度
-          inner.style.opacity = '1';
-          if (zEye >= 0) {
-            // 正前方卡片 (zEye >= 0): 比例 100%, 正常亮度
-            inner.style.transform = 'scale(1)';
-            inner.style.filter = 'brightness(1)';
-          } else {
-            // 背面卡片 (zEye < 0): 纯实色不透明，轻微立体远近比例 (0.85~1.0)
-            const norm = Math.max(0, Math.min(1, (zEye + R) / R));
-            const depthScale = (0.85 + 0.15 * norm).toFixed(2);
-            inner.style.transform = `scale(${depthScale})`;
-            inner.style.filter = 'brightness(0.95)';
-          }
-
-          // 动图与实况视频全程保持播放，严禁暂停
           const vid = el.querySelector('video');
           if (vid && vid.paused) {
             vid.play().catch(() => {});
@@ -4276,12 +4276,12 @@
 
       const pickLocalImageForNewSpherePhoto = () => {
         openLocalAlbumPicker((newSrc, file) => {
-          const title = file && file.name ? file.name.replace(/\.[^/.]+$/, '') : '回忆星辰';
+          const copy = generateRomanticCopy(file, 'sphere');
           const newPhoto = {
             id: 'sphere_' + Date.now(),
             image: newSrc,
-            title: title,
-            story: '添加于 3D 浪漫回忆星球',
+            title: copy.title,
+            story: copy.story,
             date: new Date().toISOString().split('T')[0],
             uploader: '我们'
           };
@@ -4334,12 +4334,6 @@
           tickSphere();
           tryAutoPlay();
         });
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
@@ -4433,6 +4427,188 @@
             imgEl.style.display = '';
           }
         });
+      };
+
+      // 浪漫文案智能生成器（全章节通用：相册/星球/时光手帐/语录/画廊/足迹，自适应标签与诗意润色）
+      const ROMANTIC_COPY_DATABASE = {
+        travel: [
+          {
+            title: '洱海风起时，与你共白头',
+            story: '在苍山与洱海的浩渺波光里，晚风掀起发梢。人世间所有的风景盛宴，都不及你侧过头望向我时的眼眸清澈。',
+            content: '今天和悦悦大王一起在洱海边漫步。风是轻柔的，云是低垂的，湖水泛着粼粼碎金。我们坐在双廊的长椅上，分享着同一串烤饵块，聊着天南地北的趣事。看着她开心的笑脸，那一刻忽然觉得，人世间最浪漫的事，莫过于身边有她。',
+            quote: '相机定格的是山海光影，而你定格了我所有的心动。',
+            tag: '大理洱海 / 双廊漫步',
+            desc: '苍山如黛，洱海含情。在天地辽阔间，我们许下一生并肩的诺言。'
+          },
+          {
+            title: '大理的夕阳，盛满了对你的喜欢',
+            story: '双廊岸边的落日染红了整片天空，湖面波光粼粼。我们坐在长椅上吹着晚风，那一刻，时间仿佛为我们停滞。',
+            content: '黄昏时分的大理美得像一幅油画。落日余晖把悦悦大王的发丝染成金黄，她举起相机拍晚霞，而我在背后偷偷拍下了她认真的侧脸。世界上美好风景万千，但最让我留恋的，始终是你眼中的倒影。',
+            quote: '世界很大，但我的视线所及，唯你一人。',
+            tag: '大理落日 / 湖畔长椅',
+            desc: '黄昏的微风拂过双廊，日落跌进昭昭星野，人间忽晚，山河已秋，而你依旧温柔。'
+          },
+          {
+            title: '玉龙雪山下的永恒约定',
+            story: '站在雪山脚下仰望皑皑白雪，蓝天下是纯净的誓言。无论走过多远的路，有你在身旁，便是人间值得。',
+            content: '站在玉龙雪山的脚下，云雾在山腰流转。天很冷，但牵着悦悦大王的手心里却是一片温热。我们在雪山前许下心愿，愿岁岁常相见，愿执手共白头。无论岁月如何流转，这份爱意永不褪色。',
+            quote: '跨越千山万水，只为与你并肩看遍这天地辽阔。',
+            tag: '丽江雪山 / 纯净誓言',
+            desc: '白雪皑皑，群峰耸立，我们在千年雪山前定格下彼此最坚定炽热的承诺。'
+          },
+          {
+            title: '漫步古城青石板，听岁月浅唱',
+            story: '穿行在古朴的街巷中，手牵着手路过一家家手工作坊和小吃铺。脚步很慢，心跳却很坚定。',
+            content: '傍晚的古城小巷格外安静，石板路泛着古朴的光泽。和悦悦大王慢悠悠地逛着小吃摊，买了刚出炉的鲜花饼，甜丝丝的香气在空气里弥漫。慢节奏的生活里，每一分每一秒都因为有你而变得格外生动。',
+            quote: '在喧嚣人间里，你是最温柔的那抹安宁。',
+            tag: '丽江慢调 / 牵手漫步',
+            desc: '古色古香的石板路，记录着我们一步一印的欢声笑语与岁月静好。'
+          }
+        ],
+        daily: [
+          {
+            title: '一颗颗拼出属于我们的彩色星球',
+            story: '桌上散落着五颜六色的拼豆，每一颗细心的放置与熨烫，都像是在一点一滴拼凑着我们未来的小小家园。',
+            content: '今天又和悦悦大王一起挑战拼豆啦！两个人围在小桌子前，专注地夹着一颗颗五彩斑斓的豆子，生怕手抖碰乱了图样。当熨斗轻轻滑过，像素小画慢慢融为一体的那一刻，满满的成就感。这些亲手创造的小物件，藏着我们最真实的甜。',
+            quote: '最浪漫的事，是和你一起把平淡的时光手工缝制成诗。',
+            tag: '拼豆手作 / 专注时光',
+            desc: '用一粒粒五彩像素，拼凑出专属于我们的温情手作与童趣回忆。'
+          },
+          {
+            title: 'KFC不蘸酱与最质朴的满足',
+            story: '一起分享热气腾腾的原味鸡与蛋挞，互相抢薯条吃，简单而热烈的烟火气，就是平凡生活里最踏实的幸福。',
+            content: '哪怕只是下班后一起去吃一顿简简单单的肯德基，只要坐在对面的人是你，就会觉得整座城市的喧嚣都被隔绝在外。抢走你盘子里最后一根薯条看你嘟嘴假装生气的样子，就是我一整天最开心的瞬间。',
+            quote: '只要是和你一起吃的饭，连空气都是甜甜的滋味。',
+            tag: '美食烟火 / KFC快乐',
+            desc: '人间烟火气，最抚凡人心。和你一起吃喜欢的美食，便是最纯粹的快乐。'
+          },
+          {
+            title: '公园黄昏散步，晚风知我心',
+            story: '晚饭后并肩走在树影斑驳的小道上，聊着今天遇到的琐碎小事。晚风轻轻拂过脸颊，夕阳把我们的影子拉得好长好长。',
+            content: '夕阳西下，公园里的林荫道洒满了斑驳的光斑。牵着悦悦大王软软的小手慢慢走，路过追逐奔跑的小狗，看着远处荡秋千的孩子。两个人不需要太多言语，只是静静地走着，心底便满是安宁与踏实。',
+            quote: '世间繁华千万，最惬意不过是黄昏时与你牵手散步。',
+            tag: '公园漫步 / 暮色晚风',
+            desc: '暮色温柔，晚风微醺，牵着你的手，想就这样一直走到时间的尽头。'
+          },
+          {
+            title: '生活细碎，每一帧都是万岁',
+            story: '偶尔偷拍你专注的样子，偶尔为一朵路边开得正艳的小花停留。生活从不缺少美好，因为有你，处处生辉。',
+            content: '手机相册里存满了关于你的碎碎念与偷拍视角：有你低头认真看菜单的模样，有你看到惊喜时亮晶晶的眼睛。生活原本平淡无奇，但把这些细碎的小确幸串连在一起，就是我们最闪闪发光的爱情日记。',
+            quote: '和你在一起的每一刻，都是我想要反复回味的青春。',
+            tag: '生活碎影 / 温柔捕手',
+            desc: '平凡日常里的点滴记录，藏着我想要与你共度一生的坚定与笃信。'
+          }
+        ],
+        distance: [
+          {
+            title: '隔着屏幕的千百次心动',
+            story: '每天晚上准时响起的视频通话，屏幕里你毫无防备的笑容和搞怪表情，总能瞬间驱散我一整天的疲惫与孤单。',
+            content: '屏幕两端，连着两座城市的夜晚。虽然无法立刻给你一个拥抱，但听着耳机里你分享的碎碎念，看着屏幕里你甜甜的笑靥，心里的想念就像潮水般翻涌。距离阻隔不了爱意，相反，它让我们更加珍惜每一次相拥的时光。',
+            quote: '山海自有归期，每一次隔空互道晚安，都是奔赴彼此的序章。',
+            tag: '晚安连线 / 屏幕对视',
+            desc: '距离让思念生根发芽，跨越千里的屏幕对望，是彼此最温暖的精神铠甲。'
+          },
+          {
+            title: '数着相见倒计时的每一天',
+            story: '手机备忘录里写满了相见的倒计时和想带你吃的小吃清单。每一次点击日历，心里的期待就又多了一分。',
+            content: '还有几天就能见面了！已经在脑海里预演了无数遍在高铁出站口接你的那一幕。想要快步跑向你，接下你手里的包，然后紧紧抱住你，在你耳边说一声：好想你啊，悦悦大王。',
+            quote: '因为深爱，所以漫长的等待也变得如诗般甜蜜。',
+            tag: '相见倒计时 / 奔赴日历',
+            desc: '每一次相逢前的倒计时，都让重逢的拥抱变得更加滚烫而有力量。'
+          },
+          {
+            title: '一张张车票，连缀起深情的轨迹',
+            story: '列车呼啸向前，车窗外风景飞掠。心里只有一个念头：快一点，再快一点，去见那个全世界最好的女孩子。',
+            content: '抽屉里整齐码放的一叠叠车票与登机牌，记录着我们为爱奔波的每一个清晨与深夜。那些在候车室里的期盼、列车上的悸动，都是我们爱过、深爱着且永不言弃的最好见证。',
+            quote: '所有的跋山涉水，都在见到你的那一秒化为春风。',
+            tag: '车票轨迹 / 奔赴所爱',
+            desc: '铁轨延伸向你的城市，每一次加速前进，都是心跳在奔赴幸福的节奏。'
+          }
+        ],
+        romance: [
+          {
+            title: '全世界仅此一个的悦悦大王',
+            story: '想把世间所有的偏爱、宽容与温柔都毫无保留地留给你。看你被宠成无忧无虑的小朋友，就是我最大的骄傲。',
+            content: '我的悦悦大王，是一个会在吃到好吃的东西时眼睛笑成月牙的女孩子，是一个会在受委屈时想要钻进我怀里求抱抱的小可爱。在我这里，你永远不用逞强做成熟的大人，只管开开心心做全世界最幸福的悦悦。',
+            quote: '尽情被爱吧，你值得这世间所有的真诚与笃定。',
+            tag: '专属偏爱 / 宠溺日常',
+            desc: '全世界只有一个你，无可替代；而我的整个世界，只想全部奉献给你。'
+          },
+          {
+            title: '所念皆星河，星河皆是你',
+            story: '夜空璀璨万千，但在我眼里，最耀眼的光芒永远来自你的眼眸。那是穿越漫长黑夜、指引我方向的灯塔。',
+            content: '夜深人静仰望星空时，总会想起你明亮的眼睛。那些闪烁的繁星，就像你偶尔落在心头的温柔只言片语。在这个偌大的宇宙里，能够与你相遇、相识、相爱，是我一生中最值得庆幸的奇迹。',
+            quote: '愿岁月无可回头，愿此生只深情于你一人。',
+            tag: '星河璀璨 / 永恒笃定',
+            desc: '星汉灿烂，若出其里。浩瀚星河中，唯有你的眼眸是我永久停驻的港湾。'
+          },
+          {
+            title: '一眼心动，万岁深情',
+            story: '回忆起最初心动的那一瞬间，阳光正好，微风不燥。自那之后，我所有的未来规划里，都整整齐齐地写满了你的名字。',
+            content: '2024年3月23日，命运把最珍贵的礼物送到了我的身边。从最初的小心翼翼到如今的心意相通，爱意非但没有在柴米油盐中磨平，反而像陈年的美酒愈发香醇浓厚。往后余生，岁岁年年，依然爱你。',
+            quote: '从相识到相知，爱你在过去的每一个昨天，更在未来的每一个明天。',
+            tag: '初见心动 / 岁岁长情',
+            desc: '一眼便是一生，初见时的怦然心动，早已沉淀为白首不离的深沉誓言。'
+          }
+        ],
+        footprint: [
+          {
+            title: '与你走过的城，都成了浪漫坐标',
+            story: '城市原本只是地图上的一个点，因为与你共同走过，才有了心跳的温度与故事的厚度。',
+            content: '每到一个新的城市，最开心的就是牵着你的手去探索陌生的街巷。无论是大理的苍山洱海、丽江的石板古城，还是家门口的小街小巷，只要身边有你在，每一处风景都有了存在的意义。',
+            quote: '走遍千山万水，最好的风景永远是身边有你。',
+            tag: '城市印记 / 并肩探寻',
+            desc: '用脚步在大地上丈量山河，用爱意在彼此心中镌刻下永不磨灭的地图。'
+          },
+          {
+            title: '在地图上点亮属于我们的爱情地标',
+            story: '每一次抵达新城市，都像是打开了一幅新的画卷。牵着你的手，一步步将我们的足迹连成最美的心形。',
+            content: '地图上的每一个小图钉，都承载着一段属于伍彦博和林欣悦的独家记忆。我们一起吃过的特色小吃、一起拍下的搞怪合照、一起吹过的晚风，都会变成时光里最耀眼的勋章。',
+            quote: '世界是一座巨大的游乐场，而你是最好的同行者。',
+            tag: '足迹地图 / 甜蜜印记',
+            desc: '世界辽阔无垠，愿与你携手打卡每一个向往的角落，直到白发苍苍。'
+          }
+        ]
+      };
+
+      const generateRomanticCopy = (fileOrName, section = 'general') => {
+        let nameStr = '';
+        if (typeof fileOrName === 'string') {
+          nameStr = fileOrName.toLowerCase();
+        } else if (fileOrName && fileOrName.name) {
+          nameStr = fileOrName.name.toLowerCase();
+        }
+
+        let cat = 'romance';
+        if (nameStr.includes('大理') || nameStr.includes('洱海') || nameStr.includes('丽江') || nameStr.includes('雪山') || nameStr.includes('双廊') || nameStr.includes('苍山') || nameStr.includes('云南') || nameStr.includes('旅') || nameStr.includes('海') || nameStr.includes('风景')) {
+          cat = 'travel';
+        } else if (nameStr.includes('拼豆') || nameStr.includes('豆') || nameStr.includes('kfc') || nameStr.includes('肯德基') || nameStr.includes('吃') || nameStr.includes('散步') || nameStr.includes('公园') || nameStr.includes('日常')) {
+          cat = 'daily';
+        } else if (nameStr.includes('视频') || nameStr.includes('通话') || nameStr.includes('连线') || nameStr.includes('晚安') || nameStr.includes('票') || nameStr.includes('车') || nameStr.includes('异地')) {
+          cat = 'distance';
+        } else if (section === 'footprint' || section === 'map') {
+          cat = 'footprint';
+        } else if (section === 'gallery') {
+          cat = Math.random() > 0.5 ? 'travel' : 'daily';
+        } else if (section === 'hero') {
+          cat = 'romance';
+        } else {
+          const cats = ['travel', 'daily', 'distance', 'romance', 'footprint'];
+          cat = cats[Math.floor(Math.random() * cats.length)];
+        }
+
+        const list = ROMANTIC_COPY_DATABASE[cat] || ROMANTIC_COPY_DATABASE.romance;
+        const item = list[Math.floor(Math.random() * list.length)];
+
+        return {
+          title: item.title,
+          story: item.story,
+          content: item.content,
+          quote: item.quote,
+          tag: item.tag,
+          desc: item.desc,
+          coverCaption: item.title + ' · 伍彦博 ♥ 悦悦大王'
+        };
       };
 
       const openLocalAlbumPicker = (onPicked) => {
@@ -4606,15 +4782,27 @@
       };
 
       const promptChangeImage = (section, field) => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           siteData[section][field] = newSrc;
+          if (section === 'hero') {
+            const copy = generateRomanticCopy(file, 'hero');
+            if (copy.coverCaption) siteData.hero.coverCaption = copy.coverCaption;
+            if (copy.quote) siteData.hero.quote = copy.quote;
+          }
         });
       };
 
       const promptChangeArrayImage = (arrName, idx, field) => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           if (siteData[arrName] && siteData[arrName][idx]) {
             siteData[arrName][idx][field] = newSrc;
+            const copy = generateRomanticCopy(file, arrName);
+            if (arrName === 'gallery') {
+              siteData.gallery[idx].title = copy.title;
+              siteData.gallery[idx].desc = copy.desc || copy.story;
+            } else if (arrName === 'quotes') {
+              siteData.quotes[idx].text = copy.quote || copy.story;
+            }
           }
         });
       };
@@ -4628,51 +4816,87 @@
       };
 
       const pickLocalImageForSpherePhoto = (photo) => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           const oldSrc = photo.image;
           photo.image = newSrc;
+          const copy = generateRomanticCopy(file, 'sphere');
+          photo.title = copy.title;
+          photo.story = copy.story;
           if (siteData.photoPool) {
             const pItem = siteData.photoPool.find(p => (p.id && p.id === photo.id) || p.image === oldSrc);
-            if (pItem) pItem.image = newSrc;
+            if (pItem) {
+              pItem.image = newSrc;
+              pItem.title = copy.title;
+              pItem.story = copy.story;
+            }
           }
         });
       };
 
       const pickLocalImageForSphereModal = () => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           const oldSrc = sphereEditForm.image;
           sphereEditForm.image = newSrc;
+          const copy = generateRomanticCopy(file, 'sphere');
+          sphereEditForm.title = copy.title;
+          sphereEditForm.story = copy.story;
           if (siteData.photoPool) {
             const pItem = siteData.photoPool.find(p => (p.id && p.id === sphereEditForm.id) || p.image === oldSrc);
-            if (pItem) pItem.image = newSrc;
+            if (pItem) {
+              pItem.image = newSrc;
+              pItem.title = copy.title;
+              pItem.story = copy.story;
+            }
           }
         });
       };
 
       const pickLocalImageForPoolPhoto = (photo) => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           photo.image = newSrc;
+          const copy = generateRomanticCopy(file, 'pool');
+          photo.title = copy.title;
+          photo.story = copy.story;
         });
       };
 
       const pickLocalImageForMapCity = (city) => {
         if (!city) return;
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           city.image = newSrc;
+          const copy = generateRomanticCopy(file, 'footprint');
+          if (copy.story) city.story = copy.story;
+          if (copy.tag) city.tag = copy.tag;
           debouncedCloudSync('footprint', saveFootprintToCloud, 600);
         });
       };
 
       const pickLocalImageForNewCity = () => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           newCityForm.image = newSrc;
+          const copy = generateRomanticCopy(file, 'footprint');
+          if (copy.story) newCityForm.story = copy.story;
+          if (copy.tag) newCityForm.tag = copy.tag;
         });
       };
 
       const pickLocalImageForRecord = (recIdx) => {
-        openLocalAlbumPicker((newSrc) => {
+        openLocalAlbumPicker((newSrc, file) => {
           if (loveRecordsList.value && loveRecordsList.value[recIdx]) {
             loveRecordsList.value[recIdx].image = newSrc;
+            const copy = generateRomanticCopy(file, 'record');
+            if (copy.title && (!loveRecordsList.value[recIdx].title || loveRecordsList.value[recIdx].title.includes('新增'))) {
+              loveRecordsList.value[recIdx].title = copy.title;
+            }
+            if (copy.content && (!loveRecordsList.value[recIdx].content || loveRecordsList.value[recIdx].content.length < 5)) {
+              loveRecordsList.value[recIdx].content = copy.content;
+            }
+            if (copy.quote && !loveRecordsList.value[recIdx].quote) {
+              loveRecordsList.value[recIdx].quote = copy.quote;
+            }
+            if (copy.tag && !loveRecordsList.value[recIdx].tag) {
+              loveRecordsList.value[recIdx].tag = copy.tag;
+            }
             localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value));
             siteData.loveRecords = loveRecordsList.value;
             debouncedCloudSync('records', saveLoveRecordsToCloud, 600);
@@ -5392,10 +5616,12 @@
       // Scheme 2: On This Day (那年今日) & Photo Story Notes
       const showStoryModal = ref(false);
       const activeStoryPhoto = ref(null);
+      const editingStoryTitle = ref('');
       const editingStoryText = ref('');
 
       const openPhotoStoryModal = (photo) => {
         activeStoryPhoto.value = photo;
+        editingStoryTitle.value = photo.title || '';
         editingStoryText.value = photo.story || '';
         showStoryModal.value = true;
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
@@ -5406,8 +5632,18 @@
         activeStoryPhoto.value = null;
       };
 
+      const generateAICopyForActiveStory = () => {
+        const copy = generateRomanticCopy(activeStoryPhoto.value ? (activeStoryPhoto.value.title || activeStoryPhoto.value.image) : '', 'sphere');
+        editingStoryTitle.value = copy.title;
+        editingStoryText.value = copy.story;
+        if (typeof triggerHeartSparks === 'function') triggerHeartSparks(window.innerWidth / 2, window.innerHeight / 2);
+        saveMessage.value = '✨ AI 灵感文案已生成，可继续自由编辑修改 ♥';
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
       const saveCurrentPhotoStory = async () => {
         if (!activeStoryPhoto.value) return;
+        if (editingStoryTitle.value.trim()) activeStoryPhoto.value.title = editingStoryTitle.value.trim();
         activeStoryPhoto.value.story = editingStoryText.value.trim();
         saveMessage.value = '正在将故事便签同步至云端...';
         try {
@@ -6601,7 +6837,11 @@
         pickLocalImageForNewCity,
         pickLocalImageForRecord,
         getFastImg,
-        onImgError
+        onImgError,
+        editingStoryTitle,
+        generateAICopyForActiveStory,
+        generateAICopyForRecordForm,
+        generateRomanticCopy
       };
     }
   }).mount('#app');
