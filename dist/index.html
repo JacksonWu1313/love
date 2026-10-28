@@ -3366,6 +3366,17 @@
         document.body.style.overflow = '';
       };
 
+      const generateAICopyForRecordForm = () => {
+        const copy = generateRomanticCopy(recordForm.title || recordForm.image || '', 'record');
+        recordForm.title = copy.title;
+        recordForm.content = copy.content;
+        recordForm.quote = copy.quote;
+        recordForm.tag = copy.tag;
+        if (typeof triggerHeartSparks === 'function') triggerHeartSparks(window.innerWidth / 2, window.innerHeight / 2);
+        saveMessage.value = '✨ AI 灵感文案已生成，随时自由更改 ♥';
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
       const triggerRecordImageUpload = () => {
         if (recordImageInput.value) recordImageInput.value.click();
       };
