@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793201432291,
-  "updatedAtStr": "2026/10/28 23:30:32",
+  "updatedAt": 1793205100987,
+  "updatedAtStr": "2026/10/29 00:31:40",
   "siteData": {
     "hero": {
       "title1": "YB",
@@ -14,7 +14,7 @@
     },
     "stats": [
       {
-        "number": "181",
+        "number": "182",
         "label": "连续记录天数 (天)"
       },
       {
@@ -226,7 +226,7 @@
       {
         "id": "sphere_1793153483816",
         "image": "blob:https://jacksonwu1313.github.io/c3ea0c32-5d64-40cc-9ed8-aafc7de0316f",
-        "title": "IMG_4270",
+        "title": "罚单呜呜呜",
         "story": "添加于 3D 浪漫回忆星球",
         "date": "2026-10-28",
         "uploader": "我们"
