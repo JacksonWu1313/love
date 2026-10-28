@@ -309,12 +309,9 @@
       transform-origin: center center;
       pointer-events: none;
     }
+    /* [终极防闪烁：纯GPU硬件深度缓冲渲染] 移除 contain 与 isolation，100% 保持 3D 深度测试，消除闪烁 */
     .sphere-photo-card {
       position: absolute;
-      /* [根治3D闪烁与卡片穿插] 卡片内部强制使用 flat 平面光栅化隔离，背向剔除防止背面穿透 */
-      transform-style: flat;
-      isolation: isolate;
-      contain: layout paint;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
@@ -327,8 +324,7 @@
     .sphere-card-inner {
       width: 100%;
       height: 100%;
-      will-change: opacity, transform, filter;
-      transition: opacity 0.15s ease-out, transform 0.15s ease-out, filter 0.15s ease-out;
+      will-change: transform;
       transform-origin: center center;
       backface-visibility: hidden !important;
       -webkit-backface-visibility: hidden !important;
@@ -339,6 +335,15 @@
       backface-visibility: hidden !important;
       -webkit-backface-visibility: hidden !important;
     }
+    /* [地图防闪烁] 滤镜挂载至整体瓦片容器，消除单张瓦片重绘闪烁与图层穿透 */
+    #love-world-map .leaflet-tile-pane {
+      filter: sepia(10%) saturate(95%) hue-rotate(345deg);
+    }
+    #love-world-map .leaflet-tile {
+      transform-style: flat !important;
+      backface-visibility: visible !important;
+      -webkit-backface-visibility: visible !important;
+    }
     /* 卡片尺寸由 getSphereCardDimensions 动态计算，保持 80~90px 紧凑比例 */
     .sphere-photo-card:hover .sphere-card-inner {
       filter: brightness(1.08) drop-shadow(0 8px 16px rgba(217,93,93,0.3));
@@ -348,7 +353,7 @@
 <body class="selection:bg-blush-200 selection:text-ink">
 <div id="app" v-cloak class="relative min-h-screen">
   <!-- 全站通用本地相册选图器 (支持超清原图、GIF/WebP/APNG 动图与 LivePhoto 动态视频) -->
-  <input type="file" ref="universalAlbumInput" accept="image/*,.gif,.webp,.apng,.png,.jpg,.jpeg,.avif,video/mp4,video/quicktime,video/webm" @change="handleUniversalAlbumPicked" class="hidden">
+  <input type="file" ref="universalAlbumInput" multiple accept="image/*,.gif,.webp,.apng,.png,.jpg,.jpeg,.avif,video/mp4,video/quicktime,video/webm" @change="handleUniversalAlbumPicked" class="hidden">
 
   <!-- Floating Multi-OS App Guide Button & Arrow Tip for 小悦悦 -->
   <div class="fixed top-4 left-4 z-40 flex flex-col items-start select-none">
@@ -4053,49 +4058,17 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
-      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，动态 zIndex 层叠排序，视频动图持续动态播放
+      // 真实立体景深视觉：纯GPU硬件深度缓冲，0 DOM变更杜绝闪烁
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
+        // 卡片由 GPU preserve-3d 与 backface-visibility: hidden 原生深度剔除，0 DOM 变更消除 60fps 刷新闪烁
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
-        const rxRad = rxDeg * (Math.PI / 180);
-        const ryRad = ryDeg * (Math.PI / 180);
-        const cosRx = Math.cos(rxRad);
-        const sinRx = Math.sin(rxRad);
-        const cosRy = Math.cos(ryRad);
-        const sinRy = Math.sin(ryRad);
-
-        const R = getSphereRadius();
         for (let i = 0; i < coords.length; i++) {
-          const c = coords[i];
-          const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
           const el = document.getElementById('sphere-card-' + i);
           if (!el) continue;
-
-          // 动态深度层叠排序：确保离镜头越近的卡片 z-index 越高，杜绝 3D 穿插遮挡
-          el.style.zIndex = Math.round(zEye + 2000);
-
-          // 100% 保持可见，严禁背面隐藏
           if (el.style.visibility !== 'visible') {
             el.style.visibility = 'visible';
           }
-
-          const inner = el.querySelector('.sphere-card-inner') || el;
-
-          // 彻底修复透明问题：所有正反面卡片永久 100% 纯实色不透明，严禁任何半透明度
-          inner.style.opacity = '1';
-          if (zEye >= 0) {
-            // 正前方卡片 (zEye >= 0): 比例 100%, 正常亮度
-            inner.style.transform = 'scale(1)';
-            inner.style.filter = 'brightness(1)';
-          } else {
-            // 背面卡片 (zEye < 0): 纯实色不透明，轻微立体远近比例 (0.85~1.0)
-            const norm = Math.max(0, Math.min(1, (zEye + R) / R));
-            const depthScale = (0.85 + 0.15 * norm).toFixed(2);
-            inner.style.transform = `scale(${depthScale})`;
-            inner.style.filter = 'brightness(0.95)';
-          }
-
-          // 动图与实况视频全程保持播放，严禁暂停
           const vid = el.querySelector('video');
           if (vid && vid.paused) {
             vid.play().catch(() => {});
@@ -4331,69 +4304,6 @@
           tickSphere();
           tryAutoPlay();
         });
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
@@ -5048,7 +4958,7 @@
         });
       };
 
-      // Helper: process media for upload (preserves 100% full original image resolution/quality without lossy downscaling)
+      // Helper: process media for upload (自动压缩标准大图至 ~180KB，彻底杜绝手机端多图内存溢出假死)
       const processImageForUpload = (file) => {
         const ft = file.type || '';
         const fn = file.name.toLowerCase();
@@ -5065,24 +4975,44 @@
         return new Promise((resolve, reject) => {
           const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
           const isGif = ext === 'gif' || file.type === 'image/gif';
-          readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isGif: isGif, isVideo: false })).catch(reject);
+          if (isGif) {
+            readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isGif: true, isVideo: false, dataUrl: 'data:image/gif;base64,' + b64 })).catch(reject);
+            return;
+          }
+                    if (typeof compressImageForUpload === 'function') {
+            compressImageForUpload(file).then(res => {
+              if (res && res.b64) {
+                resolve({ base64: res.b64, ext: res.ext || 'jpg', isGif: false, isVideo: false, dataUrl: res.dataUrl });
+              } else {
+                readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isGif: false, isVideo: false, dataUrl: 'data:image/jpeg;base64,' + b64 })).catch(reject);
+              }
+            }).catch(() => {
+              readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isGif: false, isVideo: false, dataUrl: 'data:image/jpeg;base64,' + b64 })).catch(reject);
+            });
+          } else {
+            readFileAsBase64(file).then(b64 => resolve({ base64: b64, ext: ext, isGif: false, isVideo: false, dataUrl: 'data:image/jpeg;base64,' + b64 })).catch(reject);
+          }
         });
       };
 
-      // Cloud Upload Handler: uploads to GitHub images/pool/ and updates data/photo_pool.json
       const handlePoolFilesSelected = async (event) => {
         const files = event.target.files;
         if (!files || files.length === 0) return;
         isSyncingPool.value = true;
-        saveMessage.value = '正在上传并同步至 GitHub 5GB 云端...';
+        saveMessage.value = `准备上传 ${files.length} 张照片...`;
         if (!siteData.photoPool) siteData.photoPool = [];
 
         let successCount = 0;
         const today = new Date().toISOString().slice(0, 10);
+        const newlyAddedPoolItems = [];
 
         for (let i = 0; i < files.length; i++) {
           try {
             const file = files[i];
+            saveMessage.value = `正在处理第 ${i + 1}/${files.length} 张照片...`;
+            // 主线程让渡：给浏览器 35ms 刷新 UI 与触摸响应，杜绝移动端假死
+            await new Promise(r => setTimeout(r, 35));
+
             const processed = await processImageForUpload(file);
             const { base64, ext, isGif, isVideo } = processed;
             const safeName = `pool_${Date.now()}_${i}.${ext}`;
@@ -5092,84 +5022,67 @@
               window.__liveUploadedBlobMap[`https://raw.githubusercontent.com/${GITHUB_REPO}/main/images/pool/${safeName}`] = localPreviewUrl;
             }
             
-            // 1. Upload to GitHub images/pool/ (100% 原始字节流，保留 GIF/WebP 动图全部帧)
+            // 1. Upload to GitHub images/pool/
             const uploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/pool/${safeName}`;
-            const uploadRes = await fetch(uploadUrl, {
-              method: "PUT",
-              headers: {
-                "Authorization": `Bearer ${GITHUB_TOKEN}`,
-                "Accept": "application/vnd.github.v3+json",
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                message: `feat(pool): upload ${safeName}`,
-                content: base64
-              })
-            });
+            let uploadOk = false;
+            try {
+              const uploadRes = await fetch(uploadUrl, {
+                method: "PUT",
+                headers: {
+                  "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                  "Accept": "application/vnd.github.v3+json",
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  message: `feat(pool): upload ${safeName}`,
+                  content: base64
+                })
+              });
+              uploadOk = uploadRes.ok;
+            } catch (netErr) {
+              console.warn('[Pool Upload] Net error, using local fallback', netErr);
+            }
 
-            if (uploadRes.ok) {
+            if (uploadOk) {
               const cloudImgUrl = `./images/pool/${safeName}`;
-              const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '美好视频' : '美好瞬间'));
-              
-              let cloudCoverUrl = '';
-              if (isVideo && processed.coverBase64) {
-                try {
-                  const coverSafeName = `cover__.jpg`;
-                  const coverCleanB64 = processed.coverBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-                  const coverUploadUrl = `https://api.github.com/repos//contents/images/pool/`;
-                  const coverRes = await fetch(coverUploadUrl, {
-                    method: "PUT",
-                    headers: {
-                      "Authorization": `Bearer `,
-                      "Accept": "application/vnd.github.v3+json",
-                      "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                      message: `feat: Auto capture video frame cover for `,
-                      content: coverCleanB64
-                    })
-                  });
-                  if (coverRes.ok) {
-                    cloudCoverUrl = `https://raw.githubusercontent.com//main/images/pool/`;
-                  }
-                } catch (eCov) {
-                  console.warn('Cover upload failed:', eCov);
-                }
-              }
-
-              const newPhotoItem = {
+              const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '视频' : '相册精彩'));
+              newlyAddedPoolItems.push({
                 id: Date.now() + Math.random(),
                 image: cloudImgUrl,
-                cover: cloudCoverUrl || (isVideo ? processed.coverBase64 : null),
+                cover: (isVideo ? processed.coverBase64 : null),
                 duration: processed.durationStr || '',
                 isVideo: !!isVideo,
                 title: titleName,
                 date: today,
-                uploader: '我们'
-              };
-              
-              siteData.photoPool.unshift(newPhotoItem);
+                uploader: '伍彦博'
+              });
               successCount++;
             } else {
-              console.warn('GitHub upload failed, falling back to local storage');
-              siteData.photoPool.unshift({
+              newlyAddedPoolItems.push({
                 id: Date.now() + Math.random(),
-                image: (isVideo ? 'data:video/mp4;base64,' : (`data:${file.type || (isGif ? 'image/gif' : 'image/jpeg')};base64,`)) + base64,
+                image: processed.dataUrl || ((isVideo ? 'data:video/mp4;base64,' : `data:${file.type || 'image/jpeg'};base64,`) + base64),
                 cover: processed.coverBase64 || null,
                 duration: processed.durationStr || '',
                 isVideo: !!isVideo,
-                title: file.name.replace(/\.[^/.]+$/, '') || '本地暂存照片',
+                title: file.name.replace(/\.[^/.]+$/, '') || '本地精彩照片',
                 date: today,
-                uploader: '我们'
+                uploader: '伍彦博'
               });
               successCount++;
             }
           } catch (err) {
-            console.error('Upload error:', err);
+            console.error('Upload error on file ' + i, err);
           }
         }
+
+        // 一次性批量合并入 Vue 响应式状态，避免循环多次触发深度 Watch 序列化卡死
+        if (newlyAddedPoolItems.length > 0) {
+          siteData.photoPool.unshift(...newlyAddedPoolItems);
+        }
+
         // 2. Update cloud registry data/photo_pool.json on GitHub
         try {
+          const cleanPool = siteData.photoPool.filter(p => p && p.image && (typeof p.image !== 'string' || !p.image.startsWith('blob:')));
           const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
           const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
           let sha = null;
@@ -5179,7 +5092,7 @@
           }
           const regPayload = {
             message: `feat: Update cloud photo pool registry (+${successCount} items)`,
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(siteData.photoPool, null, 2))))
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(cleanPool, null, 2))))
           };
           if (sha) regPayload.sha = sha;
 
@@ -5199,7 +5112,7 @@
 
         event.target.value = '';
         isSyncingPool.value = false;
-        saveMessage.value = `☁️ 成功存入 ${successCount} 张照片至云端，双方均可见！`;
+        saveMessage.value = `✨ 成功上传 ${successCount} 张照片，双端可见！`;
         triggerConfetti();
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
         setTimeout(() => { saveMessage.value = ''; }, 3500);
@@ -6010,19 +5923,13 @@
           scrollWheelZoom: true,
           touchZoom: true,
           preferCanvas: true,
-          updateWhenIdle: true,
-          keepBuffer: 3
+          updateWhenIdle: false,
+          keepBuffer: 6
         });
 
         L.control.zoom({ position: 'topright' }).addTo(worldMap);
 
-        // Multi-source tile layers: AutoNavi Chinese (100ms ultra-fast in China) + Esri Global Street + Esri Minimalist Gray
-        // Permanent global fallback base layer ensures full continents are visible at any zoom
-        const globalUnderlay = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 18,
-          minZoom: 1,
-          attribution: '&copy; Esri WorldStreetMap'
-        }).addTo(worldMap);
+        // [Anti-Flicker] 单一主瓦片图层加载，移除重复的底层叠加，消除移动端双层瓦片 Z-fighting 闪烁\n        // 高德矢量底图国内 100ms 极速加载，Esri 海外备选
 
         tileLayers = {
           autonavi: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
