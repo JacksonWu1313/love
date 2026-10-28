@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793153797731,
-  "updatedAtStr": "2026/10/28 10:16:37",
+  "updatedAt": 1793154384251,
+  "updatedAtStr": "2026/10/28 10:26:24",
   "siteData": {
     "hero": {
       "title1": "YB",
@@ -165,6 +165,56 @@
       }
     ],
     "photoPool": [
+      {
+        "id": 1793154382938.9656,
+        "image": "./images/pool/pool_1793154379182_4.jpg",
+        "cover": null,
+        "duration": "",
+        "isVideo": false,
+        "title": "9857",
+        "date": "2026-10-28",
+        "uploader": "我们"
+      },
+      {
+        "id": 1793154379154.0315,
+        "image": "./images/pool/pool_1793154376889_3.jpg",
+        "cover": null,
+        "duration": "",
+        "isVideo": false,
+        "title": "9860",
+        "date": "2026-10-28",
+        "uploader": "我们"
+      },
+      {
+        "id": 1793154376848.9421,
+        "image": "./images/pool/pool_1793154373136_2.jpg",
+        "cover": null,
+        "duration": "",
+        "isVideo": false,
+        "title": "9916",
+        "date": "2026-10-28",
+        "uploader": "我们"
+      },
+      {
+        "id": 1793154373103.9805,
+        "image": "./images/pool/pool_1793154355671_1.jpg",
+        "cover": null,
+        "duration": "",
+        "isVideo": false,
+        "title": "9918_1_1_5740142",
+        "date": "2026-10-28",
+        "uploader": "我们"
+      },
+      {
+        "id": 1793154355604.3323,
+        "image": "./images/pool/pool_1793154335485_0.jpg",
+        "cover": null,
+        "duration": "",
+        "isVideo": false,
+        "title": "9917_1_1_5788622",
+        "date": "2026-10-28",
+        "uploader": "我们"
+      },
       {
         "id": "sphere_1793153497820",
         "image": "blob:https://jacksonwu1313.github.io/b36e0638-4c46-4bdc-9004-f74a79bd9db9",
