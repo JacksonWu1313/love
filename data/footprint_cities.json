@@ -60,18 +60,6 @@
     "image": "./images/hero_cover.jpg"
   },
   {
-    "id": "chengdu",
-    "name": "成都 · 烟火锦官城",
-    "lat": 30.572,
-    "lng": 104.066,
-    "province": "四川",
-    "date": "心动愿望 · 待打卡",
-    "status": "wish",
-    "tag": "愿望清单 · 待解锁 ✈️",
-    "story": "约好下次一起去吃地道牛油火锅、逛宽窄巷子和太古里、看憨态可掬的大熊猫。",
-    "image": "./images/wish_cook.jpg"
-  },
-  {
     "id": "paris",
     "name": "巴黎 · 浪漫之都",
     "lat": 48.856,
@@ -82,17 +70,5 @@
     "tag": "世界之旅 · 愿望清单 ✈️",
     "story": "一起去塞纳河畔散步、看埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。",
     "image": "./images/quote_1.jpg"
-  },
-  {
-    "id": "santorini",
-    "name": "圣托里尼 · 爱琴海",
-    "lat": 36.393,
-    "lng": 25.461,
-    "province": "希腊",
-    "date": "远期梦想 · 待打卡",
-    "status": "wish",
-    "tag": "世界之旅 · 愿望清单 ✈️",
-    "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
-    "image": "./images/wish_concert.jpg"
   }
 ]
