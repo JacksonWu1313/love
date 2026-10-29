@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:45:47",
+  "updated_at": "2026-10-29 13:45:55",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -239,6 +239,36 @@
       "sender": "悦悦大王",
       "text": "下次还要去吃",
       "reason": "🌟对话高光",
+      "time": "2026-10-29 13:45",
+      "status": "candidate"
+    },
+    {
+      "idx": 22,
+      "category": "duplicate",
+      "target_type": "message",
+      "sender": "悦悦大王",
+      "text": "今天我们去看了电影",
+      "reason": "🛡️相似拦截",
+      "time": "2026-10-29 13:45",
+      "status": "candidate"
+    },
+    {
+      "idx": 23,
+      "category": "duplicate",
+      "target_type": "message",
+      "sender": "伍彦博",
+      "text": "对呀，那家爆米花很香",
+      "reason": "🛡️相似拦截",
+      "time": "2026-10-29 13:45",
+      "status": "candidate"
+    },
+    {
+      "idx": 24,
+      "category": "duplicate",
+      "target_type": "message",
+      "sender": "悦悦大王",
+      "text": "下次还要去吃",
+      "reason": "🛡️相似拦截",
       "time": "2026-10-29 13:45",
       "status": "candidate"
     }
