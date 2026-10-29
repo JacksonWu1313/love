@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:05:13",
+  "updated_at": "2026-10-29 13:05:56",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -221,6 +221,16 @@
       "reason": "🌟对话高光",
       "time": "2026-10-29 13:05",
       "status": "candidate"
+    },
+    {
+      "idx": 20,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "悦悦大王",
+      "text": "今天悦悦大王来姨妈了",
+      "reason": "💖 手动收录",
+      "time": "2026-10-29 13:05",
+      "status": "archived"
     }
   ]
 }
