@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:22:50",
+  "updated_at": "2026-10-29 13:23:55",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -200,6 +200,16 @@
       "text": "今天悦悦大王来姨妈了",
       "reason": "📖 已收录至手帐《红糖姜茶与揉着小腹的午后》",
       "time": "2026-10-29 13:22",
+      "status": "archived"
+    },
+    {
+      "idx": 18,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天悦悦大王来姨妈了",
+      "reason": "📖 已收录至手帐《红糖姜茶与掌心里的暖意》",
+      "time": "2026-10-29 13:23",
       "status": "archived"
     }
   ]
