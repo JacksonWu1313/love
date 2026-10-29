@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:46:14",
+  "updated_at": "2026-10-29 13:45:28",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -38,7 +38,7 @@
       "sender": "悦悦大王",
       "text": "这个天真的太适合散步了，下次吃完饭还要一起去公园吹晚风",
       "reason": "💖 心动/约定候选",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 1
     },
@@ -48,7 +48,7 @@
       "sender": "伍彦博",
       "text": "等忙完这阵子，带你去吃那家念叨了好久的甜品和煲仔饭",
       "reason": "💖 心动/约定候选",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 2
     },
@@ -58,7 +58,7 @@
       "sender": "悦悦大王",
       "text": "到家啦，今天在外面跑了一天有点小累，准备去洗漱休息啦",
       "reason": "💖 心动/约定候选",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 3
     },
@@ -68,7 +68,7 @@
       "sender": "悦悦大王",
       "text": "哈哈哈哈好滴，那你先专心看书，晚上回去了跟我说",
       "reason": "💖 心动/约定候选",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 4
     },
@@ -78,7 +78,7 @@
       "sender": "伍彦博",
       "text": "好的收到，路上注意安全，到了发个消息",
       "reason": "💖 心动/约定候选",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 5
     },
@@ -88,7 +88,7 @@
       "sender": "悦悦大王",
       "text": "早安呀！今天也是8点准时起床去图书馆学习的一天",
       "reason": "日常作息/报备问候",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 6
     },
@@ -98,7 +98,7 @@
       "sender": "伍彦博",
       "text": "中午吃了吗？刚点好外卖准备回宿舍午休一会儿",
       "reason": "日常作息/报备问候",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 7
     },
@@ -108,7 +108,7 @@
       "sender": "悦悦大王",
       "text": "嗯嗯好呀，晚安早点睡，明天见！",
       "reason": "日常作息/报备问候",
-      "time": "2026-10-29 13:21",
+      "time": "2026-10-29 13:45",
       "status": "pending",
       "idx": 8
     },
@@ -191,106 +191,6 @@
       "time": "2026年10月26日",
       "status": "pending",
       "idx": 16
-    },
-    {
-      "idx": 17,
-      "category": "highlight",
-      "target_type": "record",
-      "sender": "悦悦大王",
-      "text": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡。",
-      "reason": "📖 已收录至手帐《KFC不蘸酱与公园吹晚风》",
-      "time": "2026-10-29 13:40",
-      "status": "archived"
-    },
-    {
-      "idx": 18,
-      "category": "highlight",
-      "target_type": "record",
-      "sender": "悦悦大王",
-      "text": "一起包的第一锅饺子，热气腾腾，味道刚刚好。",
-      "reason": "📖 已收录至手帐《月光下的热饺子》",
-      "time": "2026-10-29 13:41",
-      "status": "archived"
-    },
-    {
-      "idx": 19,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "今天我们去看了电影",
-      "reason": "🌟对话高光",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 20,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "伍彦博",
-      "text": "对呀，那家爆米花很香",
-      "reason": "🌟对话高光",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 21,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "下次还要去吃",
-      "reason": "🌟对话高光",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 22,
-      "category": "duplicate",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "今天我们去看了电影",
-      "reason": "🛡️相似拦截",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 23,
-      "category": "duplicate",
-      "target_type": "message",
-      "sender": "伍彦博",
-      "text": "对呀，那家爆米花很香",
-      "reason": "🛡️相似拦截",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 24,
-      "category": "duplicate",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "下次还要去吃",
-      "reason": "🛡️相似拦截",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 25,
-      "category": "highlight",
-      "target_type": "record",
-      "sender": "悦悦大王",
-      "text": "今天悦悦大王来姨妈了",
-      "reason": "📖 已收录至手帐《今天悦悦大王来姨妈了》",
-      "time": "2026-10-29 13:46",
-      "status": "archived"
-    },
-    {
-      "idx": 26,
-      "category": "highlight",
-      "target_type": "record",
-      "sender": "悦悦大王",
-      "text": "今天悦悦大王来姨妈了",
-      "reason": "📖 已收录至手帐《今天悦悦大王来姨妈了》",
-      "time": "2026-10-29 13:46",
-      "status": "archived"
     }
   ]
 }
