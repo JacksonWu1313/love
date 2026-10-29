@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:21:29",
+  "updated_at": "2026-10-29 13:40:42",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -191,6 +191,16 @@
       "time": "2026年10月26日",
       "status": "pending",
       "idx": 16
+    },
+    {
+      "idx": 17,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡。",
+      "reason": "📖 已收录至手帐《KFC不蘸酱与公园吹晚风》",
+      "time": "2026-10-29 13:40",
+      "status": "archived"
     }
   ]
 }
