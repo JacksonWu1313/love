@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:23:55",
+  "updated_at": "2026-10-29 13:35:42",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -211,6 +211,36 @@
       "reason": "📖 已收录至手帐《红糖姜茶与掌心里的暖意》",
       "time": "2026-10-29 13:23",
       "status": "archived"
+    },
+    {
+      "idx": 19,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "改录",
+      "text": "样题：KFC不艰酱与公园吹晚髌",
+      "reason": "🌟对话高光",
+      "time": "2026-10-29 13:35",
+      "status": "candidate"
+    },
+    {
+      "idx": 20,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "标签",
+      "text": "日常甜宠",
+      "reason": "🌟对话高光",
+      "time": "2026-10-29 13:35",
+      "status": "candidate"
+    },
+    {
+      "idx": 21,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "比句",
+      "text": "公世界仅此一个的��y���王，是属于我的独家浪漫。",
+      "reason": "🌟对话高光",
+      "time": "2026-10-29 13:35",
+      "status": "candidate"
     }
   ]
 }
