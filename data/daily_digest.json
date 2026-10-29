@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:41:37",
+  "updated_at": "2026-10-29 13:45:47",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -211,6 +211,36 @@
       "reason": "📖 已收录至手帐《月光下的热饺子》",
       "time": "2026-10-29 13:41",
       "status": "archived"
+    },
+    {
+      "idx": 19,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "悦悦大王",
+      "text": "今天我们去看了电影",
+      "reason": "🌟对话高光",
+      "time": "2026-10-29 13:45",
+      "status": "candidate"
+    },
+    {
+      "idx": 20,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "伍彦博",
+      "text": "对呀，那家爆米花很香",
+      "reason": "🌟对话高光",
+      "time": "2026-10-29 13:45",
+      "status": "candidate"
+    },
+    {
+      "idx": 21,
+      "category": "highlight",
+      "target_type": "message",
+      "sender": "悦悦大王",
+      "text": "下次还要去吃",
+      "reason": "🌟对话高光",
+      "time": "2026-10-29 13:45",
+      "status": "candidate"
     }
   ]
 }
