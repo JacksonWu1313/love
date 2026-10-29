@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:45:55",
+  "updated_at": "2026-10-29 13:45:53",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -244,33 +244,13 @@
     },
     {
       "idx": 22,
-      "category": "duplicate",
-      "target_type": "message",
+      "category": "highlight",
+      "target_type": "record",
       "sender": "悦悦大王",
-      "text": "今天我们去看了电影",
-      "reason": "🛡️相似拦截",
+      "text": "今天悦悦大王来姨妈了",
+      "reason": "📖 已收录至手帐《今天悦悦大王来姨妈了》",
       "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 23,
-      "category": "duplicate",
-      "target_type": "message",
-      "sender": "伍彦博",
-      "text": "对呀，那家爆米花很香",
-      "reason": "🛡️相似拦截",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
-    },
-    {
-      "idx": 24,
-      "category": "duplicate",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "下次还要去吃",
-      "reason": "🛡️相似拦截",
-      "time": "2026-10-29 13:45",
-      "status": "candidate"
+      "status": "archived"
     }
   ]
 }
