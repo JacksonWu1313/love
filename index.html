@@ -3949,6 +3949,89 @@
       };
 
       // 便签编辑弹窗与管理状态
+      // 便签二级全屏抽屉与主页最多 5 张展示逻辑
+      const showAllNotesDrawer = ref(false);
+      const noteSearchQuery = ref('');
+      const noteFilter = ref('all');
+      const noteSortOrder = ref('desc');
+
+      // 便签主页：严格最多展示 5 张
+      const displayedHomeNotes = computed(() => {
+        const list = (loveMessagesList.value || []).slice();
+        return list.slice(0, 5);
+      });
+
+      // 二级全屏留声便签盒：全部便签 + 检索 + 筛选 + 排序
+      const filteredAndSortedNotes = computed(() => {
+        let list = (loveMessagesList.value || []).slice();
+        const f = noteFilter.value;
+        if (f === 'yb') {
+          list = list.filter(m => m.author === 'YB');
+        } else if (f === 'yueyue') {
+          list = list.filter(m => m.author === '悦悦大王');
+        }
+        const q = (noteSearchQuery.value || '').trim().toLowerCase();
+        if (q) {
+          list = list.filter(m => {
+            const hay = [(m.author || ''), (m.tag || ''), (m.content || ''), (m.date || '')].join(' ').toLowerCase();
+            return hay.includes(q);
+          });
+        }
+        if (noteSortOrder.value === 'asc') {
+          list.reverse();
+        }
+        return list;
+      });
+
+      const openAllNotesDrawer = () => {
+        showAllNotesDrawer.value = true;
+        document.body.style.overflow = 'hidden';
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const closeAllNotesDrawer = () => {
+        showAllNotesDrawer.value = false;
+        document.body.style.overflow = '';
+      };
+
+      const openAddNoteFromDrawer = () => {
+        editingNoteId.value = null;
+        noteEditForm.author = 'YB';
+        noteEditForm.tag = '🌸 日常心动';
+        noteEditForm.color = 'pink';
+        noteEditForm.content = '';
+        noteEditForm.date = '';
+        showNoteEditModal.value = true;
+        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+      };
+
+      const deleteCurrentEditingNote = () => {
+        if (!confirm('确认揭下这张便签吗？')) return;
+        if (editingNoteId.value) {
+          const targetIdx = loveMessagesList.value.findIndex(m => m.id === editingNoteId.value);
+          if (targetIdx !== -1) {
+            loveMessagesList.value.splice(targetIdx, 1);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value));
+            }
+            debouncedCloudSync('messages', saveLoveMessagesToCloud, 500);
+          }
+        }
+        showNoteEditModal.value = false;
+        saveMessage.value = '🗑️ 便签已揭下并同步 ♥';
+        setTimeout(() => { saveMessage.value = ''; }, 2500);
+      };
+
+      // 便签全局 deep watch 自动保存 (编辑完任何便签自动持久化并同步云端)
+      watch(loveMessagesList, (newVal) => {
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('yb_love_messages', JSON.stringify(newVal));
+          }
+          debouncedCloudSync('messages', saveLoveMessagesToCloud, 500);
+        } catch (e) {}
+      }, { deep: true });
+
       const showNoteEditModal = ref(false);
       const editingNoteId = ref(null);
       const noteEditForm = reactive({
@@ -4247,21 +4330,21 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~40% 紧凑包覆)，杜绝空旷荒漠
+      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~30% 紧凑包覆)，预留呼吸间隔，杜绝穿插
       const getSphereCardDimensions = computed(() => {
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
         const isTablet = typeof window !== 'undefined' && window.innerWidth < 1024;
         if (count <= 18) {
-          return isMobile ? { w: 82, h: 108 } : (isTablet ? { w: 94, h: 124 } : { w: 102, h: 136 });
+          return isMobile ? { w: 72, h: 94 } : (isTablet ? { w: 86, h: 114 } : { w: 96, h: 128 });
         } else if (count <= 32) {
-          return isMobile ? { w: 74, h: 98 } : (isTablet ? { w: 86, h: 114 } : { w: 92, h: 122 });
+          return isMobile ? { w: 64, h: 84 } : (isTablet ? { w: 76, h: 100 } : { w: 84, h: 112 });
         } else if (count <= 60) {
-          return isMobile ? { w: 68, h: 90 } : (isTablet ? { w: 78, h: 102 } : { w: 84, h: 110 });
+          return isMobile ? { w: 58, h: 76 } : (isTablet ? { w: 68, h: 90 } : { w: 76, h: 100 });
         } else if (count <= 90) {
-          return isMobile ? { w: 62, h: 82 } : (isTablet ? { w: 72, h: 94 } : { w: 76, h: 100 });
+          return isMobile ? { w: 52, h: 68 } : (isTablet ? { w: 62, h: 80 } : { w: 68, h: 88 });
         } else {
-          return isMobile ? { w: 56, h: 74 } : (isTablet ? { w: 66, h: 86 } : { w: 70, h: 92 });
+          return isMobile ? { w: 46, h: 60 } : (isTablet ? { w: 56, h: 72 } : { w: 60, h: 78 });
         }
       });
 
@@ -4271,15 +4354,15 @@
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
         
-        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，彻底解决卡片稀疏空洞
+        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，预留充足安全间距
         const dims = getSphereCardDimensions.value;
         const cardArea = dims.w * dims.h;
-        const targetCoverage = isMobile ? 0.38 : 0.40; // 黄金包裹密度 ~40%
+        const targetCoverage = isMobile ? 0.28 : 0.32;
         const idealR = Math.sqrt((count * cardArea) / (4 * Math.PI * targetCoverage));
         
-        // 视口安全阻尼：移动端限制在 165~275px，平板 210~315px，桌面 240~355px
-        const minR = isMobile ? 165 : (isTablet ? 210 : 240);
-        const maxR = isMobile ? 275 : (isTablet ? 315 : 355);
+        // 视口安全阻尼：移动端限制在 215~320px，平板 250~360px，桌面 280~420px
+        const minR = isMobile ? 215 : (isTablet ? 250 : 280);
+        const maxR = isMobile ? 320 : (isTablet ? 360 : 420);
         return Math.round(Math.max(minR, Math.min(maxR, idealR)));
       };
 
@@ -4365,46 +4448,17 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
-      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，背面卡片自然透出半透明与景深光感，视频动图持续动态播放
+      // 真实立体景深视觉：纯GPU硬件深度缓冲，0 DOM变更杜绝闪烁
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
+        // 卡片由 GPU preserve-3d 与 backface-visibility: hidden 原生深度剔除，0 DOM 变更消除 60fps 刷新闪烁
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
-        const rxRad = rxDeg * (Math.PI / 180);
-        const ryRad = ryDeg * (Math.PI / 180);
-        const cosRx = Math.cos(rxRad);
-        const sinRx = Math.sin(rxRad);
-        const cosRy = Math.cos(ryRad);
-        const sinRy = Math.sin(ryRad);
-
-        const R = getSphereRadius();
         for (let i = 0; i < coords.length; i++) {
-          const c = coords[i];
-          const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
           const el = document.getElementById('sphere-card-' + i);
           if (!el) continue;
-
-          // 100% 保持可见，严禁背面隐藏
           if (el.style.visibility !== 'visible') {
             el.style.visibility = 'visible';
           }
-
-          const inner = el.querySelector('.sphere-card-inner') || el;
-
-          // 彻底修复透明问题：所有正反面卡片永久 100% 纯实色不透明，严禁任何半透明度
-          inner.style.opacity = '1';
-          if (zEye >= 0) {
-            // 正前方卡片 (zEye >= 0): 比例 100%, 正常亮度
-            inner.style.transform = 'scale(1)';
-            inner.style.filter = 'brightness(1)';
-          } else {
-            // 背面卡片 (zEye < 0): 纯实色不透明，轻微立体远近比例 (0.85~1.0)
-            const norm = Math.max(0, Math.min(1, (zEye + R) / R));
-            const depthScale = (0.85 + 0.15 * norm).toFixed(2);
-            inner.style.transform = `scale(${depthScale})`;
-            inner.style.filter = 'brightness(0.95)';
-          }
-
-          // 动图与实况视频全程保持播放，严禁暂停
           const vid = el.querySelector('video');
           if (vid && vid.paused) {
             vid.play().catch(() => {});
@@ -4582,12 +4636,12 @@
 
       const pickLocalImageForNewSpherePhoto = () => {
         openLocalAlbumPicker((newSrc, file) => {
-          const title = file && file.name ? file.name.replace(/\.[^/.]+$/, '') : '回忆星辰';
+          const copy = generateRomanticCopy(file, 'sphere');
           const newPhoto = {
             id: 'sphere_' + Date.now(),
             image: newSrc,
-            title: title,
-            story: '添加于 3D 浪漫回忆星球',
+            title: copy.title,
+            story: copy.story,
             date: new Date().toISOString().split('T')[0],
             uploader: '我们'
           };
@@ -4640,12 +4694,6 @@
           tickSphere();
           tryAutoPlay();
         });
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
