@@ -2192,21 +2192,7 @@
         </div>
 
         <div class="glass-card rounded-[2rem] p-6 sm:p-8 bg-white/96 border border-sand/80 shadow-soft hover:shadow-float transition duration-300 relative">
-          <!-- Card Action Buttons (Edit / Replace Original Photo / Delete) -->
-          <div class="absolute top-5 right-5 flex items-center gap-1.5">
-            <button @click.stop="pickLocalImageForRecord(item.origIdx)" class="px-2.5 py-1 rounded-full bg-blush-50 hover:bg-blush-100 text-clay text-[11px] font-semibold transition flex items-center gap-1" title="直接从本地相册选择图片或动图替换">
-              <span>📷 相册换图</span>
-            </button>
-            <button @click="openEditRecordModal(item.rec, item.origIdx)" class="px-2.5 py-1 rounded-full bg-sand/30 hover:bg-blush-50 text-muted hover:text-clay text-[11px] transition flex items-center gap-1" title="编辑文字内容">
-              <i data-lucide="edit-2" class="w-3 h-3"></i>
-              <span>编辑</span>
-            </button>
-            <button @click="deleteRecord(item.origIdx)" class="p-1.5 rounded-full hover:bg-rose-50 text-muted hover:text-rose-500 transition" title="删除本篇记录">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pr-24">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
             <span class="inline-block bg-blush-50 text-blush-500 font-serif text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full border border-blush-100">
               {{ item.rec.date }}
             </span>
@@ -2386,11 +2372,17 @@
         <button @click="messageFilter = 'yueyue'" :class="messageFilter === 'yueyue' ? 'bg-white text-rose-500 font-semibold shadow-xs' : 'hover:text-ink'" class="px-3 py-1 rounded-full transition">来自 悦悦大王 👑</button>
       </div>
 
-      <!-- Action: Toggle Write Form -->
-      <button @click="isWritingNote = !isWritingNote" class="px-4 py-1.5 rounded-full bg-clay text-white text-xs font-medium shadow-soft hover:bg-clay/90 transition flex items-center space-x-1.5 transform active:scale-95">
-        <i :data-lucide="isWritingNote ? 'chevron-up' : 'pen-tool'" class="w-3.5 h-3.5"></i>
-        <span>{{ isWritingNote ? '收起写字板' : '✏️ 写一张新便签' }}</span>
-      </button>
+      <!-- Section Master Action Buttons (章节总编辑与便签盒入口) -->
+      <div class="flex items-center space-x-2">
+        <button @click="openAllNotesDrawer" class="px-4 py-1.5 rounded-full bg-warmwhite hover:bg-sand/60 border border-blush-200 text-clay text-xs font-semibold shadow-soft transition flex items-center space-x-1">
+          <i data-lucide="mail-open" class="w-3.5 h-3.5"></i>
+          <span>💌 留声便签盒 (共 {{ loveMessagesList.length }} 张)</span>
+        </button>
+        <button @click="isWritingNote = !isWritingNote" class="px-4 py-1.5 rounded-full bg-clay text-white text-xs font-medium shadow-soft hover:bg-clay/90 transition flex items-center space-x-1.5 transform active:scale-95">
+          <i :data-lucide="isWritingNote ? 'chevron-up' : 'pen-tool'" class="w-3.5 h-3.5"></i>
+          <span>{{ isWritingNote ? '收起' : '➕ 贴新便签' }}</span>
+        </button>
+      </div>
     </div>
 
     <!-- Expandable Write Form Card -->
@@ -2463,19 +2455,19 @@
       </div>
     </transition>
 
-    <!-- Notes Masonry Grid -->
+    <!-- Notes Masonry Grid (主页严格最多呈现 5 张高光便签，保持纯净优雅) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-      <div v-for="(note, idx) in filteredLoveMessages" :key="note.id || idx" class="relative p-5 rounded-3xl border transition duration-300 transform hover:-translate-y-1 hover:shadow-float shadow-soft flex flex-col justify-between cursor-pointer group" :class="getNoteColorClasses(note.color)" @click="openEditNoteModal(note)">
+      <div v-for="(note, idx) in displayedHomeNotes" :key="note.id || idx" class="relative p-5 rounded-3xl border transition duration-300 transform hover:-translate-y-1 hover:shadow-float shadow-soft flex flex-col justify-between" :class="getNoteColorClasses(note.color)">
         <!-- Top Tape / Pin effect -->
         <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-16 h-5 bg-sand/60 backdrop-blur-xs rounded-sm opacity-70 transform -rotate-1 border border-sand/80 shadow-xs pointer-events-none"></div>
 
         <div>
           <!-- Header: Author Badge & Tag -->
           <div class="flex items-center justify-between gap-2 mb-3 pt-1">
-            <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full" :class="note.author === 'YB' ? 'bg-clay/10 text-clay' : 'bg-rose-100 text-rose-600'">
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-2xs" :class="note.author === 'YB' ? 'bg-clay/10 text-clay' : 'bg-rose-100 text-rose-600'">
               <span class="text-xs">{{ note.author === 'YB' ? '👦 YB' : '👑 悦悦大王' }}</span>
             </span>
-            <span class="text-[10px] text-muted/80 bg-white/60 px-2 py-0.5 rounded-full font-serif border border-sand/50">{{ note.tag }}</span>
+            <span class="text-[10px] text-muted/80 bg-white/70 px-2.5 py-0.5 rounded-full font-serif border border-sand/50 shadow-2xs">{{ note.tag || '💌 悄悄话' }}</span>
           </div>
 
           <!-- Note Content -->
@@ -2484,22 +2476,110 @@
           </p>
         </div>
 
-        <!-- Footer: Date & Edit/Delete Actions -->
+        <!-- Footer: Clean Date (无多余冗余杂乱按钮，纯净优雅) -->
         <div class="flex items-center justify-between pt-2.5 border-t border-sand/50 text-[10px] text-muted">
           <span class="font-mono text-[10px] text-muted/70">{{ note.date }}</span>
-          <div class="flex items-center gap-1.5 opacity-90 sm:opacity-75 group-hover:opacity-100 transition">
-            <button @click.stop="openEditNoteModal(note)" class="px-2 py-0.5 rounded-full bg-white/80 hover:bg-white text-clay border border-sand/60 text-[11px] font-medium shadow-2xs transition flex items-center gap-1" title="编辑便签">
-              <i data-lucide="edit-3" class="w-3 h-3"></i>
-              <span>编辑</span>
-            </button>
-            <button @click.stop="deleteNote(note)" class="p-1 rounded-full text-muted hover:text-rose-500 hover:bg-rose-50 transition" title="揭下/删除便签">
-              <i data-lucide="trash-2" class="w-3 h-3"></i>
-            </button>
-          </div>
+          <span class="text-[10px] text-muted/60 font-serif">♥ 我们的小确幸</span>
         </div>
       </div>
     </div>
+
+    <!-- Prominent Capsule Entry Button to Secondary Notes Drawer (章节总编辑与全量便签盒) -->
+    <div class="mt-10 text-center flex flex-col items-center justify-center space-y-2">
+      <button @click="openAllNotesDrawer" class="px-8 py-3.5 rounded-full bg-gradient-to-r from-clay via-blush-500 to-clay text-white text-xs sm:text-sm font-semibold shadow-float hover:scale-105 transition duration-300 flex items-center space-x-2">
+        <i data-lucide="mail-open" class="w-4 h-4"></i>
+        <span>打开留声便签盒 · 管理与浏览全部便签 💌（共 {{ loveMessagesList.length }} 张）</span>
+      </button>
+      <p class="text-[11px] text-muted">
+        主页精选呈现最新 5 张暖心便签 · 点击上方总按钮进入便签盒可检索、编辑与修改全部便签，编辑完自动保存
+      </p>
+    </div>
   </section>
+
+  <!-- Secondary Fullscreen Drawer: 留声便签盒 · 全部爱意私语 (All Notes Fullscreen Drawer) -->
+  <div v-if="showAllNotesDrawer" class="fixed inset-0 z-50 bg-[#FAF7F2] overflow-y-auto flex flex-col" style="transform: translateZ(0);">
+    <!-- Sticky Top Header -->
+    <header class="sticky top-0 z-40 bg-warmwhite border-b border-sand px-4 py-3.5 shadow-sm">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <button @click="closeAllNotesDrawer" class="px-4 py-2 rounded-full bg-sand/50 hover:bg-sand text-ink text-xs font-semibold transition flex items-center space-x-1.5">
+          <span>← 返回纪念馆主页</span>
+        </button>
+
+        <div class="text-center">
+          <h3 class="text-serif-sc text-sm sm:text-base md:text-lg font-bold text-ink flex items-center justify-center space-x-2">
+            <span>💌 留声便签盒 · 全部爱意私语</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-blush-100 text-blush-600 text-xs font-semibold">
+              {{ filteredAndSortedNotes.length }} / {{ loveMessagesList.length }} 张
+            </span>
+          </h3>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button @click="noteSortOrder = (noteSortOrder === 'desc' ? 'asc' : 'desc')" class="px-3 py-2 rounded-full bg-warmwhite border border-sand hover:bg-sand/40 text-xs text-ink transition">
+            <span>{{ noteSortOrder === 'desc' ? '⬇️ 最新在前' : '⬆️ 最早在前' }}</span>
+          </button>
+          <button @click="openAddNoteFromDrawer" class="px-4 py-2 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-95 transition flex items-center space-x-1">
+            <span>➕ 贴一张新便签</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Tabs & Search Bar -->
+      <div class="max-w-4xl mx-auto mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <!-- Author Filter Tabs -->
+        <div class="sm:col-span-1 flex items-center gap-1.5 bg-sand/30 p-1 rounded-2xl border border-sand/60">
+          <button @click="noteFilter = 'all'" :class="noteFilter === 'all' ? 'bg-white text-clay font-semibold shadow-xs' : 'text-muted hover:text-ink'" class="flex-1 py-1.5 rounded-xl text-xs transition">全部</button>
+          <button @click="noteFilter = 'yb'" :class="noteFilter === 'yb' ? 'bg-white text-clay font-semibold shadow-xs' : 'text-muted hover:text-ink'" class="flex-1 py-1.5 rounded-xl text-xs transition">YB ♥</button>
+          <button @click="noteFilter = 'yueyue'" :class="noteFilter === 'yueyue' ? 'bg-white text-rose-500 font-semibold shadow-xs' : 'text-muted hover:text-ink'" class="flex-1 py-1.5 rounded-xl text-xs transition">悦悦 👑</button>
+        </div>
+        <!-- Search Bar -->
+        <div class="sm:col-span-2 relative flex items-center">
+          <input v-model="noteSearchQuery" type="text" placeholder="🔍 搜索便签内容、心情贴纸、日期关键词..." class="w-full pl-4 pr-9 py-2 rounded-2xl bg-white border border-sand text-xs text-ink placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-blush-300 shadow-xs">
+          <button v-if="noteSearchQuery" @click="noteSearchQuery = ''" class="absolute right-3 text-muted hover:text-ink text-xs font-bold">×</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Secondary View Main Content: All Filtered Notes Grid -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+      <div v-if="filteredAndSortedNotes.length === 0" class="py-20 text-center glass-card rounded-3xl p-8">
+        <p class="text-sm font-semibold text-ink">未找到匹配的便签条目</p>
+        <p class="text-xs text-muted mt-1">可以尝试清空搜索词，或点击右上角【➕ 贴一张新便签】</p>
+        <button @click="noteSearchQuery = ''; noteFilter = 'all'" class="mt-4 px-5 py-2 rounded-full bg-clay text-white text-xs font-semibold">显示全部便签</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div v-for="note in filteredAndSortedNotes" :key="note.id || note.date" class="relative p-5 rounded-3xl border transition duration-300 transform hover:-translate-y-1 hover:shadow-float shadow-soft flex flex-col justify-between cursor-pointer group" :class="getNoteColorClasses(note.color)" @click="openEditNoteModal(note)">
+          <!-- Top Tape / Pin effect -->
+          <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-16 h-5 bg-sand/60 backdrop-blur-xs rounded-sm opacity-70 transform -rotate-1 border border-sand/80 shadow-xs pointer-events-none"></div>
+
+          <div>
+            <!-- Header: Author Badge & Tag -->
+            <div class="flex items-center justify-between gap-2 mb-3 pt-1">
+              <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full shadow-2xs" :class="note.author === 'YB' ? 'bg-clay/10 text-clay' : 'bg-rose-100 text-rose-600'">
+                <span class="text-xs">{{ note.author === 'YB' ? '👦 YB' : '👑 悦悦大王' }}</span>
+              </span>
+              <span class="text-[10px] text-muted/80 bg-white/70 px-2.5 py-0.5 rounded-full font-serif border border-sand/50 shadow-2xs">{{ note.tag || '💌 悄悄话' }}</span>
+            </div>
+
+            <!-- Note Content -->
+            <p class="font-serif text-ink text-xs sm:text-[13px] leading-relaxed mb-4 whitespace-pre-wrap select-text">
+              “{{ note.content }}”
+            </p>
+          </div>
+
+          <!-- Footer: Date & Edit hint -->
+          <div class="flex items-center justify-between pt-2.5 border-t border-sand/50 text-[10px] text-muted">
+            <span class="font-mono text-[10px] text-muted/70">{{ note.date }}</span>
+            <span class="text-clay text-[11px] font-medium flex items-center gap-1 opacity-80 group-hover:opacity-100 transition">
+              <i data-lucide="edit-3" class="w-3 h-3"></i>
+              <span>点击编辑</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
   <!-- Modal: 便签编辑弹窗 (Love Note Edit Modal - 支持修改作者、底色、贴纸与内容) -->
   <div v-if="showNoteEditModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-[65] flex items-center justify-center p-3 sm:p-4 overflow-y-auto" @click.self="closeNoteEditModal">
@@ -2569,12 +2649,20 @@
         </div>
       </div>
 
-      <div class="mt-5 flex items-center justify-end gap-2">
-        <button type="button" @click="closeNoteEditModal" class="px-4 py-1.5 rounded-full border border-sand text-xs text-muted hover:text-ink transition">取消</button>
-        <button type="button" @click="saveNoteEdit" class="px-5 py-1.5 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-90 transition flex items-center gap-1.5">
-          <i data-lucide="check" class="w-3.5 h-3.5"></i>
-          <span>保存修改并同步 ♥</span>
+      <div class="mt-5 flex items-center justify-between gap-2">
+        <button v-if="editingNoteId" type="button" @click="deleteCurrentEditingNote" class="px-3.5 py-1.5 rounded-full text-rose-500 hover:bg-rose-50 border border-rose-200 text-xs transition flex items-center gap-1">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span>揭下此便签</span>
         </button>
+        <div v-else></div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" @click="closeNoteEditModal" class="px-4 py-1.5 rounded-full border border-sand text-xs text-muted hover:text-ink transition">取消</button>
+          <button type="button" @click="saveNoteEdit" class="px-5 py-1.5 rounded-full bg-gradient-to-r from-clay to-blush-500 text-white text-xs font-semibold shadow-soft hover:opacity-90 transition flex items-center gap-1.5">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>保存并自动同步 ♥</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -4159,21 +4247,21 @@
         sphereCardCount.value = Math.max(8, sphereCardCount.value + delta);
       };
 
-      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~40% 紧凑包覆)，杜绝空旷荒漠
+      // 恒定黄金紧凑度算法：卡片自适应尺寸与恒定覆盖率模型 (~30% 紧凑包覆)，预留呼吸间隔，杜绝穿插
       const getSphereCardDimensions = computed(() => {
         const count = spherePhotosList.value.length || sphereCardCount.value || 24;
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
         const isTablet = typeof window !== 'undefined' && window.innerWidth < 1024;
         if (count <= 18) {
-          return isMobile ? { w: 82, h: 108 } : (isTablet ? { w: 94, h: 124 } : { w: 102, h: 136 });
+          return isMobile ? { w: 72, h: 94 } : (isTablet ? { w: 86, h: 114 } : { w: 96, h: 128 });
         } else if (count <= 32) {
-          return isMobile ? { w: 74, h: 98 } : (isTablet ? { w: 86, h: 114 } : { w: 92, h: 122 });
+          return isMobile ? { w: 64, h: 84 } : (isTablet ? { w: 76, h: 100 } : { w: 84, h: 112 });
         } else if (count <= 60) {
-          return isMobile ? { w: 68, h: 90 } : (isTablet ? { w: 78, h: 102 } : { w: 84, h: 110 });
+          return isMobile ? { w: 58, h: 76 } : (isTablet ? { w: 68, h: 90 } : { w: 76, h: 100 });
         } else if (count <= 90) {
-          return isMobile ? { w: 62, h: 82 } : (isTablet ? { w: 72, h: 94 } : { w: 76, h: 100 });
+          return isMobile ? { w: 52, h: 68 } : (isTablet ? { w: 62, h: 80 } : { w: 68, h: 88 });
         } else {
-          return isMobile ? { w: 56, h: 74 } : (isTablet ? { w: 66, h: 86 } : { w: 70, h: 92 });
+          return isMobile ? { w: 46, h: 60 } : (isTablet ? { w: 56, h: 72 } : { w: 60, h: 78 });
         }
       });
 
@@ -4183,15 +4271,15 @@
         const isMobile = window.innerWidth < 640;
         const isTablet = window.innerWidth < 1024;
         
-        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，彻底解决卡片稀疏空洞
+        // 目标紧凑度：球体表面积随 (卡片总面积 / 恒定覆盖率) 严格线性自适应，预留充足安全间距
         const dims = getSphereCardDimensions.value;
         const cardArea = dims.w * dims.h;
-        const targetCoverage = isMobile ? 0.38 : 0.40; // 黄金包裹密度 ~40%
+        const targetCoverage = isMobile ? 0.28 : 0.32;
         const idealR = Math.sqrt((count * cardArea) / (4 * Math.PI * targetCoverage));
         
-        // 视口安全阻尼：移动端限制在 165~275px，平板 210~315px，桌面 240~355px
-        const minR = isMobile ? 165 : (isTablet ? 210 : 240);
-        const maxR = isMobile ? 275 : (isTablet ? 315 : 355);
+        // 视口安全阻尼：移动端限制在 215~320px，平板 250~360px，桌面 280~420px
+        const minR = isMobile ? 215 : (isTablet ? 250 : 280);
+        const maxR = isMobile ? 320 : (isTablet ? 360 : 420);
         return Math.round(Math.max(minR, Math.min(maxR, idealR)));
       };
 
@@ -4277,46 +4365,17 @@
       let liveSphereRotY = 0;
       let sphereWorldDomEl = null;
 
-      // 真实立体景深视觉（3D Depth & Translucency）：全量可见，背面卡片自然透出半透明与景深光感，视频动图持续动态播放
+      // 真实立体景深视觉：纯GPU硬件深度缓冲，0 DOM变更杜绝闪烁
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
+        // 卡片由 GPU preserve-3d 与 backface-visibility: hidden 原生深度剔除，0 DOM 变更消除 60fps 刷新闪烁
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
-        const rxRad = rxDeg * (Math.PI / 180);
-        const ryRad = ryDeg * (Math.PI / 180);
-        const cosRx = Math.cos(rxRad);
-        const sinRx = Math.sin(rxRad);
-        const cosRy = Math.cos(ryRad);
-        const sinRy = Math.sin(ryRad);
-
-        const R = getSphereRadius();
         for (let i = 0; i < coords.length; i++) {
-          const c = coords[i];
-          const zEye = -c.px * sinRy * cosRx - c.py * sinRx + c.pz * cosRy * cosRx;
           const el = document.getElementById('sphere-card-' + i);
           if (!el) continue;
-
-          // 100% 保持可见，严禁背面隐藏
           if (el.style.visibility !== 'visible') {
             el.style.visibility = 'visible';
           }
-
-          const inner = el.querySelector('.sphere-card-inner') || el;
-
-          // 彻底修复透明问题：所有正反面卡片永久 100% 纯实色不透明，严禁任何半透明度
-          inner.style.opacity = '1';
-          if (zEye >= 0) {
-            // 正前方卡片 (zEye >= 0): 比例 100%, 正常亮度
-            inner.style.transform = 'scale(1)';
-            inner.style.filter = 'brightness(1)';
-          } else {
-            // 背面卡片 (zEye < 0): 纯实色不透明，轻微立体远近比例 (0.85~1.0)
-            const norm = Math.max(0, Math.min(1, (zEye + R) / R));
-            const depthScale = (0.85 + 0.15 * norm).toFixed(2);
-            inner.style.transform = `scale(${depthScale})`;
-            inner.style.filter = 'brightness(0.95)';
-          }
-
-          // 动图与实况视频全程保持播放，严禁暂停
           const vid = el.querySelector('video');
           if (vid && vid.paused) {
             vid.play().catch(() => {});
@@ -4494,12 +4553,12 @@
 
       const pickLocalImageForNewSpherePhoto = () => {
         openLocalAlbumPicker((newSrc, file) => {
-          const title = file && file.name ? file.name.replace(/\.[^/.]+$/, '') : '回忆星辰';
+          const copy = generateRomanticCopy(file, 'sphere');
           const newPhoto = {
             id: 'sphere_' + Date.now(),
             image: newSrc,
-            title: title,
-            story: '添加于 3D 浪漫回忆星球',
+            title: copy.title,
+            story: copy.story,
             date: new Date().toISOString().split('T')[0],
             uploader: '我们'
           };
@@ -4552,9 +4611,6 @@
           tickSphere();
           tryAutoPlay();
         });
-        syncSiteStateFromCloud();
-        syncLoveRecordsFromCloud();
-        syncLoveMessagesFromCloud();
         syncSiteStateFromCloud();
         syncLoveRecordsFromCloud();
         syncLoveMessagesFromCloud();
