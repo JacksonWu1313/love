@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:05:56",
+  "updated_at": "2026-10-29 00:09:37",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -191,46 +191,6 @@
       "time": "2026年10月26日",
       "status": "pending",
       "idx": 16
-    },
-    {
-      "idx": 17,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "今天我们去看了电影",
-      "reason": "🌟对话高光",
-      "time": "2026-10-29 13:05",
-      "status": "candidate"
-    },
-    {
-      "idx": 18,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "伍彦博",
-      "text": "对呀，那家爆米花很香",
-      "reason": "🌟对话高光",
-      "time": "2026-10-29 13:05",
-      "status": "candidate"
-    },
-    {
-      "idx": 19,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "下次还要去吃",
-      "reason": "🌟对话高光",
-      "time": "2026-10-29 13:05",
-      "status": "candidate"
-    },
-    {
-      "idx": 20,
-      "category": "highlight",
-      "target_type": "message",
-      "sender": "悦悦大王",
-      "text": "今天悦悦大王来姨妈了",
-      "reason": "💖 手动收录",
-      "time": "2026-10-29 13:05",
-      "status": "archived"
     }
   ]
 }
