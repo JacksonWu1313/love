@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-29 13:40:42",
+  "updated_at": "2026-10-29 13:41:37",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -200,6 +200,16 @@
       "text": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡。",
       "reason": "📖 已收录至手帐《KFC不蘸酱与公园吹晚风》",
       "time": "2026-10-29 13:40",
+      "status": "archived"
+    },
+    {
+      "idx": 18,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "一起包的第一锅饺子，热气腾腾，味道刚刚好。",
+      "reason": "📖 已收录至手帐《月光下的热饺子》",
+      "time": "2026-10-29 13:41",
       "status": "archived"
     }
   ]
