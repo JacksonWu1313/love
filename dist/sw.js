@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v9-instant-media';
+const CACHE_NAME = 'yb-love-v10-domestic-turbo';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -29,14 +29,17 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
-  // Cache-First for images, audio, and CDN assets
-  const isImageOrMedia = url.pathname.match(/\.(jpg|jpeg|png|svg|webp|gif|mp3|woff2|ttf)$/i) ||
+  // Cache-First for all static scripts, stylesheets, fonts, images, media, and domestic mirrors
+  const isStaticOrMedia = url.pathname.match(/\.(jpg|jpeg|png|svg|webp|gif|mp3|woff2|ttf|js|css)$/i) ||
                          url.pathname.includes('/images/') ||
                          url.pathname.includes('/audio/') ||
+                         url.hostname.includes('npmmirror.com') ||
+                         url.hostname.includes('tailwindcss.com') ||
+                         url.hostname.includes('font.im') ||
                          url.hostname.includes('jsdelivr.net') ||
                          url.hostname.includes('statically.io');
 
-  if (isImageOrMedia) {
+  if (isStaticOrMedia) {
     e.respondWith(
       caches.match(e.request).then((cached) => {
         if (cached) return cached;
@@ -46,7 +49,7 @@ self.addEventListener('fetch', (e) => {
             caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
           }
           return networkResp;
-        });
+        }).catch(() => null);
       })
     );
     return;
