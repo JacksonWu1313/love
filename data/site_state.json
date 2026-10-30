@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793289423748,
-  "updatedAtStr": "2026/10/29 23:57:03",
+  "updatedAt": 1793329844984,
+  "updatedAtStr": "2026/10/30 11:10:44",
   "siteData": {
     "hero": {
       "title1": "YB",
@@ -14,7 +14,7 @@
     },
     "stats": [
       {
-        "number": "182",
+        "number": "183",
         "label": "连续记录天数 (天)"
       },
       {
@@ -606,24 +606,6 @@
         "tag": "自驾漫游",
         "done": true,
         "image": "./images/wish_dali.jpg"
-      },
-      {
-        "text": "拍一组穿学士服的情侣毕业专属写真",
-        "tag": "校园留念",
-        "done": false,
-        "image": "./images/wish_grad.jpg"
-      },
-      {
-        "text": "一起看一场演唱会，在全场大合唱时拥抱",
-        "tag": "音乐之约",
-        "done": true,
-        "image": "./images/wish_concert.jpg"
-      },
-      {
-        "text": "去余姚主场看一场精彩的篮球比赛",
-        "tag": "球场打卡",
-        "done": false,
-        "image": "./images/wish_ball.jpg"
       },
       {
         "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",
