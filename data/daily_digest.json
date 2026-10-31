@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "updated_at": "2026-10-30 18:22:00",
+  "updated_at": "2026-10-31 14:38:10",
   "pc_wechat_online": true,
   "wechat_pids": [
     6768,
@@ -200,6 +200,16 @@
       "text": "今天悦悦大王奶奶想她了",
       "reason": "📖 已收录至手帐《今天悦悦大王奶奶想她了》",
       "time": "2026-10-30 18:22",
+      "status": "archived"
+    },
+    {
+      "idx": 18,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天悦悦大王奶奶想她了",
+      "reason": "📖 已收录至手帐《今天悦悦大王奶奶想她了》",
+      "time": "2026-10-31 14:38",
       "status": "archived"
     }
   ]
