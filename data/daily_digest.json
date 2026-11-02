@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "updated_at": "2026-11-01 00:00:00",
+  "updated_at": "2026-11-03 02:10:53",
   "pc_wechat_online": false,
   "wechat_pids": [],
   "today_media_count": 0,
@@ -14,5 +14,16 @@
   "duplicate_blocked_samples": [],
   "total_records_count": 4,
   "total_messages_count": 4,
-  "candidate_pool": []
+  "candidate_pool": [
+    {
+      "idx": 1,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王出来住了，吃了大碗先生",
+      "reason": "📖 已收录至手帐《今天和悦悦大王出来住了，...》",
+      "time": "2026-11-03 02:10",
+      "status": "archived"
+    }
+  ]
 }
