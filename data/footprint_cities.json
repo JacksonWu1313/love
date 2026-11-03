@@ -84,18 +84,6 @@
     "image": "./images/quote_1.jpg"
   },
   {
-    "id": "santorini",
-    "name": "圣托里尼 · 爱琴海",
-    "lat": 36.393,
-    "lng": 25.461,
-    "province": "希腊",
-    "date": "远期梦想 · 待打卡",
-    "status": "wish",
-    "tag": "世界之旅 · 愿望清单 ✈️",
-    "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
-    "image": "./images/wish_concert.jpg"
-  },
-  {
     "id": "city_1793700271707",
     "name": "香格里拉 · 云南",
     "province": "云南",
