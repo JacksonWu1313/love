@@ -2689,7 +2689,7 @@
         <input type="file" ref="poolFileInput" multiple accept="image/*,video/quicktime,video/mp4,video/webm,.mov,.mp4,.gif,.webp" @change="handlePoolFilesSelected" class="hidden">
 
       </div>
-      <div class="mt-3 max-w-2xl mx-auto px-4 py-2.5 rounded-2xl bg-blush-50/80 border border-blush-200/80 text-[11px] sm:text-xs text-ink/85 flex items-center justify-center gap-2 shadow-xs"><span class="px-1.5 py-0.5 rounded-full bg-black/75 text-white text-[9px] font-bold tracking-wider flex items-center gap-1 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE \u2b55</span><span class="text-left leading-relaxed"><strong>\U0001f4f1 iPhone \u4e0a\u4f20\u5b9e\u51b5\u5c0f\u8d34\u58eb\uff1a</strong>\u5728 iPhone \u7cfb\u7edf\u76f8\u518c\u91cc\u9009\u4e2d\u5b9e\u51b5\u7167\u7247 \u2794 \u70b9\u5de6\u4e0b\u89d2<strong>\u300c\u5206\u4eab\u300d</strong>\u2794 \u70b9<strong>\u300c\u5b58\u50a8\u4e3a\u89c6\u9891\u300d</strong>\uff081 \u79d2\u65e0\u635f\u5b58\u4e3a 2~3 \u79d2\u7684 <code class="px-1 py-0.5 rounded bg-white/80 text-clay font-mono">.mov</code> \u5b9e\u51b5\u52a8\u6001\u6587\u4ef6\uff09\u2794 \u5728\u7f51\u7ad9\u4efb\u610f\u4e0a\u4f20\u53e3\u9009\u4e2d\u5b83\u5373\u53ef\u76f4\u63a5\u4f5c\u4e3a <strong>LIVE \u2b55</strong> \u5b9e\u51b5\u5c55\u793a\uff01</span></div>
+      <div class="mt-3 max-w-2xl mx-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blush-50 via-warmwhite to-rose-50 border border-blush-200 text-xs text-ink flex flex-wrap items-center justify-between gap-2 shadow-sm"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full bg-black/80 text-white text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE \u2b55</span><span class="text-[11px] sm:text-xs font-medium text-ink/90"><strong>\U0001f39e\ufe0f \u5185\u7f6e\u5b9e\u51b5\u7167\u7247\u8f6c\u5316\u5668\uff1a</strong>\u9009\u62e9\u5b9e\u51b5\u539f\u7247 / \u8fde\u62cd\u7167\u7247\uff0c\u7f51\u9875\u81ea\u52a8\u63d0\u53d6\u6216\u5408\u6210 <strong>LIVE \u2b55</strong> \u52a8\u6001\u89c6\u9891\u5e76\u4e0a\u4f20\uff01</span></div><button type="button" @click="triggerLivePhotoConverter('pool')" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-clay text-white text-[11px] font-semibold shadow hover:opacity-95 active:scale-95 transition flex items-center gap-1 shrink-0"><span>\u26a1 \u4e0a\u4f20\u5b9e\u51b5\u5e76\u81ea\u52a8\u8f6c\u89c6\u9891</span></button><input type="file" ref="liveConverterInput" multiple accept="image/*,video/*,.heic,.mov,.mp4" @change="handleLiveConverterFiles" class="hidden"></div>
 
     </div>
 
@@ -4310,7 +4310,7 @@
             <input type="file" ref="recordImageInput" accept="image/*,video/quicktime,video/mp4,video/webm,.mov,.mp4,.gif,.webp" @change="handleRecordImageUpload" class="hidden">
 
           </div>
-          <p class="mt-1.5 text-[11px] text-muted leading-relaxed bg-sand/30 px-3 py-1.5 rounded-xl border border-sand/60">\U0001f4f1 <strong>iPhone \u4e0a\u4f20\u5b9e\u51b5\u5c0f\u8d34\u58eb\uff1a</strong>\u5728\u76f8\u518c\u9009\u4e2d\u5b9e\u51b5\u7167\u7247 \u2794 \u70b9\u5de6\u4e0b\u89d2\u300c\u5206\u4eab\u300d\u2794\u300c\u5b58\u50a8\u4e3a\u89c6\u9891\u300d\uff081 \u79d2\u65e0\u635f\u5b58\u4e3a .mov\uff09\u2794 \u4e0a\u4f20\u5373\u53ef\u4f5c\u4e3a <strong>LIVE \u2b55</strong> \u5b9e\u51b5\u5c55\u793a\uff01</p>
+          <div class="mt-2 flex items-center justify-between gap-2 bg-blush-50/70 px-3 py-1.5 rounded-xl border border-blush-200/80 text-[11px]"><span class="text-ink/80 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span><strong>LIVE \u2b55 \u5b9e\u51b5\u8f6c\u5316\u5668\uff1a</strong>\u652f\u6301\u5c06\u5b9e\u51b5/\u591a\u56fe\u81ea\u52a8\u8f6c\u4e3a\u52a8\u6001\u89c6\u9891</span><button type="button" @click="triggerLivePhotoConverter('record')" class="px-2.5 py-1 rounded-full bg-rose-500 text-white font-semibold shadow-xs hover:bg-rose-600 transition shrink-0">\u26a1 \u4e00\u952e\u8f6c\u5b9e\u51b5\u89c6\u9891</button></div>
 
         </div>
 
@@ -9349,6 +9349,137 @@
       // ---------------- 全站通用本地相册选图与动图无损直传引擎 (100% 保留超清画质与 GIF/WebP/APNG/Live 动图帧) ----------------
 
       const universalAlbumInput = ref(null);
+      const liveConverterInput = ref(null);
+      let liveConverterTarget = 'pool';
+
+      // [内置实况转化器引擎 1] 从实况照片二进制流中自动提取内嵌的 MP4/MOV 视频轨 (支持 Motion Photo / 实况原片)
+      const tryExtractEmbeddedVideoFromPhoto = async (file) => {
+        try {
+          if (!file || file.type.startsWith('video/')) return file;
+          const buf = await file.arrayBuffer();
+          const bytes = new Uint8Array(buf);
+          // 扫描 ISO Base Media ftyp 签名: 'ftypmp4', 'ftypisom', 'ftypqt  ', 'ftypM4V'
+          for (let i = 4; i < bytes.length - 12; i++) {
+            if (bytes[i] === 0x66 && bytes[i+1] === 0x74 && bytes[i+2] === 0x79 && bytes[i+3] === 0x70) {
+              const brand = String.fromCharCode(bytes[i+4], bytes[i+5], bytes[i+6], bytes[i+7]);
+              if (['mp41', 'mp42', 'isom', 'qt  ', 'M4V ', 'avc1', 'msnv'].includes(brand)) {
+                const boxStart = i - 4;
+                if (boxStart > 1024) {
+                  const vidBlob = new Blob([bytes.slice(boxStart)], { type: 'video/mp4' });
+                  return new File([vidBlob], file.name.replace(/\.[^.]+$/, '') + '_live.mp4', { type: 'video/mp4', lastModified: file.lastModified });
+                }
+              }
+            }
+          }
+        } catch (e) { console.warn('Embedded video scan skip:', e); }
+        return null;
+      };
+
+      // [内置实况转化器引擎 2] 当 iOS 相册剥离了 .mov 只传入静态照片/连拍照片时，在浏览器内使用 Canvas + MediaRecorder 实时渲染生成 2.4 秒 30fps 的 LIVE ⭕ 动态实况视频
+      const synthesizeLiveVideoFromImages = async (imgFiles) => {
+        const bitmaps = [];
+        for (const f of imgFiles) {
+          const url = URL.createObjectURL(f);
+          const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+          URL.revokeObjectURL(url);
+          bitmaps.push(img);
+        }
+        const first = bitmaps[0];
+        const maxSide = 960;
+        let w = first.naturalWidth || 720, h = first.naturalHeight || 960;
+        if (w > maxSide || h > maxSide) {
+          if (w > h) { h = Math.round(h * maxSide / w); w = maxSide; }
+          else { w = Math.round(w * maxSide / h); h = maxSide; }
+        }
+        w = w % 2 === 0 ? w : w - 1;
+        h = h % 2 === 0 ? h : h - 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx2d = canvas.getContext('2d');
+        const stream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
+        const mime = (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/mp4')) ? 'video/mp4' : ((typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) ? 'video/webm;codecs=vp9' : 'video/webm');
+        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+        const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
+        const chunks = [];
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+        const stopped = new Promise(r => { recorder.onstop = r; });
+        recorder.start();
+
+        const totalFrames = 66; // ~2.2 seconds at 30fps
+        for (let fIdx = 0; fIdx < totalFrames; fIdx++) {
+          const p = fIdx / (totalFrames - 1);
+          ctx2d.clearRect(0, 0, w, h);
+          if (bitmaps.length === 1) {
+            // Apple Live Photo 标志性呼吸微推进 + 柔光运镜
+            const ease = 0.5 - 0.5 * Math.cos(p * Math.PI * 2);
+            const scale = 1.0 + 0.065 * ease;
+            const panX = Math.sin(p * Math.PI * 2) * (w * 0.015);
+            const panY = Math.cos(p * Math.PI * 2) * (h * 0.012);
+            ctx2d.save();
+            ctx2d.translate(w / 2 + panX, h / 2 + panY);
+            ctx2d.scale(scale, scale);
+            ctx2d.drawImage(first, -w / 2, -h / 2, w, h);
+            ctx2d.restore();
+          } else {
+            // 多张连拍照片平滑帧插值合成实况视频
+            const floatIdx = p * (bitmaps.length - 1);
+            const i0 = Math.floor(floatIdx);
+            const i1 = Math.min(bitmaps.length - 1, i0 + 1);
+            const alpha = floatIdx - i0;
+            ctx2d.globalAlpha = 1;
+            ctx2d.drawImage(bitmaps[i0], 0, 0, w, h);
+            if (i1 !== i0 && alpha > 0) {
+              ctx2d.globalAlpha = alpha;
+              ctx2d.drawImage(bitmaps[i1], 0, 0, w, h);
+            }
+            ctx2d.globalAlpha = 1;
+          }
+          await new Promise(r => setTimeout(r, 32));
+        }
+        recorder.stop();
+        await stopped;
+        const outBlob = new Blob(chunks, { type: mime });
+        return new File([outBlob], (imgFiles[0].name.replace(/\.[^.]+$/, '') || 'live') + '.' + ext, { type: mime, lastModified: imgFiles[0].lastModified || Date.now() });
+      };
+
+      const triggerLivePhotoConverter = (target = 'pool') => {
+        liveConverterTarget = target;
+        if (liveConverterInput.value) {
+          liveConverterInput.value.value = '';
+          liveConverterInput.value.click();
+        }
+      };
+
+      const handleLiveConverterFiles = async (event) => {
+        const rawFiles = Array.from((event.target && event.target.files) || []);
+        if (!rawFiles.length) return;
+        saveMessage.value = '🎞️ 正在通过内置实况转化器提取/合成 LIVE ⭕ 视频...';
+        try {
+          // 1. 若里面本身包含 .mov/.mp4 视频文件，直接优先采用原片视频
+          let finalVideoFile = rawFiles.find(f => (f.type && f.type.startsWith('video/')) || /\.(mov|mp4|webm)$/i.test(f.name));
+          // 2. 尝试从实况照片二进制流直接提取内嵌视频轨
+          if (!finalVideoFile) {
+            for (const f of rawFiles) {
+              const extracted = await tryExtractEmbeddedVideoFromPhoto(f);
+              if (extracted) { finalVideoFile = extracted; break; }
+            }
+          }
+          // 3. 若被 iOS 剥离成纯静态图/连拍图，启动浏览器内 Canvas+MediaRecorder 实况合成引擎生成动态视频
+          if (!finalVideoFile) {
+            finalVideoFile = await synthesizeLiveVideoFromImages(rawFiles.slice(0, 6));
+          }
+          if (liveConverterTarget === 'record') {
+            await handleRecordImageUpload({ target: { files: [finalVideoFile] } });
+          } else {
+            await handlePoolFilesSelected({ target: { files: [finalVideoFile], value: '' } });
+          }
+        } catch (err) {
+          console.error('Live converter error:', err);
+          saveMessage.value = '❌ 实况转化失败，已按原图上传';
+          if (liveConverterTarget === 'record') await handleRecordImageUpload(event);
+          else await handlePoolFilesSelected(event);
+        }
+      };
 
       let pendingAlbumPickCallback = null;
 
@@ -10001,7 +10132,7 @@
 
         saveMessage.value = '⏳ 正在处理照片画质...';
 
-        const prep = await compressImageForUpload(file);
+        const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file); const prep = await compressImageForUpload(liveExtracted || file);
 
         if (!prep || !prep.dataUrl) {
 
@@ -11127,7 +11258,7 @@
 
 
 
-            const processed = await processImageForUpload(file);
+            const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file); const processed = await processImageForUpload(liveExtracted || file);
 
             const { base64, ext, isGif, isVideo } = processed;
 
@@ -14209,7 +14340,7 @@
 
         forcePullFromCloud,
 
-        universalAlbumInput,
+        universalAlbumInput, liveConverterInput, triggerLivePhotoConverter, handleLiveConverterFiles,
 
         openLocalAlbumPicker,
 
