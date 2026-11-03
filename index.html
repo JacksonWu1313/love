@@ -1240,13 +1240,7 @@
 
   <!-- Section 1: 时光轨迹画廊 (Timeline - 全篇幅双图文) -->
 
-  <section id=
-      <div class="mt-4 flex items-center justify-center gap-2">
-        <button @click="toggleTimelineEditMode" class="px-4 py-2 rounded-full shadow-sm text-xs font-semibold tracking-wide transition duration-300 flex items-center gap-1.5 active:scale-95" :class="isTimelineEditing ? 'bg-clay text-white ring-4 ring-clay/20' : 'bg-warmwhite hover:bg-sand/60 text-ink border border-sand/80'">
-          <i :data-lucide="isTimelineEditing ? 'check-circle' : 'edit-3'" class="w-3.5 h-3.5"></i>
-          <span>{{ isTimelineEditing ? '完成里程碑编辑' : '✨️ 编辑专属里程碑' }}</span>
-        </button>
-      </div>"timeline" class="py-20 px-4 max-w-5xl mx-auto">
+  <section id="timeline" class="py-20 px-4 max-w-5xl mx-auto">
 
     <div class="text-center mb-16">
 
@@ -1259,6 +1253,12 @@
       <h2 class="text-serif-sc text-2xl md:text-3xl font-semibold text-ink">时光轨迹 · 专属里程碑</h2>
 
       <p class="text-xs text-muted mt-2 tracking-wide">拒绝纯文字卡片 · 每一段回忆都有当时的相片为证</p>
+      <div class="mt-4 flex items-center justify-center gap-2">
+        <button @click="toggleTimelineEditMode" class="px-4 py-2 rounded-full shadow-sm text-xs font-semibold tracking-wide transition duration-300 flex items-center gap-1.5 active:scale-95" :class="isTimelineEditing ? 'bg-clay text-white ring-4 ring-clay/20' : 'bg-warmwhite hover:bg-sand/60 text-ink border border-sand/80'">
+          <i :data-lucide="isTimelineEditing ? 'check-circle' : 'edit-3'" class="w-3.5 h-3.5"></i>
+          <span>{{ isTimelineEditing ? '完成里程碑编辑' : '✨️ 编辑专属里程碑' }}</span>
+        </button>
+      </div>
 
     </div>
 
