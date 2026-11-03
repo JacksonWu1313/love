@@ -6550,7 +6550,7 @@
 
       const isEditing = ref(false);
       const isTimelineOnlyEditing = ref(false);
-      const isTimelineEditing = computed(() => isEditing.value || isTimelineOnlyEditing.value);
+      const isTimelineEditing = Vue.computed(() => isEditing.value || isTimelineOnlyEditing.value);
       const toggleTimelineEditMode = () => {
         isTimelineOnlyEditing.value = !isTimelineOnlyEditing.value;
         if (!isTimelineOnlyEditing.value) {
