@@ -2689,7 +2689,7 @@
         <input type="file" ref="poolFileInput" multiple accept="image/*,video/quicktime,video/mp4,video/webm,.mov,.mp4,.gif,.webp" @change="handlePoolFilesSelected" class="hidden">
 
       </div>
-      <div class="mt-3 max-w-2xl mx-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blush-50 via-warmwhite to-rose-50 border border-blush-200 text-xs text-ink flex flex-wrap items-center justify-between gap-2 shadow-sm"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full bg-black/80 text-white text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE \u2b55</span><span class="text-[11px] sm:text-xs font-medium text-ink/90"><strong>\U0001f39e\ufe0f \u5185\u7f6e\u5b9e\u51b5\u7167\u7247\u8f6c\u5316\u5668\uff1a</strong>\u9009\u62e9\u5b9e\u51b5\u539f\u7247 / \u8fde\u62cd\u7167\u7247\uff0c\u7f51\u9875\u81ea\u52a8\u63d0\u53d6\u6216\u5408\u6210 <strong>LIVE \u2b55</strong> \u52a8\u6001\u89c6\u9891\u5e76\u4e0a\u4f20\uff01</span></div><button type="button" @click="triggerLivePhotoConverter('pool')" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-clay text-white text-[11px] font-semibold shadow hover:opacity-95 active:scale-95 transition flex items-center gap-1 shrink-0"><span>\u26a1 \u4e0a\u4f20\u5b9e\u51b5\u5e76\u81ea\u52a8\u8f6c\u89c6\u9891</span></button><input type="file" ref="liveConverterInput" multiple accept="image/*,video/*,.heic,.mov,.mp4" @change="handleLiveConverterFiles" class="hidden"></div>
+      <div class="mt-3 max-w-2xl mx-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blush-50 via-warmwhite to-rose-50 border border-blush-200 text-xs text-ink flex flex-wrap items-center justify-between gap-2 shadow-sm"><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full bg-black/80 text-white text-[10px] font-bold tracking-wider flex items-center gap-1 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span><span class="text-[11px] sm:text-xs font-medium text-ink/90"><strong>🎞️ 内置实况照片转化器：</strong>选择实况原片 / 连拍照片，网页自动提取或合成 <strong>LIVE ⭕</strong> 动态视频并上传！</span></div><button type="button" @click="triggerLivePhotoConverter('pool')" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-clay text-white text-[11px] font-semibold shadow hover:opacity-95 active:scale-95 transition flex items-center gap-1 shrink-0"><span>⚡ 上传实况并自动转视频</span></button><input type="file" ref="liveConverterInput" multiple accept="image/*,video/*,.heic,.mov,.mp4" @change="handleLiveConverterFiles" class="hidden"></div>
 
     </div>
 
@@ -2705,7 +2705,7 @@
 
         <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
 
-          <img :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)">
+          <video v-if="isVideoMedia(photo.image) || photo.isVideo" :src="getFastImg(photo.image)" autoplay loop muted playsinline webkit-playsinline class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"></video><img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)"><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
 
           <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
 
@@ -4310,7 +4310,7 @@
             <input type="file" ref="recordImageInput" accept="image/*,video/quicktime,video/mp4,video/webm,.mov,.mp4,.gif,.webp" @change="handleRecordImageUpload" class="hidden">
 
           </div>
-          <div class="mt-2 flex items-center justify-between gap-2 bg-blush-50/70 px-3 py-1.5 rounded-xl border border-blush-200/80 text-[11px]"><span class="text-ink/80 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span><strong>LIVE \u2b55 \u5b9e\u51b5\u8f6c\u5316\u5668\uff1a</strong>\u652f\u6301\u5c06\u5b9e\u51b5/\u591a\u56fe\u81ea\u52a8\u8f6c\u4e3a\u52a8\u6001\u89c6\u9891</span><button type="button" @click="triggerLivePhotoConverter('record')" class="px-2.5 py-1 rounded-full bg-rose-500 text-white font-semibold shadow-xs hover:bg-rose-600 transition shrink-0">\u26a1 \u4e00\u952e\u8f6c\u5b9e\u51b5\u89c6\u9891</button></div>
+          <div class="mt-2 flex items-center justify-between gap-2 bg-blush-50/70 px-3 py-1.5 rounded-xl border border-blush-200/80 text-[11px]"><span class="text-ink/80 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span><strong>LIVE ⭕ 实况转化器：</strong>支持将实况/多图自动转为动态视频</span><button type="button" @click="triggerLivePhotoConverter('record')" class="px-2.5 py-1 rounded-full bg-rose-500 text-white font-semibold shadow-xs hover:bg-rose-600 transition shrink-0">⚡ 一键转实况视频</button></div>
 
         </div>
 
@@ -9403,7 +9403,7 @@
         const chunks = [];
         recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
         const stopped = new Promise(r => { recorder.onstop = r; });
-        recorder.start();
+        recorder.start(100);
 
         const totalFrames = 66; // ~2.2 seconds at 30fps
         for (let fIdx = 0; fIdx < totalFrames; fIdx++) {
@@ -9532,7 +9532,7 @@
                 const badge = document.createElement('span');
                 badge.setAttribute('data-live-badge', 'true');
                 badge.className = 'absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-[10px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none';
-                badge.innerHTML = '<span class=' + q + 'w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping' + q + '></span>LIVE \u2b55';
+                badge.innerHTML = '<span class=' + q + 'w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping' + q + '></span>LIVE ⭕';
                 parent.appendChild(badge);
               }
 
@@ -11042,9 +11042,7 @@
 
           video.playsInline = true;
 
-          const url = URL.createObjectURL(videoFile);
-
-          video.src = url;
+          const url = URL.createObjectURL(videoFile); setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} resolve({ coverBase64: null, durationStr: '00:03' }); }, 1200); video.src = url; try { video.load(); } catch(e){}
 
           video.onloadedmetadata = () => {
 
