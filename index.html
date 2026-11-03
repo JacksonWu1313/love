@@ -6306,7 +6306,7 @@
 
         }
 
-        const clean = src.replace(/^\.?\//, '').replace('images/thumb/', 'images/');
+        const clean = src.replace(/^\.?\//, ''); if (clean.startsWith('images/') && !clean.startsWith('images/thumb/') && !clean.startsWith('images/pool/') && !clean.startsWith('images/uploads/') && !clean.endsWith('.svg') && !clean.endsWith('.gif') && !clean.endsWith('.mp4')) { return './images/thumb/' + clean.slice(7); }
 
         if (clean.startsWith('images/')) {
 
@@ -9230,7 +9230,7 @@
 
         checkPwaStatus();
 
-        prewarmAllImages();
+        if (window.innerWidth > 1024) prewarmAllImages();
 
 
 
