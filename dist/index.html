@@ -2704,7 +2704,7 @@
 
         <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
 
-          <video v-if="isVideoMedia(photo.image) || photo.isVideo" :src="getFastImg(photo.image)" autoplay loop muted playsinline webkit-playsinline class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"></video><img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)"><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
+          <img v-if="(isVideoMedia(photo.image) || photo.isVideo) && photo.cover" :src="photo.cover" class="absolute inset-0 w-full h-full object-cover pointer-events-none" /><video v-if="isVideoMedia(photo.image) || photo.isVideo" :src="getFastImg(photo.image)" :poster="photo.cover || ''" autoplay loop muted playsinline webkit-playsinline @ended="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @error="$event.target.style.opacity = '0'" class="relative z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"></video><img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)"><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
 
           <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
 
@@ -7247,6 +7247,8 @@
 
 
 
+          const cleanPoolStr = JSON.stringify((siteData.photoPool || []).filter(p => p && p.image && (typeof p.image !== 'string' || !p.image.startsWith('blob:'))), null, 2);
+          await putGhFile('data/photo_pool.json', cleanPoolStr, 'feat(sync): solidify data/photo_pool.json');
           await putGhFile('data/site_state.json', stateJsonStr, 'feat(sync): solidify browser state to data/site_state.json');
 
           await putGhFile('dist/data/site_state.json', stateJsonStr, 'feat(sync): solidify browser state to dist/data/site_state.json');
