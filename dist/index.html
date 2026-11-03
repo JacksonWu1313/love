@@ -7089,7 +7089,7 @@
 
         try {
 
-          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/site_state.json?t=${Date.now()}`);
+          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/site_state.json?t=${Date.now()}`, { cache: 'no-store' });
 
           if (res.ok) {
 
@@ -7099,9 +7099,7 @@
 
             const cloudTs = Number(cloudState.updatedAt || 0);
 
-            if (cloudState.siteData && cloudTs >= localTs) {
-
-              Object.assign(siteData, cloudState.siteData);
+            if (cloudState.siteData && cloudTs >= localTs) { const prevPool = Array.isArray(siteData.photoPool) ? [...siteData.photoPool] : []; Object.assign(siteData, cloudState.siteData); if (Array.isArray(cloudState.siteData.photoPool) && prevPool.length > 0) { const stateImgs = new Set(cloudState.siteData.photoPool.map(p => p && (p.image || p.id))); const extraFromPool = prevPool.filter(p => p && !stateImgs.has(p.image || p.id)); if (extraFromPool.length > 0) siteData.photoPool = [...extraFromPool, ...cloudState.siteData.photoPool]; }
 
               localStorage.setItem(storageKey, JSON.stringify(siteData));
 
@@ -11033,7 +11031,7 @@
 
         try {
 
-          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/photo_pool.json?t=${Date.now()}`);
+          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' });
 
           if (res.ok) {
 
@@ -11045,9 +11043,7 @@
 
               const newItems = cloudPool.filter(p => !existingIds.has(p.id || p.image));
 
-              if (newItems.length > 0 || !siteData.photoPool || siteData.photoPool.length === 0) {
-
-                siteData.photoPool = cloudPool;
+              if (newItems.length > 0 || !siteData.photoPool || siteData.photoPool.length === 0) { const localByImg = new Map((siteData.photoPool || []).map(p => [p.image || p.id, p])); siteData.photoPool = cloudPool.map(cp => { const lp = localByImg.get(cp.image || cp.id); return lp ? { ...cp, title: (lp.title && !lp.title.startsWith('iPhone_Live_')) ? lp.title : (cp.title || lp.title), story: lp.story || cp.story } : cp; });
 
                 console.log(`[Cloud Sync] Synced ${cloudPool.length} photos from GitHub registry.`);
 
