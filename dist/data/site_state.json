@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793771248180,
-  "updatedAtStr": "2026/11/4 13:47:28",
+  "updatedAt": 1793771667821,
+  "updatedAtStr": "2026/11/4 13:54:27",
   "siteData": {
     "hero": {
       "title1": "YB",
@@ -40,6 +40,17 @@
         "images": [
           "./images/timeline_05_1.jpg",
           "./images/timeline_05_2.jpg"
+        ]
+      },
+      {
+        "date": "2026年5-6月",
+        "tag": "新的回忆",
+        "title": "一周一次的商场美食搜寻 在盛香亭吃“进口龙虾”",
+        "desc": "最开心的莫过于在万家丽做完美甲去看电影然后去吃盛香亭啦……",
+        "quote": "“我今天给你修眉，我想吃盛香亭”",
+        "images": [
+          "./images/timeline_08_1.jpg",
+          "./images/timeline_08_2.jpg"
         ]
       },
       {
