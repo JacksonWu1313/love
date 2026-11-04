@@ -4,6 +4,53 @@
 
 <head>
 
+  <!-- 全局高可用 SafeStorage 内存沙箱（彻底根除微信/Safari私密浏览 SecurityError 导致的白屏崩溃） -->
+  <script>
+    (function() {
+      var mem = {};
+      var storageAvailable = false;
+      try {
+        if (typeof window !== 'undefined' && 'localStorage' in window && window.localStorage !== null) {
+          var testK = '__test_st_' + Date.now();
+          window.localStorage.setItem(testK, '1');
+          window.localStorage.removeItem(testK);
+          storageAvailable = true;
+        }
+      } catch (e) {
+        storageAvailable = false;
+      }
+
+      if (!storageAvailable) {
+        try {
+          var mockStorage = {
+            getItem: function(k) { return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; },
+            setItem: function(k, v) { mem[k] = String(v); },
+            removeItem: function(k) { delete mem[k]; },
+            clear: function() { mem = {}; }
+          };
+          Object.defineProperty(window, 'localStorage', {
+            value: mockStorage,
+            writable: true,
+            configurable: true
+          });
+          console.warn('[SafeStorage] localStorage unavailable/blocked, fallback to in-memory storage.');
+        } catch (err) {}
+      }
+
+      // 绝对防白屏看门狗：任何情况下 1.5 秒后强行撕掉 v-cloak，保证主界面立刻显现
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          var app = document.getElementById('app');
+          if (app && app.hasAttribute('v-cloak')) {
+            app.removeAttribute('v-cloak');
+            console.log('[AntiWhite] Force removed v-cloak by watchdog.');
+          }
+        }, 1500);
+      });
+    })();
+  </script>
+
+
   
 
     <!-- Anti-White-Screen Global Error Guard -->
@@ -6832,7 +6879,7 @@
 
         try {
 
-          const res = await fetch(`./data/love_records.json?t=${Date.now()}`);
+          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/love_records.json?t=${Date.now()}`);
 
           if (res.ok) {
 
@@ -7184,10 +7231,7 @@
 
         try {
 
-          let res = await fetch(`./data/site_state.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
-        if (!res || !res.ok) {
-          res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null);
-        }
+          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/site_state.json?t=${Date.now()}`, { cache: 'no-store' });
 
           if (res.ok) {
 
@@ -7681,7 +7725,7 @@
 
         try {
 
-          const res = await fetch(`./data/love_messages.json?t=${Date.now()}`);
+          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/love_messages.json?t=${Date.now()}`);
 
           if (res.ok) {
 
@@ -11193,10 +11237,7 @@
 
         try {
 
-          let res = await fetch(`./data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
-          if (!res || !res.ok) {
-            res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null);
-          }
+          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' });
 
           if (res.ok) {
 
