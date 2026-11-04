@@ -9667,7 +9667,7 @@
                 const badge = document.createElement('span');
                 badge.setAttribute('data-live-badge', 'true');
                 badge.className = 'absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/60 text-[10px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none';
-                badge.innerHTML = '<span class=' + q + 'w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping' + q + '></span>LIVE ⭕';
+                badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕';
                 parent.appendChild(badge);
               }
 
@@ -10447,6 +10447,31 @@
       };
 
 
+
+      
+      const showTimelinePhotoActionModal = ref(false);
+      let activeTimelineSlot = null;
+
+      const openTimelinePhotoAction = (mIdx, imgIdx) => {
+        activeTimelineSlot = { mIdx, imgIdx };
+        showTimelinePhotoActionModal.value = true;
+      };
+
+      const closeTimelinePhotoAction = () => {
+        showTimelinePhotoActionModal.value = false;
+        activeTimelineSlot = null;
+      };
+
+      const chooseTimelineAction = (type) => {
+        const slot = activeTimelineSlot;
+        closeTimelinePhotoAction();
+        if (!slot) return;
+        if (type === 'album') {
+          promptChangeTimelineImage(slot.mIdx, slot.imgIdx);
+        } else if (type === 'ios-live') {
+          openIosLiveModal('timeline', slot);
+        }
+      };
 
       const promptChangeTimelineImage = (mIdx, imgIdx) => {
 
@@ -14206,6 +14231,11 @@
 
         promptChangeArrayImage,
 
+        showTimelinePhotoActionModal,
+        openTimelinePhotoAction,
+        closeTimelinePhotoAction,
+        chooseTimelineAction,
+        getLiveCover,
         promptChangeTimelineImage,
 
         addTimelineMilestone,
