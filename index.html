@@ -728,6 +728,28 @@
 
 
 
+  
+  <!-- Timeline Photo Action Bottom Sheet Modal -->
+  <div v-if="showTimelinePhotoActionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" @click="closeTimelinePhotoAction">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-3 animate-in fade-in slide-in-from-bottom-6 duration-200" @click.stop>
+      <div class="text-center pb-2 border-b border-sand">
+        <h4 class="text-sm font-bold text-ink font-serif">更换此位置相片</h4>
+        <p class="text-[11px] text-muted mt-0.5">支持超清原图、动态照片与 iPhone 实况</p>
+      </div>
+      <button @click="chooseTimelineAction('album')" class="w-full py-3 px-4 rounded-2xl bg-sand/30 hover:bg-sand/60 text-ink text-xs font-semibold flex items-center justify-between transition active:scale-98">
+        <span class="flex items-center gap-2"><span>📷</span> <span>从本地相册选图 / 动图</span></span>
+        <span class="text-muted text-[10px]">普通照片 / 华为小米实况</span>
+      </button>
+      <button @click="chooseTimelineAction('ios-live')" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-clay text-white text-xs font-semibold flex items-center justify-between shadow-soft transition active:scale-98">
+        <span class="flex items-center gap-2"><span>🍎</span> <span>iPhone 实况一键直传 (LIVE ⭕)</span></span>
+        <span class="text-white/80 text-[10px]">提取 3 秒原画视频</span>
+      </button>
+      <button @click="closeTimelinePhotoAction" class="w-full py-2.5 text-center text-xs text-muted hover:text-ink font-medium transition">
+        取消
+      </button>
+    </div>
+  </div>
+
   <!-- Floating Multi-OS App Guide Button & Arrow Tip for 小悦悦 -->
 
   <div class="fixed top-4 left-4 z-40 flex flex-col items-start select-none">
@@ -1342,13 +1364,15 @@
 
                 <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative">
 
+                  <img v-if="getLiveCover(imgSrc)" :src="getLiveCover(imgSrc)" class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
                   <video v-if="isVideoMedia(imgSrc)"
                          :src="getFastImg(imgSrc)"
+                         :poster="getLiveCover(imgSrc) || ''"
                          autoplay
                          muted
                          playsinline
                          webkit-playsinline
-                         class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none"
+                         class="relative z-[1] w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none"
                          @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
                          @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
 
@@ -1368,17 +1392,9 @@
 
               </div>
 
-              <div :class="isTimelineEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover/img:opacity-100'" class="absolute top-3 right-3 flex items-center gap-1.5 z-20">
-
-                <button @click.stop="openIosLiveModal('timeline', { mIdx: idx, imgIdx: imgIdx })" class="px-2 py-1 bg-gradient-to-r from-rose-500 to-clay text-white rounded-full shadow text-[10px] flex items-center gap-1 hover:opacity-95 transition" title="iPhone 实况一键直传">
-                  <span>🍎 实况直传</span>
-                </button>
-
-                <button @click.stop="promptChangeTimelineImage(idx, imgIdx)" class="px-2 py-1 bg-clay/95 text-white rounded-full shadow text-[10px] flex items-center gap-1 hover:bg-rose-500 transition" title="本地相册换图/动图">
-                  <span>📷 相册换图</span>
-                </button>
-
-              </div>
+              <button v-if="isTimelineEditing" @click.stop="openTimelinePhotoAction(idx, imgIdx)" class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/60 hover:bg-black/85 backdrop-blur-md text-white text-[11px] font-medium shadow-md flex items-center gap-1 transition z-20 active:scale-95" title="更换相片或上传实况">
+                <span>📷 换图/实况</span>
+              </button>
 
             </div>
 
@@ -6389,6 +6405,26 @@
 
       }
 
+      
+      // 实况照片封面智能提取与本地持久化缓存（防止实况视频播放完毕或 WebKit 回收显存时变灰）
+      const liveCoverMap = reactive({});
+      const getLiveCover = (src) => {
+        if (!src) return '';
+        if (liveCoverMap[src]) return liveCoverMap[src];
+        if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
+          return window.__liveCoverCache[src];
+        }
+        return '';
+      };
+      const setLiveCover = (src, coverDataUrl) => {
+        if (!src || !coverDataUrl) return;
+        liveCoverMap[src] = coverDataUrl;
+        if (typeof window !== 'undefined') {
+          if (!window.__liveCoverCache) window.__liveCoverCache = {};
+          window.__liveCoverCache[src] = coverDataUrl;
+        }
+      };
+
       const getFastImg = (src) => {
 
         if (!src) return '';
@@ -10248,10 +10284,11 @@
 
 
 
-        // 1. 严格仅调用一次 callback，使用持久可复现的 dataUrl (永不过期，杜绝临时 blob 失效变问号)
-
+        // 1. 严格仅调用一次 callback，使用持久可复现的 dataUrl
         const initialUrl = prep.dataUrl;
-
+        if (prep.coverBase64) {
+          setLiveCover(initialUrl, prep.coverBase64);
+        }
         callback(initialUrl, file);
 
         saveMessage.value = prep.isAnim ? '🎞️ 动图已即时生效，正在同步至云端...' : '📷 照片已即时生效，正在同步至云端...';
@@ -10305,6 +10342,15 @@
             // 云端上传成功后，就地静默将 initialUrl 替换为 repoRelPath
 
             replaceMediaUrlInSiteData(initialUrl, repoRelPath);
+            if (typeof window !== 'undefined') {
+              if (!window.__liveUploadedBlobMap) window.__liveUploadedBlobMap = {};
+              window.__liveUploadedBlobMap[repoRelPath] = initialUrl;
+              window.__liveUploadedBlobMap['./' + repoRelPath.replace(/^\.?\//, '')] = initialUrl;
+            }
+            if (prep.coverBase64) {
+              setLiveCover(repoRelPath, prep.coverBase64);
+              setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), prep.coverBase64);
+            }
 
             try {
 
