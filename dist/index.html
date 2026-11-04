@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261104_23').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261104_24').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -1466,26 +1466,30 @@
 
                 <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative">
 
-                  <img v-if="getLiveCover(imgSrc)" :src="getLiveCover(imgSrc)" class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                  <!-- 永不灰屏：底置静态封面图 -->
+                  <img :src="getFastCoverOrImg(imgSrc)"
+                       :alt="item.title"
+                       class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none"
+                       loading="lazy"
+                       decoding="async"
+                       @error="onImgError($event, imgSrc)">
+                  <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
                   <video v-if="isVideoMedia(imgSrc)"
                          :src="getFastImg(imgSrc)"
-                         :poster="getLiveCover(imgSrc) || ''"
+                         :poster="getFastCover(imgSrc) || ''"
                          autoplay
                          muted
                          loop
                          playsinline
                          webkit-playsinline
-                         class="relative z-[1] w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none"
+                         class="absolute inset-0 z-[1] w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
+                         style="opacity: 0;"
+                         @loadeddata="$event.target.style.opacity = '1'"
+                         @canplay="$event.target.style.opacity = '1'"
+                         @playing="$event.target.style.opacity = '1'"
+                         @error="handleVideoError($event)"
                          @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
                          @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
-
-                  <img v-else
-                       :src="getFastImg(imgSrc)"
-                       :alt="item.title"
-                       class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500"
-                       loading="lazy"
-                       decoding="async"
-                       @error="onImgError($event, imgSrc)">
 
                   <span v-if="isMotionMedia(imgSrc)" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
                     <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(imgSrc) ? 'animate-ping' : ''"></span>LIVE ⭕
@@ -1573,7 +1577,23 @@
 
             <div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="openLightbox(q.image)">
 
-              <video v-if="isVideoMedia(q.image)" :src="getFastImg(q.image)" autoplay muted loop playsinline webkit-playsinline class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none" @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video><img v-else :src="getFastImg(q.image)" :alt="q.author" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, q.image)"><span v-if="isMotionMedia(q.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(q.image) ? 'animate-ping' : ''"></span>LIVE ⭕</span>
+              <!-- 永不灰屏：底置静态封面图 -->
+              <img :src="getFastCoverOrImg(q.image)" :alt="q.author"
+                   class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"
+                   loading="lazy" decoding="async" @error="onImgError($event, q.image)">
+              <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
+              <video v-if="isVideoMedia(q.image)"
+                     :src="getFastImg(q.image)"
+                     :poster="getFastCover(q.image) || ''"
+                     autoplay muted loop playsinline webkit-playsinline
+                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
+                     style="opacity: 0;"
+                     @loadeddata="$event.target.style.opacity = '1'"
+                     @canplay="$event.target.style.opacity = '1'"
+                     @playing="$event.target.style.opacity = '1'"
+                     @error="handleVideoError($event)"
+                     @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
+                     @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video><span v-if="isMotionMedia(q.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(q.image) ? 'animate-ping' : ''"></span>LIVE ⭕</span>
 
               <button @click.stop="promptChangeArrayImage('quotes', qIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover:opacity-100'" class="absolute top-2.5 right-2.5 px-2.5 py-1 bg-clay/95 text-white rounded-full text-[11px] flex items-center gap-1 shadow hover:bg-rose-500 transition z-20">
 
@@ -2521,31 +2541,26 @@
 
                   <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/40 bg-gradient-to-br from-sand/30 via-rose-50/25 to-sand/20">
 
-                    <!-- 实况视频 / 动图双轨渲染 -->
-
-                    <video v-if="isVideoMedia(photo.image)"
-
-                           :src="getFastImg(photo.image)"
-
-                           autoplay muted loop playsinline webkit-playsinline disablePictureInPicture @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-
-                           class="w-full h-full object-cover pointer-events-none"
-
-                           style="aspect-ratio: 1/1.15;"></video>
-
-                    <img v-else
-
-                         :src="getFastImg(photo.image)"
-
+                    <!-- 永不灰屏：底置静态封面图 -->
+                    <img :src="getFastCoverOrImg(photo)"
                          :alt="photo.title || '照片'"
-
                          class="w-full h-full object-cover pointer-events-none"
-
                          loading="eager" fetchpriority="high" decoding="async"
-
                          style="aspect-ratio: 1/1.15;"
-
                          @error="onImgError($event, photo.image)">
+                    <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
+                    <video v-if="isVideoMedia(photo.image)"
+                           :src="getFastImg(photo.image)"
+                           :poster="getFastCover(photo) || ''"
+                           autoplay muted loop playsinline webkit-playsinline disablePictureInPicture
+                           @loadeddata="$event.target.style.opacity = '1'"
+                           @canplay="$event.target.style.opacity = '1'"
+                           @playing="$event.target.style.opacity = '1'"
+                           @error="handleVideoError($event)"
+                           @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
+                           @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
+                           class="absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300"
+                           style="aspect-ratio: 1/1.15; opacity: 0;"></video>
 
 
 
@@ -2849,7 +2864,25 @@
 
         <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
 
-          <img v-if="(isVideoMedia(photo.image) || photo.isVideo) && photo.cover" :src="photo.cover" class="absolute inset-0 w-full h-full object-cover pointer-events-none" /><video v-if="isVideoMedia(photo.image) || photo.isVideo" :src="getFastImg(photo.image)" :poster="photo.cover || ''" autoplay muted loop playsinline webkit-playsinline @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @error="$event.target.style.opacity = '0'" class="relative z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"></video><img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)"><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
+          <!-- 永不灰屏：底置静态封面图 -->
+          <img :src="getFastCoverOrImg(photo)"
+               :alt="photo.title || '照片'"
+               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"
+               loading="lazy" decoding="async"
+               @error="onImgError($event, photo.image)">
+          <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
+          <video v-if="isVideoMedia(photo.image) || photo.isVideo"
+                 :src="getFastImg(photo.image)"
+                 :poster="getFastCover(photo) || ''"
+                 autoplay muted loop playsinline webkit-playsinline
+                 class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
+                 style="opacity: 0;"
+                 @loadeddata="$event.target.style.opacity = '1'"
+                 @canplay="$event.target.style.opacity = '1'"
+                 @playing="$event.target.style.opacity = '1'"
+                 @error="handleVideoError($event)"
+                 @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
+                 @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
 
           <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
 
@@ -3427,15 +3460,25 @@
 
               <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
 
-                <img v-if="(isVideoMedia(photo.image) || photo.isVideo) && photo.cover" :src="photo.cover" class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                <!-- 永不灰屏：底置静态封面图 -->
+                <img :src="getFastCoverOrImg(photo)"
+                     :alt="photo.title || '照片'"
+                     class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"
+                     loading="lazy" decoding="async"
+                     @error="onImgError($event, photo.image)">
+                <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
                 <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                        :src="getFastImg(photo.image)"
-                       :poster="photo.cover || ''"
+                       :poster="getFastCover(photo) || ''"
                        autoplay muted loop playsinline webkit-playsinline
-                       class="relative z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"
+                       class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
+                       style="opacity: 0;"
+                       @loadeddata="$event.target.style.opacity = '1'"
+                       @canplay="$event.target.style.opacity = '1'"
+                       @playing="$event.target.style.opacity = '1'"
+                       @error="handleVideoError($event)"
                        @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
                        @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
-                <img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)">
                 <span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕
                 </span>
@@ -3525,8 +3568,10 @@
       <video v-if="activeLightboxVideo"
 
              :src="getFastImg(activeLightboxVideo)"
+             :poster="getFastCover(activeLightboxVideo) || ''"
 
              controls autoplay loop playsinline webkit-playsinline
+             @error="onLightboxVideoError"
 
              class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl bg-black">
 
@@ -4658,24 +4703,30 @@
 
           <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
 
+            <!-- 永不灰屏：底置静态封面图 -->
+            <img :src="getFastCoverOrImg(item.rec.image)"
+                 :alt="item.rec.title"
+                 class="w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none"
+                 loading="lazy"
+                 decoding="async"
+                 @error="onImgError($event, item.rec.image)">
+            <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
             <video v-if="isVideoMedia(item.rec.image)"
                    :src="getFastImg(item.rec.image)"
+                   :poster="getFastCover(item.rec.image) || ''"
                    autoplay
                    muted
                    loop
                    playsinline
                    webkit-playsinline
-                   class="w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none"
+                   class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
+                   style="opacity: 0;"
+                   @loadeddata="$event.target.style.opacity = '1'"
+                   @canplay="$event.target.style.opacity = '1'"
+                   @playing="$event.target.style.opacity = '1'"
+                   @error="handleVideoError($event)"
                    @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
                    @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
-
-            <img v-else
-                 :src="getFastImg(item.rec.image)"
-                 :alt="item.rec.title"
-                 class="w-full h-full object-cover hover:scale-105 transition duration-500"
-                 loading="lazy"
-                 decoding="async"
-                 @error="onImgError($event, item.rec.image)">
 
             <span v-if="isMotionMedia(item.rec.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
               <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(item.rec.image) ? 'animate-ping' : ''"></span>LIVE ⭕
@@ -4919,24 +4970,30 @@
 
         <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
 
+          <!-- 永不灰屏：底置静态封面图 -->
+          <img :src="getFastCoverOrImg(item.rec.image)"
+               :alt="item.rec.title"
+               class="w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none"
+               loading="lazy"
+               decoding="async"
+               @error="onImgError($event, item.rec.image)">
+          <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
           <video v-if="isVideoMedia(item.rec.image)"
                  :src="getFastImg(item.rec.image)"
+                 :poster="getFastCover(item.rec.image) || ''"
                  autoplay
                  muted
                  loop
                  playsinline
                  webkit-playsinline
-                 class="w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none"
+                 class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
+                 style="opacity: 0;"
+                 @loadeddata="$event.target.style.opacity = '1'"
+                 @canplay="$event.target.style.opacity = '1'"
+                 @playing="$event.target.style.opacity = '1'"
+                 @error="handleVideoError($event)"
                  @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
                  @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
-
-          <img v-else
-               :src="getFastImg(item.rec.image)"
-               :alt="item.rec.title"
-               class="w-full h-full object-cover hover:scale-105 transition duration-500"
-               loading="lazy"
-               decoding="async"
-               @error="onImgError($event, item.rec.image)">
 
           <span v-if="isMotionMedia(item.rec.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(item.rec.image) ? 'animate-ping' : ''"></span>LIVE ⭕
@@ -6545,12 +6602,77 @@
         }
         return '';
       };
+
       const setLiveCover = (src, coverDataUrl) => {
         if (!src || !coverDataUrl) return;
         liveCoverMap[src] = coverDataUrl;
         if (typeof window !== 'undefined') {
           if (!window.__liveCoverCache) window.__liveCoverCache = {};
           window.__liveCoverCache[src] = coverDataUrl;
+        }
+      };
+
+      const getFastCover = (item) => {
+        if (!item) return '';
+        if (typeof item === 'object') {
+          if (item.cover) return getFastImg(item.cover);
+          const src = item.image || item.src || '';
+          if (src && liveCoverMap[src]) return liveCoverMap[src];
+          if (src && typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
+            return window.__liveCoverCache[src];
+          }
+        } else if (typeof item === 'string') {
+          if (liveCoverMap[item]) return liveCoverMap[item];
+          if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[item]) {
+            return window.__liveCoverCache[item];
+          }
+        }
+        return '';
+      };
+
+      const getFastCoverOrImg = (item) => {
+        if (!item) return './images/hero_cover.jpg';
+        if (typeof item === 'object') {
+          if (item.cover) return getFastImg(item.cover);
+          const src = item.image || item.src || '';
+          if (src && liveCoverMap[src]) return liveCoverMap[src];
+          if (src && typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
+            return window.__liveCoverCache[src];
+          }
+          if (isVideoMedia(src)) {
+            const match = (siteData.photoPool || []).find(p => p && p.image === src);
+            if (match && match.cover) return getFastImg(match.cover);
+            return './images/hero_cover.jpg';
+          }
+          return getFastImg(src);
+        }
+        const src = String(item);
+        if (liveCoverMap[src]) return liveCoverMap[src];
+        if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
+          return window.__liveCoverCache[src];
+        }
+        if (isVideoMedia(src)) {
+          const match = (siteData.photoPool || []).find(p => p && p.image === src);
+          if (match && match.cover) return getFastImg(match.cover);
+          return './images/hero_cover.jpg';
+        }
+        return getFastImg(src);
+      };
+
+      const handleVideoError = (event) => {
+        const v = event.target;
+        if (!v) return;
+        v.style.opacity = '0';
+        v.style.display = 'none';
+      };
+
+      const onLightboxVideoError = (event) => {
+        if (activeLightboxVideo.value) {
+          const cover = getFastCover(activeLightboxVideo.value);
+          if (cover) {
+            activeLightboxImg.value = cover;
+            activeLightboxVideo.value = null;
+          }
         }
       };
 
@@ -14596,6 +14718,10 @@
         closeTimelinePhotoAction,
         chooseTimelineAction,
         getLiveCover,
+        getFastCover,
+        getFastCoverOrImg,
+        handleVideoError,
+        onLightboxVideoError,
         showUniversalPhotoActionModal,
         openUniversalPhotoAction,
         closeUniversalPhotoAction,
