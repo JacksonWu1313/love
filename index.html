@@ -724,7 +724,7 @@
 
   <!-- 全站通用本地相册选图器 (支持超清原图、GIF/WebP/APNG 动图与 LivePhoto 动态视频) -->
 
-  <input type="file" ref="universalAlbumInput" multiple accept="image/*,.gif,.webp,.apng,.png,.jpg,.jpeg,.avif,video/mp4,video/quicktime,video/webm" @change="handleUniversalAlbumPicked" class="hidden">
+  <input type="file" ref="universalAlbumInput" accept="image/*,.gif,.webp,.apng,.png,.jpg,.jpeg,.avif,video/mp4,video/quicktime,video/webm" @change="handleUniversalAlbumPicked" class="hidden">
 
 
 
@@ -1332,7 +1332,7 @@
 
 
 
-          <!-- Dual Photo Grid (All milestones with photos) -->
+          <!-- Dual Photo Grid (All milestones with photos & Live Photos) -->
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
@@ -1340,19 +1340,45 @@
 
               <div class="polaroid-frame rounded-2xl cursor-pointer" @click="openLightbox(imgSrc)">
 
-                <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40">
+                <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative">
 
-                  <img :src="getFastImg(imgSrc)" :alt="item.title" class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, imgSrc)">
+                  <video v-if="isVideoMedia(imgSrc)"
+                         :src="getFastImg(imgSrc)"
+                         autoplay
+                         muted
+                         playsinline
+                         webkit-playsinline
+                         class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none"
+                         @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
+                         @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
+
+                  <img v-else
+                       :src="getFastImg(imgSrc)"
+                       :alt="item.title"
+                       class="w-full h-full object-cover group-hover/img:scale-105 transition duration-500"
+                       loading="lazy"
+                       decoding="async"
+                       @error="onImgError($event, imgSrc)">
+
+                  <span v-if="isMotionMedia(imgSrc)" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(imgSrc) ? 'animate-ping' : ''"></span>LIVE ⭕
+                  </span>
 
                 </div>
 
               </div>
 
-              <button @click.stop="promptChangeTimelineImage(idx, imgIdx)" :class="isTimelineEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover/img:opacity-100'" class="absolute top-3 right-3 px-2.5 py-1 bg-clay/95 text-white rounded-full shadow text-[11px] flex items-center gap-1 hover:bg-rose-500 transition z-20">
+              <div :class="isTimelineEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover/img:opacity-100'" class="absolute top-3 right-3 flex items-center gap-1.5 z-20">
 
-                <span>📷 相册换图</span>
+                <button @click.stop="openIosLiveModal('timeline', { mIdx: idx, imgIdx: imgIdx })" class="px-2 py-1 bg-gradient-to-r from-rose-500 to-clay text-white rounded-full shadow text-[10px] flex items-center gap-1 hover:opacity-95 transition" title="iPhone 实况一键直传">
+                  <span>🍎 实况直传</span>
+                </button>
 
-              </button>
+                <button @click.stop="promptChangeTimelineImage(idx, imgIdx)" class="px-2 py-1 bg-clay/95 text-white rounded-full shadow text-[10px] flex items-center gap-1 hover:bg-rose-500 transition" title="本地相册换图/动图">
+                  <span>📷 相册换图</span>
+                </button>
+
+              </div>
 
             </div>
 
@@ -1428,7 +1454,7 @@
 
             <div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="openLightbox(q.image)">
 
-              <img :src="getFastImg(q.image)" :alt="q.author" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, q.image)">
+              <video v-if="isVideoMedia(q.image)" :src="getFastImg(q.image)" autoplay muted playsinline webkit-playsinline class="w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none" @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video><img v-else :src="getFastImg(q.image)" :alt="q.author" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, q.image)"><span v-if="isMotionMedia(q.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(q.image) ? 'animate-ping' : ''"></span>LIVE ⭕</span>
 
               <button @click.stop="promptChangeArrayImage('quotes', qIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover:opacity-100'" class="absolute top-2.5 right-2.5 px-2.5 py-1 bg-clay/95 text-white rounded-full text-[11px] flex items-center gap-1 shadow hover:bg-rose-500 transition z-20">
 
@@ -2382,7 +2408,7 @@
 
                            :src="getFastImg(photo.image)"
 
-                           autoplay loop muted playsinline webkit-playsinline disablePictureInPicture
+                           autoplay muted playsinline webkit-playsinline disablePictureInPicture @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
 
                            class="w-full h-full object-cover pointer-events-none"
 
@@ -2704,7 +2730,7 @@
 
         <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
 
-          <img v-if="(isVideoMedia(photo.image) || photo.isVideo) && photo.cover" :src="photo.cover" class="absolute inset-0 w-full h-full object-cover pointer-events-none" /><video v-if="isVideoMedia(photo.image) || photo.isVideo" :src="getFastImg(photo.image)" :poster="photo.cover || ''" autoplay loop muted playsinline webkit-playsinline @ended="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @error="$event.target.style.opacity = '0'" class="relative z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"></video><img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)"><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
+          <img v-if="(isVideoMedia(photo.image) || photo.isVideo) && photo.cover" :src="photo.cover" class="absolute inset-0 w-full h-full object-cover pointer-events-none" /><video v-if="isVideoMedia(photo.image) || photo.isVideo" :src="getFastImg(photo.image)" :poster="photo.cover || ''" autoplay muted playsinline webkit-playsinline @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})" @error="$event.target.style.opacity = '0'" class="relative z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none"></video><img v-else :src="getFastImg(photo.image)" :alt="photo.title || '照片'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, photo.image)"><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
 
           <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
 
@@ -4489,12 +4515,30 @@
 
           <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
 
-            <img :src="getFastImg(item.rec.image)" :alt="item.rec.title" class="w-full h-full object-cover hover:scale-105 transition duration-500" loading="lazy" decoding="async" @error="onImgError($event, item.rec.image)">
+            <video v-if="isVideoMedia(item.rec.image)"
+                   :src="getFastImg(item.rec.image)"
+                   autoplay
+                   muted
+                   playsinline
+                   webkit-playsinline
+                   class="w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none"
+                   @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
+                   @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
+
+            <img v-else
+                 :src="getFastImg(item.rec.image)"
+                 :alt="item.rec.title"
+                 class="w-full h-full object-cover hover:scale-105 transition duration-500"
+                 loading="lazy"
+                 decoding="async"
+                 @error="onImgError($event, item.rec.image)">
+
+            <span v-if="isMotionMedia(item.rec.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(item.rec.image) ? 'animate-ping' : ''"></span>LIVE ⭕
+            </span>
 
             <span class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/55 text-white text-[10px] flex items-center gap-1">
-
-              <span>🔍 点击查看超清原图</span>
-
+              <span>{{ isVideoMedia(item.rec.image) ? '🎬 点击全屏沉浸播放' : '🔍 点击查看超清原图' }}</span>
             </span>
 
           </div>
@@ -9964,17 +10008,20 @@
 
 
       const openLocalAlbumPicker = (onPicked) => {
-
         pendingAlbumPickCallback = onPicked;
-
-        if (universalAlbumInput.value) {
-
-          universalAlbumInput.value.value = '';
-
-          universalAlbumInput.value.click();
-
-        }
-
+        const tempInput = document.createElement('input');
+        tempInput.type = 'file';
+        tempInput.accept = 'image/*,video/mp4,video/quicktime,video/webm,.mov,.mp4,.gif,.webp';
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-9999px';
+        tempInput.style.top = '-9999px';
+        tempInput.style.opacity = '0';
+        tempInput.onchange = (e) => {
+          handleUniversalAlbumPicked(e);
+          setTimeout(() => { try { document.body.removeChild(tempInput); } catch(err){} }, 1000);
+        };
+        document.body.appendChild(tempInput);
+        tempInput.click();
       };
 
 
@@ -11876,8 +11923,10 @@
       const isUploadingIosLive = ref(false);
       const iosLiveStatusMsg = ref('');
       let iosLiveTarget = 'pool';
-      const openIosLiveModal = (target = 'pool') => {
+      let iosLiveContext = null;
+      const openIosLiveModal = (target = 'pool', ctx = null) => {
         iosLiveTarget = target;
+        iosLiveContext = ctx;
         iosLiveStatusMsg.value = '';
         showIosLiveModal.value = true;
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
@@ -11912,6 +11961,14 @@
           iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传云端...';
           if (iosLiveTarget === 'record') {
             await handleRecordImageUpload({ target: { files: [file] } });
+          } else if (iosLiveTarget === 'timeline' && iosLiveContext) {
+            const { mIdx, imgIdx } = iosLiveContext;
+            openLocalAlbumPicker((newSrc) => {
+              if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
+                siteData.timeline[mIdx].images[imgIdx] = newSrc;
+              }
+            });
+            await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else {
             await handlePoolFilesSelected({ target: { files: [file], value: '' } });
           }
