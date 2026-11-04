@@ -3,20 +3,6 @@
 <html lang="zh-CN">
 
 <head>
-  <!-- 强力清理 Service Worker 缓存，确保 Safari/移动端不用 VPN 原生直连秒开 -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var i = 0; i < regs.length; i++) regs[i].unregister().catch(function() {});
-      }).catch(function() {});
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(keys) {
-        for (var i = 0; i < keys.length; i++) caches.delete(keys[i]).catch(function() {});
-      }).catch(function() {});
-    }
-  </script>
-
 
   
 
@@ -6846,7 +6832,7 @@
 
         try {
 
-          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/love_records.json?t=${Date.now()}`);
+          const res = await fetch(`./data/love_records.json?t=${Date.now()}`);
 
           if (res.ok) {
 
@@ -7198,7 +7184,10 @@
 
         try {
 
-          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/site_state.json?t=${Date.now()}`, { cache: 'no-store' });
+          let res = await fetch(`./data/site_state.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
+        if (!res || !res.ok) {
+          res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null);
+        }
 
           if (res.ok) {
 
@@ -7692,7 +7681,7 @@
 
         try {
 
-          const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/love_messages.json?t=${Date.now()}`);
+          const res = await fetch(`./data/love_messages.json?t=${Date.now()}`);
 
           if (res.ok) {
 
@@ -11204,7 +11193,10 @@
 
         try {
 
-          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' });
+          let res = await fetch(`./data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
+          if (!res || !res.ok) {
+            res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null);
+          }
 
           if (res.ok) {
 
@@ -12084,16 +12076,16 @@
             return;
           }
           const file = new File([bytes], 'iPhone_Live_' + Date.now() + '.mov', { type: 'video/quicktime', lastModified: Date.now() });
-          iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在写入该板块...'; saveMessage.value = '🎞️ 实况动图已生效，正在同步至云端...';
+          iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传云端...';
           if (iosLiveTarget === 'record') {
             // 随记/便签直接接收实况
-            pendingAlbumPickCallback = (newSrc) => {
+            universalAlbumCallback = (newSrc) => {
               newRecordImage.value = newSrc;
             };
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'timeline' && iosLiveContext) {
             const { mIdx, imgIdx } = iosLiveContext;
-            pendingAlbumPickCallback = (newSrc) => {
+            universalAlbumCallback = (newSrc) => {
               if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
                 siteData.timeline[mIdx].images[imgIdx] = newSrc;
               }
@@ -12101,7 +12093,7 @@
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'gallery' && iosLiveContext) {
             const { idx, field } = iosLiveContext;
-            pendingAlbumPickCallback = (newSrc) => {
+            universalAlbumCallback = (newSrc) => {
               if (siteData.gallery && siteData.gallery[idx]) {
                 siteData.gallery[idx][field || 'image'] = newSrc;
               }
@@ -12109,7 +12101,7 @@
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'quotes' && iosLiveContext) {
             const { idx, field } = iosLiveContext;
-            pendingAlbumPickCallback = (newSrc) => {
+            universalAlbumCallback = (newSrc) => {
               if (siteData.quotes && siteData.quotes[idx]) {
                 siteData.quotes[idx][field || 'image'] = newSrc;
               }
@@ -12117,12 +12109,12 @@
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'hero' && iosLiveContext) {
             const field = iosLiveContext.field || 'cover';
-            pendingAlbumPickCallback = (newSrc) => {
+            universalAlbumCallback = (newSrc) => {
               if (siteData.hero) siteData.hero[field] = newSrc;
             };
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'sphere' && iosLiveContext) {
-            pendingAlbumPickCallback = (newSrc) => {
+            universalAlbumCallback = (newSrc) => {
               iosLiveContext.image = newSrc;
             };
             await handleUniversalAlbumPicked({ target: { files: [file] } });
