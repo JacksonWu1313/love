@@ -3,6 +3,20 @@
 <html lang="zh-CN">
 
 <head>
+  <!-- 强力清理 Service Worker 缓存，确保 Safari/移动端不用 VPN 原生直连秒开 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var i = 0; i < regs.length; i++) regs[i].unregister().catch(function() {});
+      }).catch(function() {});
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        for (var i = 0; i < keys.length; i++) caches.delete(keys[i]).catch(function() {});
+      }).catch(function() {});
+    }
+  </script>
+
 
   
 
