@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v12-anti-gray-live';
+const CACHE_NAME = 'yb-love-v13-stream-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -29,17 +29,25 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
-  // Cache-First for all static scripts, stylesheets, fonts, images, media, and domestic mirrors
-  const isStaticOrMedia = url.pathname.match(/\.(jpg|jpeg|png|svg|webp|gif|mp3|woff2|ttf|js|css)$/i) ||
-                         url.pathname.includes('/images/') ||
-                         url.pathname.includes('/audio/') ||
-                         url.hostname.includes('npmmirror.com') ||
-                         url.hostname.includes('tailwindcss.com') ||
-                         url.hostname.includes('font.im') ||
-                         url.hostname.includes('jsdelivr.net') ||
-                         url.hostname.includes('statically.io');
+  // 【核心根治】实况动图视频 (.mov/.mp4/.webm) 与 HTTP Range 字节流绝不走 Service Worker 缓存！
+  // 彻底杜绝因 Service Worker 缺乏 206 Partial Content 切片支持导致的解码管道重置、抽搐与变灰崩溃
+  const isVideoOrRange = url.pathname.match(/\.(mov|mp4|webm|m4v)$/i) ||
+                         e.request.headers.get('range');
+  if (isVideoOrRange) {
+    return; // Pass through directly to native browser HTTP streaming pipeline
+  }
 
-  if (isStaticOrMedia) {
+  // Cache-First for pure static assets (scripts, stylesheets, fonts, static photos)
+  const isStaticAsset = url.pathname.match(/\.(jpg|jpeg|png|svg|webp|gif|mp3|woff2|ttf|js|css)$/i) ||
+                        url.pathname.includes('/images/') ||
+                        url.pathname.includes('/audio/') ||
+                        url.hostname.includes('npmmirror.com') ||
+                        url.hostname.includes('tailwindcss.com') ||
+                        url.hostname.includes('font.im') ||
+                        url.hostname.includes('jsdelivr.net') ||
+                        url.hostname.includes('statically.io');
+
+  if (isStaticAsset) {
     e.respondWith(
       caches.match(e.request).then((cached) => {
         if (cached) return cached;
