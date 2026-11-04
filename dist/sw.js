@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v13-stream-fix';
+const CACHE_NAME = 'yb-love-v14-purge-ticket';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
