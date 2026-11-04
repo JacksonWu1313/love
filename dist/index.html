@@ -10240,37 +10240,18 @@
             // 云端上传成功后，就地静默将 initialUrl 替换为 repoRelPath
 
             replaceMediaUrlInSiteData(initialUrl, repoRelPath);
-            const nowTs = Date.now();
+
             try {
-              localStorage.setItem('couple_site_updated_at', String(nowTs));
+
+              localStorage.setItem('couple_site_updated_at', String(Date.now()));
+
               localStorage.setItem(storageKey, JSON.stringify(siteData));
-              (async () => {
-                try {
-                  const statePayload = {
-                    updatedAt: nowTs,
-                    updatedAtStr: new Date().toLocaleString('zh-CN', { hour12: false }),
-                    siteData: JSON.parse(JSON.stringify(siteData)),
-                    loveRecords: JSON.parse(JSON.stringify(loveRecordsList.value || [])),
-                    loveMessages: JSON.parse(JSON.stringify(loveMessagesList.value || []))
-                  };
-                  const stateApiUrl = https://love.jharden.ccwu.cc/__api__/repos//contents/data/site_state.json;
-                  const sRes = await fetch(stateApiUrl, { headers: { 'Authorization': Bearer , 'Accept': 'application/vnd.github.v3+json' } });
-                  let sSha = null;
-                  if (sRes.ok) { sSha = (await sRes.json()).sha; }
-                  const sBody = {
-                    message: 'feat(media): auto sync updated photo to site_state.json',
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(statePayload, null, 2)))),
-                    branch: 'main'
-                  };
-                  if (sSha) sBody.sha = sSha;
-                  await fetch(stateApiUrl, {
-                    method: 'PUT',
-                    headers: { 'Authorization': Bearer , 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify(sBody)
-                  });
-                } catch(e) { console.warn('auto sync state error:', e); }
-              })();
-            } catch(e){}          if (typeof savePoolToCloud === 'function') {
+
+            } catch(e){}
+
+            saveMessage.value = prep.isAnim ? '✅ 动图已上传云端，永久保持动态播放 ♥' : '✅ 照片已上传云端，永久同步 ♥';
+
+            if (typeof savePoolToCloud === 'function') {
 
               savePoolToCloud();
 
