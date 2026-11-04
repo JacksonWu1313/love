@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v11-motion-restored';
+const CACHE_NAME = 'yb-love-v12-anti-gray-live';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
