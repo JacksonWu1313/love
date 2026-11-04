@@ -12084,16 +12084,16 @@
             return;
           }
           const file = new File([bytes], 'iPhone_Live_' + Date.now() + '.mov', { type: 'video/quicktime', lastModified: Date.now() });
-          iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传云端...';
+          iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在写入该板块...'; saveMessage.value = '🎞️ 实况动图已生效，正在同步至云端...';
           if (iosLiveTarget === 'record') {
             // 随记/便签直接接收实况
-            universalAlbumCallback = (newSrc) => {
+            pendingAlbumPickCallback = (newSrc) => {
               newRecordImage.value = newSrc;
             };
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'timeline' && iosLiveContext) {
             const { mIdx, imgIdx } = iosLiveContext;
-            universalAlbumCallback = (newSrc) => {
+            pendingAlbumPickCallback = (newSrc) => {
               if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
                 siteData.timeline[mIdx].images[imgIdx] = newSrc;
               }
@@ -12101,7 +12101,7 @@
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'gallery' && iosLiveContext) {
             const { idx, field } = iosLiveContext;
-            universalAlbumCallback = (newSrc) => {
+            pendingAlbumPickCallback = (newSrc) => {
               if (siteData.gallery && siteData.gallery[idx]) {
                 siteData.gallery[idx][field || 'image'] = newSrc;
               }
@@ -12109,7 +12109,7 @@
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'quotes' && iosLiveContext) {
             const { idx, field } = iosLiveContext;
-            universalAlbumCallback = (newSrc) => {
+            pendingAlbumPickCallback = (newSrc) => {
               if (siteData.quotes && siteData.quotes[idx]) {
                 siteData.quotes[idx][field || 'image'] = newSrc;
               }
@@ -12117,12 +12117,12 @@
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'hero' && iosLiveContext) {
             const field = iosLiveContext.field || 'cover';
-            universalAlbumCallback = (newSrc) => {
+            pendingAlbumPickCallback = (newSrc) => {
               if (siteData.hero) siteData.hero[field] = newSrc;
             };
             await handleUniversalAlbumPicked({ target: { files: [file] } });
           } else if (iosLiveTarget === 'sphere' && iosLiveContext) {
-            universalAlbumCallback = (newSrc) => {
+            pendingAlbumPickCallback = (newSrc) => {
               iosLiveContext.image = newSrc;
             };
             await handleUniversalAlbumPicked({ target: { files: [file] } });
