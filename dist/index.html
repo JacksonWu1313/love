@@ -3,6 +3,23 @@
 <html lang="zh-CN">
 
 <head>
+  <!-- 自动穿透本地脏缓存看门狗：如果发现浏览器处于旧版残缺态，自动击穿缓存无感刷新最新代码 -->
+  <script>
+    (function() {
+      // 检查当前 URL 是否带有最新版本标识，若无且距离上次强制检查已超过 10 秒，自动刷新
+      var BUILD_VERSION = '20261104_1722';
+      try {
+        if (!window.sessionStorage.getItem('__v_' + BUILD_VERSION)) {
+          window.sessionStorage.setItem('__v_' + BUILD_VERSION, '1');
+          if (window.location.search.indexOf('_v=') === -1) {
+            var sep = window.location.search ? '&' : '?';
+            window.location.replace(window.location.pathname + window.location.search + sep + '_v=' + BUILD_VERSION);
+          }
+        }
+      } catch(e) {}
+    })();
+  </script>
+
 
   <!-- 全局高可用 SafeStorage 内存沙箱（彻底根除微信/Safari私密浏览 SecurityError 导致的白屏崩溃） -->
   <script>
@@ -248,7 +265,7 @@
 
   <style>
 
-    [v-cloak] { opacity: 0.95; transition: opacity 0.3s; }
+    [v-cloak] { display: none !important; }
 
     body {
 
@@ -634,7 +651,7 @@
 
     }
 
-    [v-cloak] { opacity: 0.95; transition: opacity 0.3s; }
+    [v-cloak] { display: none !important; }
 
   
 
