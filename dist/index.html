@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261105_01').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261105_02').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -6320,7 +6320,7 @@
     {
       "id": 28,
       "image": "./images/wish_dali.jpg",
-      "title": "无脑罚单....",
+      "title": "重游大理湖景民宿",
       "date": "2026-10-10",
       "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
       "uploader": "我们"
