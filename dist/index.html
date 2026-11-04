@@ -38,19 +38,16 @@
 
   </script>
 
-    <script>
-
+<script>
+    // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
-
       window.addEventListener('load', function() {
-
-        navigator.serviceWorker.register('./sw.js').catch(function() {});
-
+        navigator.serviceWorker.register('./sw.js?v=20261104_15').then(function(reg) {
+          reg.update().catch(function() {});
+        }).catch(function() {});
       });
-
     }
-
-  </script>
+</script>
 
   <meta charset="UTF-8">
 
@@ -100,7 +97,7 @@
 
   <!-- Canvas Confetti -->
 
-  <script src="https://registry.npmmirror.com/canvas-confetti/1.6.0/files/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
 
   <!-- Leaflet CSS & JS for Interactive World Footprint Map -->
 
@@ -590,7 +587,7 @@
 
     }
 
-    [] { display: none; }
+    [v-cloak] { display: none !important; }
 
   
 
