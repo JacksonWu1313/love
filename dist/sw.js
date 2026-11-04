@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v10-domestic-turbo';
+const CACHE_NAME = 'yb-love-v11-motion-restored';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
