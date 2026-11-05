@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261105_04').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261105_05').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -3726,7 +3726,7 @@
           <span>{{ isUploadingIosLive ? '⏳ 正在上传 3 秒完整实况视频...' : '📥 第 2 步：选完返回后，点此一键导入并上传' }}</span>
         </button>
         <!-- 备选 A：相册直接选择实况视频 (MOV/MP4) -->
-        <input type="file" ref="iosLiveDirectFileInput" accept="video/quicktime,video/mp4,video/*,.mov,.mp4" @change="handleIosLiveDirectFileSelected" class="hidden">
+        <input type="file" ref="iosLiveDirectFileInput" accept="image/*,video/*,image/heic,image/heif,video/quicktime,video/mp4,.mov,.mp4" @change="handleIosLiveDirectFileSelected" class="hidden">
         <button type="button" @click="triggerIosLiveDirectFile" class="w-full py-2.5 px-3 rounded-2xl bg-sand/30 hover:bg-sand/60 text-stone-600 text-xs font-semibold border border-sand/80 transition flex items-center justify-center gap-1.5">
           <span>📁 或直接从手机相册选择 3 秒实况/视频 (MOV/MP4)</span>
         </button>
@@ -8778,6 +8778,44 @@
 
 
 
+      const saveSiteCustomToCloud = async () => {
+        try {
+          const payload = {
+            updatedAt: Date.now(),
+            hero: siteData.hero || null,
+            timeline: siteData.timeline || null,
+            quotes: siteData.quotes || null,
+            wishes: siteData.wishes || null
+          };
+          const rawJson = JSON.stringify(payload, null, 2);
+          const b64 = btoa(unescape(encodeURIComponent(rawJson)));
+          for (const regRelPath of ['data/site_custom.json', 'dist/data/site_custom.json']) {
+            try {
+              const checkUrl = `https://love.jharden.ccwu.cc/__api__/repos/${GITHUB_REPO}/contents/${regRelPath}`;
+              let sha = null;
+              const checkRes = await fetch(checkUrl, {
+                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
+              });
+              if (checkRes.ok) {
+                const info = await checkRes.json();
+                sha = info.sha;
+              }
+              await fetch(checkUrl, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  message: `data: update custom site data (${regRelPath})`,
+                  content: b64,
+                  sha: sha
+                })
+              });
+            } catch(subErr){}
+          }
+        } catch(e) {
+          console.warn('[Custom Cloud Save] Non-fatal error:', e);
+        }
+      };
+
       const savePoolToCloud = async () => {
 
         try {
@@ -9174,36 +9212,54 @@
 
       // 真实立体景深视觉：纯GPU硬件深度缓冲，0 DOM变更杜绝闪烁
 
+      // 3D 星球视锥与朝向精准剔除：前向卡片解码播放，背面卡片暂停省电防崩溃
+      let lastCullCheckTs = 0;
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
-
-        // 卡片由 GPU preserve-3d 与 backface-visibility: hidden 原生深度剔除，0 DOM 变更消除 60fps 刷新闪烁
-
         const coords = sphereCoordinates.value;
-
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
 
+        const now = Date.now();
+        const shouldCheckCulling = (now - lastCullCheckTs > 80);
+        if (shouldCheckCulling) lastCullCheckTs = now;
+
+        const radX = (rxDeg || 0) * Math.PI / 180;
+        const radY = (ryDeg || 0) * Math.PI / 180;
+        const cosX = Math.cos(radX), sinX = Math.sin(radX);
+        const cosY = Math.cos(radY), sinY = Math.sin(radY);
+
         for (let i = 0; i < coords.length; i++) {
-
           const el = document.getElementById('sphere-card-' + i);
-
           if (!el) continue;
-
           if (el.style.visibility !== 'visible') {
-
             el.style.visibility = 'visible';
-
           }
 
-          const vid = el.querySelector('video');
+          if (shouldCheckCulling) {
+            const coord = coords[i];
+            const latRad = (coord.latDeg || 0) * Math.PI / 180;
+            const lonRad = (coord.lonDeg || 0) * Math.PI / 180;
 
-          if (vid && vid.paused) {
+            // 基础球坐标法向量
+            const x0 = Math.cos(latRad) * Math.sin(lonRad);
+            const y0 = Math.sin(latRad);
+            const z0 = Math.cos(latRad) * Math.cos(lonRad);
 
-            vid.play().catch(() => {});
+            // 经过星球整体旋转后的世界深度 z (沿 Y 轴再沿 X 轴旋转)
+            const x1 = x0 * cosY + z0 * sinY;
+            const z1 = -x0 * sinY + z0 * cosY;
+            const zWorld = -y0 * sinX + z1 * cosX;
 
+            const isFrontFacing = (zWorld > 0.05);
+            const vid = el.querySelector('video');
+            if (vid) {
+              if (isFrontFacing) {
+                if (vid.paused) vid.play().catch(() => {});
+              } else {
+                if (!vid.paused) vid.pause();
+              }
+            }
           }
-
         }
-
       };
 
 
@@ -10752,6 +10808,11 @@
               savePoolToCloud();
 
             }
+            if (typeof saveSiteCustomToCloud === 'function') {
+
+              saveSiteCustomToCloud();
+
+            }
 
           } else {
 
@@ -11676,6 +11737,28 @@
 
           }
 
+          // 增量同步全站自定义内容 (时间轴/名言/愿望/主页封面)
+          try {
+            let customRes = await fetch(`https://love.jharden.ccwu.cc/__api__/repos/${GITHUB_REPO}/contents/data/site_custom.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null);
+            if (!customRes || !customRes.ok) customRes = await fetch(`https://love.jharden.ccwu.cc/__raw__/${GITHUB_REPO}/main/data/site_custom.json?t=${Date.now()}`, { cache: 'no-store' });
+            if (customRes && customRes.ok) {
+              const customData = await customRes.json();
+              if (customData && customData.updatedAt) {
+                const localUpdated = Number(localStorage.getItem('couple_site_custom_ts') || 0);
+                if (customData.updatedAt > localUpdated) {
+                  if (customData.hero) siteData.hero = { ...siteData.hero, ...customData.hero };
+                  if (Array.isArray(customData.timeline) && customData.timeline.length > 0) siteData.timeline = customData.timeline;
+                  if (Array.isArray(customData.quotes) && customData.quotes.length > 0) siteData.quotes = customData.quotes;
+                  if (Array.isArray(customData.wishes) && customData.wishes.length > 0) siteData.wishes = customData.wishes;
+                  localStorage.setItem('couple_site_custom_ts', String(customData.updatedAt));
+                  console.log('[Cloud Sync] Custom site data merged successfully.');
+                }
+              }
+            }
+          } catch(cErr) {
+            console.warn('[Cloud Sync] Custom data fetch non-fatal:', cErr);
+          }
+
         } catch (e) {
 
           console.warn('[Cloud Sync] Failed to fetch cloud registry:', e);
@@ -11978,6 +12061,33 @@
 
               const cloudImgUrl = `./images/pool/${safeName}`;
 
+              // 为实况视频同步上传独立轻量封面海报文件，彻底杜绝内联超大 Base64 膨胀
+              let cleanCoverUrl = null;
+              if (isVideo && processed.coverBase64) {
+                try {
+                  const coverSafeName = safeName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
+                  const coverRawB64 = processed.coverBase64.replace(/^data:[^,]+,/, '');
+                  const coverUploadUrl = `https://love.jharden.ccwu.cc/__api__/repos/${GITHUB_REPO}/contents/images/pool/${coverSafeName}`;
+                  const covRes = await fetch(coverUploadUrl, {
+                    method: "PUT",
+                    headers: {
+                      "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                      "Accept": "application/vnd.github.v3+json",
+                      "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                      message: `feat(pool): upload cover for ${safeName}`,
+                      content: coverRawB64
+                    })
+                  });
+                  if (covRes.ok) {
+                    cleanCoverUrl = `./images/pool/${coverSafeName}`;
+                  }
+                } catch (covErr) {
+                  console.warn('[Cover Upload] Non-fatal, using fast cover cache', covErr);
+                }
+              }
+
               const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '视频' : '相册精彩'));
 
               newlyAddedPoolItems.push({
@@ -11986,7 +12096,7 @@
 
                 image: cloudImgUrl,
 
-                cover: (isVideo ? processed.coverBase64 : null),
+                cover: cleanCoverUrl || (isVideo ? './images/hero_cover.jpg' : null),
 
                 duration: processed.durationStr || '',
 
@@ -12605,8 +12715,47 @@
       const pasteAndUploadIosLive = async () => {
         try {
           isUploadingIosLive.value = true;
-          iosLiveStatusMsg.value = '⏳ 正在从剪贴板读取 3 秒实况视频流...';
-          const clipText = await navigator.clipboard.readText();
+          iosLiveStatusMsg.value = '⏳ 正在智能分析剪贴板实况内容...';
+
+          // 优先尝试读取系统剪贴板原生二进制对象 (直接在相册点拷贝照片的情形)
+          let binaryLiveFile = null;
+          if (navigator.clipboard && typeof navigator.clipboard.read === 'function') {
+            try {
+              const clipboardItems = await navigator.clipboard.read();
+              for (const item of clipboardItems) {
+                for (const t of item.types) {
+                  if (t.startsWith('video/') || t.includes('quicktime') || t.startsWith('image/')) {
+                    const blob = await item.getType(t);
+                    const ext = (t.includes('quicktime') || t.includes('mov')) ? 'mov' : (t.includes('mp4') ? 'mp4' : 'jpg');
+                    binaryLiveFile = new File([blob], 'iOS_Clip_' + Date.now() + '.' + ext, { type: t, lastModified: Date.now() });
+                    break;
+                  }
+                }
+                if (binaryLiveFile) break;
+              }
+            } catch (readErr) {
+              console.warn('[Clipboard Read] Binary read not permitted, fallback to text', readErr);
+            }
+          }
+
+          if (binaryLiveFile) {
+            iosLiveStatusMsg.value = '✨ 成功从系统剪贴板捕获媒体，正在上传...';
+            await executeIosLiveUpload(binaryLiveFile);
+            isUploadingIosLive.value = false;
+            showIosLiveModal.value = false;
+            return;
+          }
+
+          let clipText = '';
+          try {
+            clipText = await navigator.clipboard.readText();
+          } catch (textErr) {
+            console.warn('[Clipboard ReadText] Text read restricted', textErr);
+            iosLiveStatusMsg.value = '💡 当前环境限制剪贴板读取，已自动为您唤起相册选择！';
+            isUploadingIosLive.value = false;
+            if (typeof triggerIosLiveDirectFile === 'function') triggerIosLiveDirectFile();
+            return;
+          }
           const cleanB64 = (clipText || '').replace(/^data:[^,]+,/, '').replace(/[\r\n\s]+/g, '');
           if (!cleanB64 || cleanB64.length < 1000) {
             iosLiveStatusMsg.value = '⚠️ 剪贴板中未检测到实况数据，请先点「第 1 步」或看下方 30 秒首次配置教程~';
