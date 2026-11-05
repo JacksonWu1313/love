@@ -1479,9 +1479,9 @@
                          :poster="getFastCover(imgSrc) || ''"
                          autoplay
                          muted
-                         loop
-                         playsinline
-                         webkit-playsinline
+                         
+                         playsinline @ended="handleLiveVideoEnded($event)"
+                         webkit-playsinline @ended="handleLiveVideoEnded($event)"
                          class="absolute inset-0 z-[1] w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                          style="opacity: 0;"
                          @loadeddata="$event.target.style.opacity = '1'"
@@ -1585,7 +1585,7 @@
               <video v-if="isVideoMedia(q.image)"
                      :src="getFastImg(q.image)"
                      :poster="getFastCover(q.image) || ''"
-                     autoplay muted loop playsinline webkit-playsinline
+                     autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)"
                      class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                      style="opacity: 0;"
                      @loadeddata="$event.target.style.opacity = '1'"
@@ -2552,7 +2552,7 @@
                     <video v-if="isVideoMedia(photo.image)"
                            :src="getFastImg(photo.image)"
                            :poster="getFastCover(photo) || ''"
-                           autoplay muted loop playsinline webkit-playsinline disablePictureInPicture
+                           autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
                            @loadeddata="$event.target.style.opacity = '1'"
                            @canplay="$event.target.style.opacity = '1'"
                            @playing="$event.target.style.opacity = '1'"
@@ -2874,7 +2874,7 @@
           <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                  :src="getFastImg(photo.image)"
                  :poster="getFastCover(photo) || ''"
-                 autoplay muted loop playsinline webkit-playsinline
+                 autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)"
                  class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                  style="opacity: 0;"
                  @loadeddata="$event.target.style.opacity = '1'"
@@ -3470,7 +3470,7 @@
                 <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                        :src="getFastImg(photo.image)"
                        :poster="getFastCover(photo) || ''"
-                       autoplay muted loop playsinline webkit-playsinline
+                       autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)"
                        class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                        style="opacity: 0;"
                        @loadeddata="$event.target.style.opacity = '1'"
@@ -4716,9 +4716,9 @@
                    :poster="getFastCover(item.rec.image) || ''"
                    autoplay
                    muted
-                   loop
-                   playsinline
-                   webkit-playsinline
+                   
+                   playsinline @ended="handleLiveVideoEnded($event)"
+                   webkit-playsinline @ended="handleLiveVideoEnded($event)"
                    class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                    style="opacity: 0;"
                    @loadeddata="$event.target.style.opacity = '1'"
@@ -4983,9 +4983,9 @@
                  :poster="getFastCover(item.rec.image) || ''"
                  autoplay
                  muted
-                 loop
-                 playsinline
-                 webkit-playsinline
+                 
+                 playsinline @ended="handleLiveVideoEnded($event)"
+                 webkit-playsinline @ended="handleLiveVideoEnded($event)"
                  class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                  style="opacity: 0;"
                  @loadeddata="$event.target.style.opacity = '1'"
@@ -6631,7 +6631,7 @@
       };
 
       const getFastCoverOrImg = (item) => {
-        if (!item) return './images/hero_cover.jpg';
+        if (!item) return FALLBACK_PHOTO_SVG;
         if (typeof item === 'object') {
           if (item.cover) return getFastImg(item.cover);
           const src = item.image || item.src || '';
@@ -6642,7 +6642,7 @@
           if (isVideoMedia(src)) {
             const match = (siteData.photoPool || []).find(p => p && p.image === src);
             if (match && match.cover) return getFastImg(match.cover);
-            return './images/hero_cover.jpg';
+            return FALLBACK_PHOTO_SVG;
           }
           return getFastImg(src);
         }
@@ -6654,7 +6654,7 @@
         if (isVideoMedia(src)) {
           const match = (siteData.photoPool || []).find(p => p && p.image === src);
           if (match && match.cover) return getFastImg(match.cover);
-          return './images/hero_cover.jpg';
+          return FALLBACK_PHOTO_SVG;
         }
         return getFastImg(src);
       };
@@ -6714,6 +6714,23 @@
 
 
 
+            const FALLBACK_PHOTO_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='500' viewBox='0 0 400 500'><rect width='400' height='500' fill='%23FAF7F2'/><circle cx='200' cy='230' r='56' fill='%23F4EBE1'/><path d='M200 215 C190 195 160 195 160 225 C160 250 200 275 200 275 C200 275 240 250 240 225 C240 195 210 195 200 215 Z' fill='%23E07A5F' opacity='0.75'/><text x='200' y='325' font-family='sans-serif' font-size='14' font-weight='600' fill='%23A08E7D' text-anchor='middle'>???? ? ???? ?</text></svg>";
+
+      // ??/????????? 5 ?????????????? 1 ????????????????????
+      const handleLiveVideoEnded = (event) => {
+        const vid = event.target;
+        if (!vid) return;
+        let count = Number(vid.dataset.loopCount || 1);
+        if (count < 5) {
+          vid.dataset.loopCount = count + 1;
+          vid.currentTime = 0;
+          vid.play().catch(() => {});
+        } else {
+          vid.pause();
+          vid.currentTime = 0; // ?? 5 ??????????
+        }
+      };
+
       const onImgError = (event, fallbackSrc) => {
 
         const el = event.target;
@@ -6750,13 +6767,13 @@
 
           }
 
-          el.src = './images/hero_cover.jpg';
+          el.src = FALLBACK_PHOTO_SVG;
 
         } else if (el.dataset.fallbackDone === 'true') {
 
           el.dataset.fallbackDone = 'final';
 
-          el.src = './images/hero_cover.jpg';
+          el.src = FALLBACK_PHOTO_SVG;
 
         }
 
@@ -14840,6 +14857,7 @@
         getLiveCover,
         getFastCover,
         getFastCoverOrImg,
+        handleLiveVideoEnded,
         handleVideoError,
         onLightboxVideoError,
         showUniversalPhotoActionModal,
