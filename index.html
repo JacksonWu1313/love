@@ -10433,7 +10433,28 @@
 
           const isAnim = ['gif', 'webp', 'apng'].includes(rawExt) || (file.type && (file.type.includes('gif') || file.type.includes('webp') || file.type.includes('apng')));
 
-          if (isVid || isAnim) {
+          if (isVid) {
+            extractVideoCoverAndDuration(file).then(({ coverBase64, durationStr }) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                const b64 = (reader.result || '').split(',')[1] || '';
+                resolve({ dataUrl: reader.result, b64, ext: rawExt, isAnim: true, isVideo: true, coverBase64, durationStr });
+              };
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(file);
+            }).catch(() => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                const b64 = (reader.result || '').split(',')[1] || '';
+                resolve({ dataUrl: reader.result, b64, ext: rawExt, isAnim: true, isVideo: true, coverBase64, null, durationStr: '' });
+              };
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(file);
+            });
+            return;
+          }
+
+          if (isAnim) {
 
             const reader = new FileReader();
 
@@ -10441,7 +10462,7 @@
 
               const b64 = (reader.result || '').split(',')[1] || '';
 
-              resolve({ dataUrl: reader.result, b64, ext: isVid ? rawExt : (rawExt || 'gif'), isAnim: true, isVideo: isVid });
+              resolve({ dataUrl: reader.result, b64, ext: rawExt || 'gif', isAnim: true, isVideo: false });
 
             };
 
@@ -10607,6 +10628,7 @@
         if (!file || typeof callback !== 'function') return;
         pendingAlbumPickCallback = null;
         universalAlbumCallback = null;
+        const currentTarget = activeMediaTarget ? { ...activeMediaTarget } : null;
 
 
 
@@ -10692,6 +10714,9 @@
             if (prep.coverBase64) {
               setLiveCover(repoRelPath, prep.coverBase64);
               setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), prep.coverBase64);
+            }
+            if (currentTarget && currentTarget.type) {
+              applyMediaReplacement(currentTarget.type, currentTarget.ctx, repoRelPath, prep.coverBase64, prep.isVideo, file);
             }
 
             try {
@@ -10796,6 +10821,151 @@
       const showUniversalPhotoActionModal = ref(false);
       let activeMediaTarget = null; // { type: 'timeline'|'record'|'gallery'|'quotes'|'hero'|'sphere'|'pool', ctx: any }
 
+      // 核心原子覆盖函数：覆盖任意位置的原图/实况，自动完成多处数据同步、封面注入、版本标记与防回滚持久化
+      const applyMediaReplacement = (targetType, targetCtx, newSrc, coverSrc = null, isVideo = false, file = null) => {
+        if (!targetType || !newSrc) return;
+        const nowTs = Date.now();
+        let changed = false;
+
+        if (coverSrc) {
+          setLiveCover(newSrc, coverSrc);
+          setLiveCover('./' + String(newSrc).replace(/^\.?\//, ''), coverSrc);
+        }
+
+        if (targetType === 'pool' && targetCtx) {
+          const photo = targetCtx;
+          const oldSrc = photo.image;
+          photo.image = newSrc;
+          if (coverSrc) photo.cover = coverSrc;
+          if (isVideo !== undefined) photo.isVideo = !!isVideo;
+          if (file) {
+            const copy = generateRomanticCopy(file, 'pool');
+            if (copy && copy.title) photo.title = copy.title;
+            if (copy && copy.story) photo.story = copy.story;
+          }
+          if (Array.isArray(siteData.photoPool)) {
+            const pItem = siteData.photoPool.find(p => (p.id && photo.id && p.id === photo.id) || (p.image && oldSrc && p.image === oldSrc));
+            if (pItem) {
+              pItem.image = newSrc;
+              if (coverSrc) pItem.cover = coverSrc;
+              if (isVideo !== undefined) pItem.isVideo = !!isVideo;
+            }
+          }
+          replaceMediaUrlInSiteData(oldSrc, newSrc);
+          changed = true;
+        } else if (targetType === 'sphere' && targetCtx) {
+          const photo = targetCtx;
+          const oldSrc = photo.image;
+          photo.image = newSrc;
+          if (coverSrc) photo.cover = coverSrc;
+          if (isVideo !== undefined) photo.isVideo = !!isVideo;
+          if (file) {
+            const copy = generateRomanticCopy(file, 'sphere');
+            if (copy && copy.title) photo.title = copy.title;
+            if (copy && copy.story) photo.story = copy.story;
+          }
+          if (Array.isArray(siteData.photoPool)) {
+            const pItem = siteData.photoPool.find(p => (p.id && photo.id && p.id === photo.id) || (p.image && oldSrc && p.image === oldSrc));
+            if (pItem) {
+              pItem.image = newSrc;
+              if (coverSrc) pItem.cover = coverSrc;
+              if (isVideo !== undefined) pItem.isVideo = !!isVideo;
+            }
+          }
+          replaceMediaUrlInSiteData(oldSrc, newSrc);
+          changed = true;
+        } else if (targetType === 'timeline' && targetCtx) {
+          const { mIdx, imgIdx } = targetCtx;
+          if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
+            const oldSrc = siteData.timeline[mIdx].images[imgIdx];
+            siteData.timeline[mIdx].images[imgIdx] = newSrc;
+            replaceMediaUrlInSiteData(oldSrc, newSrc);
+            changed = true;
+          }
+        } else if (targetType === 'record') {
+          const recIdx = (targetCtx && typeof targetCtx.recIdx === 'number') ? targetCtx.recIdx : ((targetCtx && typeof targetCtx.origIdx === 'number') ? targetCtx.origIdx : null);
+          if (recIdx !== null) {
+            if (loveRecordsList.value && loveRecordsList.value[recIdx]) {
+              const oldSrc = loveRecordsList.value[recIdx].image;
+              loveRecordsList.value[recIdx].image = newSrc;
+              if (coverSrc) loveRecordsList.value[recIdx].cover = coverSrc;
+              replaceMediaUrlInSiteData(oldSrc, newSrc);
+              changed = true;
+              if (typeof saveLoveRecordsToCloud === 'function') {
+                debouncedCloudSync('records', saveLoveRecordsToCloud, 400);
+              }
+            }
+          } else {
+            newRecordImage.value = newSrc;
+            if (coverSrc) newRecordCover.value = coverSrc;
+          }
+        } else if (targetType === 'hero') {
+          const field = (targetCtx && targetCtx.field) || 'coverImage';
+          if (siteData.hero) {
+            const oldSrc = siteData.hero[field];
+            siteData.hero[field] = newSrc;
+            replaceMediaUrlInSiteData(oldSrc, newSrc);
+            changed = true;
+          }
+        } else if (targetType === 'gallery' && targetCtx) {
+          const { idx, field } = targetCtx;
+          if (siteData.gallery && siteData.gallery[idx]) {
+            const f = field || 'image';
+            const oldSrc = siteData.gallery[idx][f];
+            siteData.gallery[idx][f] = newSrc;
+            replaceMediaUrlInSiteData(oldSrc, newSrc);
+            changed = true;
+          }
+        } else if (targetType === 'quotes' && targetCtx) {
+          const { idx, field } = targetCtx;
+          if (siteData.quotes && siteData.quotes[idx]) {
+            const f = field || 'image';
+            const oldSrc = siteData.quotes[idx][f];
+            siteData.quotes[idx][f] = newSrc;
+            replaceMediaUrlInSiteData(oldSrc, newSrc);
+            changed = true;
+          }
+        } else if (targetType === 'wishes' && targetCtx) {
+          const { idx, field } = targetCtx;
+          if (siteData.wishes && siteData.wishes[idx]) {
+            const f = field || 'image';
+            const oldSrc = siteData.wishes[idx][f];
+            siteData.wishes[idx][f] = newSrc;
+            replaceMediaUrlInSiteData(oldSrc, newSrc);
+            changed = true;
+          }
+        } else if (targetType === 'letter') {
+          const field = (targetCtx && targetCtx.field) || 'bgImage';
+          if (siteData.letter) {
+            const oldSrc = siteData.letter[field];
+            siteData.letter[field] = newSrc;
+            replaceMediaUrlInSiteData(oldSrc, newSrc);
+            changed = true;
+          }
+        } else if (targetType === 'city' && targetCtx) {
+          const oldSrc = targetCtx.image;
+          targetCtx.image = newSrc;
+          replaceMediaUrlInSiteData(oldSrc, newSrc);
+          changed = true;
+          if (typeof saveFootprintToCloud === 'function') {
+            debouncedCloudSync('footprint', saveFootprintToCloud, 400);
+          }
+        }
+
+        if (changed) {
+          try {
+            localStorage.setItem('couple_site_updated_at', String(nowTs));
+            localStorage.setItem(storageKey, JSON.stringify(siteData));
+          } catch (e) {}
+          if (typeof debouncedCloudSync === 'function') {
+            if (typeof savePoolToCloud === 'function') {
+              debouncedCloudSync('photoPool', savePoolToCloud, 400);
+            }
+          }
+        }
+        nextTick(() => { hydrateMotionVideoSlots(); });
+      };
+
       const openUniversalPhotoAction = (type, ctx = null) => {
         activeMediaTarget = { type, ctx };
         showUniversalPhotoActionModal.value = true;
@@ -10812,24 +10982,47 @@
         if (!target) return;
 
         if (actionMethod === 'album') {
-          // 本地相册或普通动图
+          // 本地相册或普通动图选图
           if (target.type === 'timeline') {
             promptChangeTimelineImage(target.ctx.mIdx, target.ctx.imgIdx);
           } else if (target.type === 'record') {
-            document.getElementById('record-image-input') && document.getElementById('record-image-input').click();
+            const recIdx = (target.ctx && typeof target.ctx.recIdx === 'number') ? target.ctx.recIdx : ((target.ctx && typeof target.ctx.origIdx === 'number') ? target.ctx.origIdx : null);
+            if (recIdx !== null) {
+              openLocalAlbumPicker((newSrc, file) => {
+                applyMediaReplacement('record', { recIdx }, newSrc, null, false, file);
+              });
+            } else {
+              document.getElementById('record-image-input') && document.getElementById('record-image-input').click();
+            }
           } else if (target.type === 'hero') {
-            promptChangeImage('hero', target.ctx ? target.ctx.field : 'cover');
+            promptChangeImage('hero', target.ctx ? target.ctx.field : 'coverImage');
           } else if (target.type === 'gallery') {
             promptChangeArrayImage('gallery', target.ctx.idx, target.ctx.field || 'image');
           } else if (target.type === 'quotes') {
             promptChangeArrayImage('quotes', target.ctx.idx, target.ctx.field || 'image');
           } else if (target.type === 'sphere') {
-            pickLocalImageForSpherePhoto(target.ctx);
+            openLocalAlbumPicker((newSrc, file) => {
+              applyMediaReplacement('sphere', target.ctx, newSrc, null, false, file);
+            });
           } else if (target.type === 'pool') {
-            triggerUniversalAlbumPicker();
+            if (target.ctx) {
+              openLocalAlbumPicker((newSrc, file) => {
+                applyMediaReplacement('pool', target.ctx, newSrc, null, false, file);
+              });
+            } else {
+              triggerUniversalAlbumPicker();
+            }
+          } else if (target.type === 'wishes') {
+            promptChangeArrayImage('wishes', target.ctx.idx, target.ctx.field || 'image');
+          } else if (target.type === 'letter') {
+            promptChangeImage('letter', target.ctx ? target.ctx.field : 'bgImage');
+          } else if (target.type === 'city') {
+            openLocalAlbumPicker((newSrc, file) => {
+              applyMediaReplacement('city', target.ctx, newSrc, null, false, file);
+            });
           }
         } else if (actionMethod === 'ios-live') {
-          // 唤起 iPhone 快捷指令上传实况
+          // 唤起 iPhone 快捷指令或直接上传实况
           openIosLiveModal(target.type, target.ctx);
         }
       };
@@ -10858,108 +11051,16 @@
 
 
       const pickLocalImageForSpherePhoto = (photo) => {
-
-        openLocalAlbumPicker((newSrc, file) => {
-
-          const oldSrc = photo.image;
-
-          photo.image = newSrc;
-
-          const copy = generateRomanticCopy(file, 'sphere');
-
-          photo.title = copy.title;
-
-          photo.story = copy.story;
-
-          if (siteData.photoPool) {
-
-            const pItem = siteData.photoPool.find(p => (p.id && p.id === photo.id) || p.image === oldSrc);
-
-            if (pItem) {
-
-              pItem.image = newSrc;
-
-              pItem.title = copy.title;
-
-              pItem.story = copy.story;
-
-            }
-
-          }
-
-          try {
-
-            localStorage.setItem('couple_site_updated_at', String(Date.now()));
-
-            localStorage.setItem(storageKey, JSON.stringify(siteData));
-
-          } catch(e){}
-
-          if (typeof savePoolToCloud === 'function') {
-
-            savePoolToCloud();
-
-          }
-
-        });
-
+        openUniversalPhotoAction('sphere', photo);
       };
-
-
 
       const pickLocalImageForSphereModal = () => {
-
-        openLocalAlbumPicker((newSrc, file) => {
-
-          const oldSrc = sphereEditForm.image;
-
-          sphereEditForm.image = newSrc;
-
-          const copy = generateRomanticCopy(file, 'sphere');
-
-          sphereEditForm.title = copy.title;
-
-          sphereEditForm.story = copy.story;
-
-          if (siteData.photoPool) {
-
-            const pItem = siteData.photoPool.find(p => (p.id && p.id === sphereEditForm.id) || p.image === oldSrc);
-
-            if (pItem) {
-
-              pItem.image = newSrc;
-
-              pItem.title = copy.title;
-
-              pItem.story = copy.story;
-
-            }
-
-          }
-
-        });
-
+        openUniversalPhotoAction('sphere', sphereEditForm);
       };
-
-
 
       const pickLocalImageForPoolPhoto = (photo) => {
-
-        openLocalAlbumPicker((newSrc, file) => {
-
-          photo.image = newSrc;
-
-          const copy = generateRomanticCopy(file, 'pool');
-
-          photo.title = copy.title;
-
-          photo.story = copy.story;
-
-        });
-
+        openUniversalPhotoAction('pool', photo);
       };
-
-
 
       const pickLocalImageForMapCity = (city) => {
 
@@ -11002,49 +11103,7 @@
 
 
       const pickLocalImageForRecord = (recIdx) => {
-
-        openLocalAlbumPicker((newSrc, file) => {
-
-          if (loveRecordsList.value && loveRecordsList.value[recIdx]) {
-
-            loveRecordsList.value[recIdx].image = newSrc;
-
-            const copy = generateRomanticCopy(file, 'record');
-
-            if (copy.title && (!loveRecordsList.value[recIdx].title || loveRecordsList.value[recIdx].title.includes('新增'))) {
-
-              loveRecordsList.value[recIdx].title = copy.title;
-
-            }
-
-            if (copy.content && (!loveRecordsList.value[recIdx].content || loveRecordsList.value[recIdx].content.length < 5)) {
-
-              loveRecordsList.value[recIdx].content = copy.content;
-
-            }
-
-            if (copy.quote && !loveRecordsList.value[recIdx].quote) {
-
-              loveRecordsList.value[recIdx].quote = copy.quote;
-
-            }
-
-            if (copy.tag && !loveRecordsList.value[recIdx].tag) {
-
-              loveRecordsList.value[recIdx].tag = copy.tag;
-
-            }
-
-            localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value));
-
-            siteData.loveRecords = loveRecordsList.value;
-
-            debouncedCloudSync('records', saveLoveRecordsToCloud, 600);
-
-          }
-
-        });
-
+        openUniversalPhotoAction('record', { recIdx });
       };
 
 
@@ -12439,6 +12498,27 @@
       const iosManualB64 = ref('');
       const iosLiveDirectFileInput = ref(null);
 
+      // 统一实况分发上传管线：无论是快捷指令剪贴板一键导入、相册直接选 MOV 视频还是手动粘贴，统一进入此管线
+      const executeIosLiveUpload = async (file) => {
+        const isReplaceMode = !!iosLiveContext;
+        const curTarget = iosLiveTarget;
+        const curCtx = iosLiveContext;
+
+        if (!isReplaceMode && curTarget === 'pool') {
+          // 仅在相册池全局新增模式下，追加新卡片
+          await handlePoolFilesSelected({ target: { files: [file], value: '' } });
+        } else {
+          // 精准原子覆盖原图模式（无论目标是 pool, sphere, timeline, record, gallery, quotes, hero, wishes, letter）
+          activeMediaTarget = { type: curTarget, ctx: curCtx };
+          const callback = (newSrc, f, coverB64) => {
+            applyMediaReplacement(curTarget, curCtx, newSrc, coverB64, true, f);
+          };
+          pendingAlbumPickCallback = callback;
+          universalAlbumCallback = callback;
+          await handleUniversalAlbumPicked({ target: { files: [file] } });
+        }
+      };
+
       const processBase64AndUpload = async (rawText) => {
         const cleanB64 = (rawText || '').replace(/^data:[^,]+,/, '').replace(/[\r\n\s]+/g, '');
         if (!cleanB64 || cleanB64.length < 1000) {
@@ -12457,41 +12537,10 @@
             return false;
           }
           const file = new File([bytes], 'iPhone_Live_' + Date.now() + '.mov', { type: 'video/quicktime', lastModified: Date.now() });
-          iosLiveStatusMsg.value = '✨ 已提取 3 秒实况 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传云端...';
+          iosLiveStatusMsg.value = '✨ 已提取 3 秒实况 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传并覆盖原图...';
 
-          const callback = (newSrc) => {
-            if (iosLiveTarget === 'record') {
-              newRecordImage.value = newSrc;
-            } else if (iosLiveTarget === 'timeline' && iosLiveContext) {
-              const { mIdx, imgIdx } = iosLiveContext;
-              if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
-                siteData.timeline[mIdx].images[imgIdx] = newSrc;
-              }
-            } else if (iosLiveTarget === 'gallery' && iosLiveContext) {
-              const { idx, field } = iosLiveContext;
-              if (siteData.gallery && siteData.gallery[idx]) {
-                siteData.gallery[idx][field || 'image'] = newSrc;
-              }
-            } else if (iosLiveTarget === 'quotes' && iosLiveContext) {
-              const { idx, field } = iosLiveContext;
-              if (siteData.quotes && siteData.quotes[idx]) {
-                siteData.quotes[idx][field || 'image'] = newSrc;
-              }
-            } else if (iosLiveTarget === 'hero' && iosLiveContext) {
-              const field = iosLiveContext.field || 'cover';
-              if (siteData.hero) siteData.hero[field] = newSrc;
-            } else if (iosLiveTarget === 'sphere' && iosLiveContext) {
-              iosLiveContext.image = newSrc;
-            }
-          };
+          await executeIosLiveUpload(file);
 
-          if (iosLiveTarget === 'pool') {
-            await handlePoolFilesSelected({ target: { files: [file], value: '' } });
-          } else {
-            pendingAlbumPickCallback = callback;
-            universalAlbumCallback = callback;
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          }
           isUploadingIosLive.value = false;
           iosManualB64.value = '';
           showIosLiveModal.value = false;
@@ -12522,41 +12571,10 @@
         if (!file) return;
         try {
           isUploadingIosLive.value = true;
-          iosLiveStatusMsg.value = '✨ 正在处理相册 3 秒视频 (' + Math.round(file.size / 1024) + ' KB)...';
+          iosLiveStatusMsg.value = '✨ 正在处理相册 3 秒视频 (' + Math.round(file.size / 1024) + ' KB)，正在覆盖原图...';
 
-          const callback = (newSrc) => {
-            if (iosLiveTarget === 'record') {
-              newRecordImage.value = newSrc;
-            } else if (iosLiveTarget === 'timeline' && iosLiveContext) {
-              const { mIdx, imgIdx } = iosLiveContext;
-              if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
-                siteData.timeline[mIdx].images[imgIdx] = newSrc;
-              }
-            } else if (iosLiveTarget === 'gallery' && iosLiveContext) {
-              const { idx, field } = iosLiveContext;
-              if (siteData.gallery && siteData.gallery[idx]) {
-                siteData.gallery[idx][field || 'image'] = newSrc;
-              }
-            } else if (iosLiveTarget === 'quotes' && iosLiveContext) {
-              const { idx, field } = iosLiveContext;
-              if (siteData.quotes && siteData.quotes[idx]) {
-                siteData.quotes[idx][field || 'image'] = newSrc;
-              }
-            } else if (iosLiveTarget === 'hero' && iosLiveContext) {
-              const field = iosLiveContext.field || 'cover';
-              if (siteData.hero) siteData.hero[field] = newSrc;
-            } else if (iosLiveTarget === 'sphere' && iosLiveContext) {
-              iosLiveContext.image = newSrc;
-            }
-          };
+          await executeIosLiveUpload(file);
 
-          if (iosLiveTarget === 'pool') {
-            await handlePoolFilesSelected({ target: { files: [file], value: '' } });
-          } else {
-            pendingAlbumPickCallback = callback;
-            universalAlbumCallback = callback;
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          }
           isUploadingIosLive.value = false;
           showIosLiveModal.value = false;
         } catch (e) {
