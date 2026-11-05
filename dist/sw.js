@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v15-fast-live-sync';
+const CACHE_NAME = 'yb-love-v16-purge-old-ticket-clean';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
