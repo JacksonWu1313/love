@@ -10446,7 +10446,7 @@
               const reader = new FileReader();
               reader.onload = () => {
                 const b64 = (reader.result || '').split(',')[1] || '';
-                resolve({ dataUrl: reader.result, b64, ext: rawExt, isAnim: true, isVideo: true, coverBase64, null, durationStr: '' });
+                resolve({ dataUrl: reader.result, b64, ext: rawExt, isAnim: true, isVideo: true, coverBase64: null, durationStr: '' });
               };
               reader.onerror = () => resolve(null);
               reader.readAsDataURL(file);
