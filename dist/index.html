@@ -6714,7 +6714,8 @@
 
 
 
-            const FALLBACK_PHOTO_SVG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='500' viewBox='0 0 400 500'><rect width='400' height='500' fill='%23FAF7F2'/><circle cx='200' cy='230' r='56' fill='%23F4EBE1'/><path d='M200 215 C190 195 160 195 160 225 C160 250 200 275 200 275 C200 275 240 250 240 225 C240 195 210 195 200 215 Z' fill='%23E07A5F' opacity='0.75'/><text x='200' y='325' font-family='sans-serif' font-size='14' font-weight='600' fill='%23A08E7D' text-anchor='middle'>???? ? ???? ?</text></svg>";
+      // 标准 Base64 编码的粉色爱心卡片（彻底解决 iOS Safari 非 Base64 SVG 渲染为蓝色问号 [?] 的 WebKit 缺陷）
+      const FALLBACK_PHOTO_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiB2aWV3Qm94PSIwIDAgNDAwIDUwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiNGQUY3RjIiIHJ4PSIyNCIvPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM2OCIgaGVpZ2h0PSI0NjgiIGZpbGw9IiNGRkZERjkiIHN0cm9rZT0iI0VERTREOCIgc3Ryb2tlLXdpZHRoPSIyIiByeD0iMTYiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMjAiIHI9IjUyIiBmaWxsPSIjRjdFQ0UxIi8+PHBhdGggZD0iTTIwMCAyMDUgQzE5MCAxODUgMTYwIDE4NSAxNjAgMjE1IEMxNjAgMjQwIDIwMCAyNjUgMjAwIDI2NSBDMjAwIDI2NSAyNDAgMjQwIDI0MCAyMTUgQzI0MCAxODUgMjEwIDE4NSAyMDAgMjA1IFoiIGZpbGw9IiNFMDdBNUYiIG9wYWNpdHk9IjAuODUiLz48dGV4dCB4PSIyMDAiIHk9IjMxNSIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sQmxpbmtNYWNTeXN0ZW1Gb250LFBpbmdGYW5nIFNDLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiM5QzhCN0MiIHRleHQtYW5jaG9yPSJtaWRkbGUiPu+/veWlveWbnuW/hiDCt+OAiOato+WcqOi/nuaOpSDimaU8L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIzNDAiIGZvbnQtZmFtaWx5PSItYXBwbGUtc3lzdGVtLEJsaW5rTWFjU3lzdGVtRm9udCxQaW5nRmFuZyBTQyxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjQzVCOEFDIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5PdXIgTG92ZSBTdG9yeSDCt+KAiFlCICYg5oKm5oKmPC90ZXh0Pjwvc3ZnPg==';
 
       // ??/????????? 5 ?????????????? 1 ????????????????????
       const handleLiveVideoEnded = (event) => {
@@ -9640,7 +9641,7 @@
 
 
       onMounted(() => {
-        if (typeof dismissSitePreloader === "function") dismissSitePreloader();
+        if (typeof dismissSitePreloader === "function") dismissSitePreloader(); try { if (localStorage.getItem('yb_love_purge_v3') !== '1') { localStorage.removeItem('yb_love_records'); localStorage.removeItem('couple_site_updated_at'); localStorage.setItem('yb_love_purge_v3', '1'); } } catch (e) {}
 
         window.__appMounted = true;
 
