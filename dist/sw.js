@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v17-china-direct';
+const CACHE_NAME = 'yb-love-v18-speed-turbo';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
