@@ -152,17 +152,9 @@
 
   <!-- Non-blocking Google Fonts with domestic mirror fallback -->
 
-  <link rel="preconnect" href="https://fonts.font.im">
-
-  
-
-  <link href="https://fonts.font.im/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-
   <noscript>
 
-    <link href="https://fonts.font.im/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-  </noscript>
+    </noscript>
 
 
 
@@ -218,11 +210,11 @@
 
           fontFamily: {
 
-            serif: ['"Noto Serif SC"', 'serif'],
+            serif: ['"Noto Serif SC"', '"Songti SC"', '"STSong"', '"SimSun"', 'serif'],
 
-            display: ['"Playfair Display"', 'serif'],
+            display: ['"Playfair Display"', '"Georgia"', 'serif'],
 
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', 'sans-serif'],
 
           },
 
@@ -276,7 +268,7 @@
 
       color: #2D2A26;
 
-      font-family: 'Plus Jakarta Sans', "Noto Serif SC", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Serif SC", "Songti SC", sans-serif;
 
       scroll-behavior: smooth;
 
@@ -6715,7 +6707,10 @@
 
         try {
 
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          const timeoutId = controller ? setTimeout(() => controller.abort(), 2500) : null;
           const res = await fetch('https://api.github.com/rate_limit', {
+            signal: controller ? controller.signal : undefined,
 
             headers: {
 
@@ -6729,6 +6724,7 @@
 
           if (res.ok) {
 
+            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             const rate = data.rate || (data.resources && data.resources.core) || {};
@@ -6773,9 +6769,8 @@
 
         showQuotaModal.value = true;
 
-        fetchQuotaStatus();
-
-        nextTick(() => { if (window.lucide) lucide.createIcons(); });
+        // fetchQuotaStatus is called on-demand
+nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       };
 
@@ -7000,7 +6995,7 @@
             const c = fallbackSrc.replace(/^\.?\//, '').replace(/\?.*$/, '');
 
             if (c.startsWith('images/uploads/')) {
-              el.src = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${c}`;
+              el.src = './' + c;
               return;
             }
 
@@ -7385,6 +7380,7 @@
 
           if (res.ok) {
 
+            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             if (Array.isArray(data) && data.length > 0) {
@@ -7733,7 +7729,20 @@
 
         try {
 
-          let res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null); if (!res || !res.ok) res = await fetch(`./data/site_state.json?t=${Date.now()}`, { cache: 'no-store' });
+          // 【大陆极速秒开】读取优先走同源相对路径，0秒直达，彻底杜绝 api.github.com 在大陆被墙导致的 60 秒挂起
+          let res = await fetch(`./data/site_state.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
+          if (!res || !res.ok) {
+            try {
+              const c = typeof AbortController !== 'undefined' ? new AbortController() : null;
+              const tid = c ? setTimeout(() => c.abort(), 2500) : null;
+              res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_state.json?t=${Date.now()}`, {
+                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' },
+                signal: c ? c.signal : undefined,
+                cache: 'no-store'
+              });
+              if (tid) clearTimeout(tid);
+            } catch(e){}
+          }
 
           if (res.ok) {
 
@@ -8226,6 +8235,7 @@
 
           if (res.ok) {
 
+            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             if (Array.isArray(data) && data.length > 0) {
@@ -11970,15 +11980,15 @@
 
       const syncFromCloudRegistry = async () => {
         try {
-          let res = null;
-          try {
-            res = await fetchGithubApi(`contents/data/photo_pool.json?t=${Date.now()}`, {
-              headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' },
-              cache: 'no-store'
-            });
-          } catch(e){}
+          // 【大陆极速秒开】优先走同源相对路径，50ms 内完成照片池对齐
+          let res = await fetch(`./data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
           if (!res || !res.ok) {
-            res = await fetch(`./data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
+            try {
+              res = await fetchGithubApi(`contents/data/photo_pool.json?t=${Date.now()}`, {
+                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' },
+                cache: 'no-store'
+              });
+            } catch(e){}
           }
 
           if (res.ok) {
@@ -12025,8 +12035,15 @@
 
           // 增量同步全站自定义内容 (时间轴/名言/愿望/主页封面)
           try {
-            let customRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_custom.json?t=${Date.now()}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' }, cache: 'no-store' }).catch(() => null);
-            if (!customRes || !customRes.ok) customRes = await fetch(`./data/site_custom.json?t=${Date.now()}`, { cache: 'no-store' });
+            let customRes = await fetch(`./data/site_custom.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
+            if (!customRes || !customRes.ok) {
+              try {
+                customRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data/site_custom.json?t=${Date.now()}`, {
+                  headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3.raw' },
+                  cache: 'no-store'
+                });
+              } catch(e){}
+            }
             if (customRes && customRes.ok) {
               const customData = await customRes.json();
               if (customData && customData.updatedAt) {
@@ -15158,6 +15175,7 @@
 
           if (res.ok) {
 
+            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             if (Array.isArray(data) && data.length > 0) {
@@ -15717,7 +15735,6 @@ if (typeof dismissSitePreloader === 'function') setTimeout(dismissSitePreloader,
 
 </script>
 
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"fedcf2905f0d43b397fd516787b1b412","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 
 </html>
