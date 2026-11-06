@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261106_02').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261106_04').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -6513,8 +6513,8 @@
     },
     {
       "id": 28,
-      "image": "./images/wish_dali.jpg",
-      "title": "无脑罚单....",
+      "image": "./images/wish_dali_romantic.jpg",
+      "title": "重游大理湖景民宿",
       "date": "2026-10-10",
       "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
       "uploader": "我们"
@@ -6557,7 +6557,7 @@
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
       "tag": "自驾漫游",
       "done": true,
-      "image": "./images/wish_dali.jpg"
+      "image": "./images/wish_dali_romantic.jpg"
     },
     {
       "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",
@@ -6809,7 +6809,7 @@
 
       const versionKey = 'couple_site_version';
 
-      const CURRENT_VERSION = 'v5_safe_persistence_and_multi_os';
+      const CURRENT_VERSION = 'v6_unified_70_photos_and_6_chapters';
 
 
 
@@ -7090,7 +7090,7 @@
 
           './images/wish_cook.jpg',
 
-          './images/wish_dali.jpg',
+          './images/wish_dali_romantic.jpg',
 
           './images/wish_drive.jpg',
 
@@ -7149,6 +7149,14 @@
       const loadInitialData = () => {
 
         try {
+
+          const savedVersion = localStorage.getItem(versionKey);
+          if (savedVersion !== CURRENT_VERSION) {
+            console.log('[Schema Migration] Version mismatch, resetting to unified default schema:', CURRENT_VERSION);
+            localStorage.setItem(versionKey, CURRENT_VERSION);
+            localStorage.setItem(storageKey, JSON.stringify(defaultSiteData));
+            return JSON.parse(JSON.stringify(defaultSiteData));
+          }
 
           const saved = localStorage.getItem(storageKey);
 
@@ -7735,8 +7743,8 @@
 
             const cloudTs = Number(cloudState.updatedAt || 0);
 
-            // 【全端章节实时对齐】只要云端更新或本地缺失完整篇章，100% 同步
-            if (cloudState.siteData && (cloudTs > localTs || localTs === 0 || !siteData.timeline || siteData.timeline.length < 6)) {
+            // 【全端章节实时对齐】非编辑模式下全端对齐云端篇章真值
+            if (cloudState.siteData && (!isEditing.value && !isTimelineOnlyEditing.value)) {
               if (Array.isArray(cloudState.siteData.timeline) && cloudState.siteData.timeline.length >= 6) {
                 siteData.timeline = cloudState.siteData.timeline;
               }
@@ -8524,7 +8532,7 @@
 
 
 
-      // 便签全局 deep watch 自动保存 (编辑完任何便签自动持久化并同步云端)
+      // 便签全局 deep watch 自动保存至本地缓存 (云端同步由 submit/edit/delete 显式发起，严禁在 watch 内盲目触发云端写入导致自递归提交死循环)
 
       watch(loveMessagesList, (newVal) => {
 
@@ -8535,8 +8543,6 @@
             localStorage.setItem('yb_love_messages', JSON.stringify(newVal));
 
           }
-
-          debouncedCloudSync('messages', saveLoveMessagesToCloud, 500);
 
         } catch (e) {}
 
@@ -11544,7 +11550,7 @@
 
             done: false,
 
-            image: './images/wish_dali.jpg'
+            image: './images/wish_dali_romantic.jpg'
 
           });
 
@@ -14024,7 +14030,7 @@
 
     "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
 
-    "image": "./images/wish_dali.jpg"
+    "image": "./images/wish_dali_romantic.jpg"
 
   },
 
