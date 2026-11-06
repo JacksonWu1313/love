@@ -7427,7 +7427,7 @@
 
               message: `feat: Cloud sync love records timeline (${loveRecordsList.value.length} stories)`,
 
-              content: safeUtf8ToBase64(JSON.stringify(loveRecordsList.value, null, 2)))),
+              content: safeUtf8ToBase64(JSON.stringify(loveRecordsList.value, null, 2)),
 
               sha
 
@@ -8266,7 +8266,7 @@
 
               message: `feat: Cloud sync love messages wall (${loveMessagesList.value.length} notes)`,
 
-              content: safeUtf8ToBase64(JSON.stringify(loveMessagesList.value, null, 2)))),
+              content: safeUtf8ToBase64(JSON.stringify(loveMessagesList.value, null, 2)),
 
               sha
 
@@ -12462,7 +12462,7 @@
 
             message: `feat: Update cloud photo pool registry (+${successCount} items)`,
 
-            content: safeUtf8ToBase64(JSON.stringify(cleanPool, null, 2))))
+            content: safeUtf8ToBase64(JSON.stringify(cleanPool, null, 2))
 
           };
 
@@ -12608,7 +12608,7 @@
 
               message: `feat: Batch add ${addedCount} external image links to pool registry`,
 
-              content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)))),
+              content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)),
 
               sha
 
@@ -12664,7 +12664,7 @@
 
                   message: 'feat: Remove photo from cloud pool registry',
 
-                  content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)))),
+                  content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)),
 
                   sha
 
@@ -13278,7 +13278,7 @@
 
               message: 'feat: Update story note for photo ' + (activeStoryPhoto.value.title || ''),
 
-              content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)))),
+              content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)),
 
               sha: sha
 
@@ -15200,7 +15200,7 @@
 
               message: 'feat: Update footprint world map cities (' + footprintCities.length + ' cities)',
 
-              content: safeUtf8ToBase64(JSON.stringify(footprintCities, null, 2)))),
+              content: safeUtf8ToBase64(JSON.stringify(footprintCities, null, 2)),
 
               sha: sha
 
