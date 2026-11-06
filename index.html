@@ -6837,8 +6837,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const getFastThumb = (src) => {
-        if (!src) return '';
-        if (typeof src !== 'string') return src;
+        if (!src || typeof src !== 'string') return '';
+        if (isVideoMedia(src)) return '';
         if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap[src]) {
           return window.__liveUploadedBlobMap[src];
         }
@@ -6870,7 +6870,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const match = (siteData.photoPool || []).find(p => p && p.image === src);
             if (match && match.cover) return getFastThumb(match.cover);
           }
-          return getFastThumb(src);
+          return isVideoMedia(src) ? '' : getFastThumb(src);
         } else if (typeof item === 'string') {
           if (liveCoverMap[item]) return liveCoverMap[item];
           if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[item]) {
@@ -6880,7 +6880,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const match = (siteData.photoPool || []).find(p => p && p.image === item);
             if (match && match.cover) return getFastThumb(match.cover);
           }
-          return getFastThumb(item);
+          return isVideoMedia(item) ? '' : getFastThumb(item);
         }
         return '';
       };
