@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v19-hd-native';
+const CACHE_NAME = 'yb-love-v20-original-pure';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
