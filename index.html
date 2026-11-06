@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261106_04').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261106_05').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
