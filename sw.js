@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v16-unified-70';
+const CACHE_NAME = 'yb-love-v17-china-direct';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -43,8 +43,7 @@ self.addEventListener('fetch', (e) => {
                         url.pathname.includes('/audio/') ||
                         url.hostname.includes('npmmirror.com') ||
                         url.hostname.includes('tailwindcss.com') ||
-                        url.hostname.includes('font.im') ||
-                        url.hostname.includes('jsdelivr.net') ||
+                                                url.hostname.includes('jsdelivr.net') ||
                         url.hostname.includes('statically.io');
 
   if (isStaticAsset) {
