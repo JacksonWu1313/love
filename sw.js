@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v19-master-realtime-sync';
+const CACHE_NAME = 'yb-love-v16-unified-70';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
