@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793943497043,
-  "updatedAtStr": "2026/11/06 13:38:17",
+  "updatedAt": 1793946000000,
+  "updatedAtStr": "2026/11/06 14:20:00",
   "version": "v19_master_realtime_sync",
   "siteData": {
     "hero": {
@@ -786,8 +786,8 @@
       },
       {
         "id": 28,
-        "image": "./images/wish_dali.jpg",
-        "title": "无脑罚单....",
+        "image": "./images/wish_dali_romantic.jpg",
+        "title": "重游大理湖景民宿",
         "date": "2026-10-10",
         "story": "再去一次大理，住进湖景民宿，听着涛声懒懒睡到自然醒。",
         "uploader": "我们"
@@ -830,7 +830,7 @@
         "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
         "tag": "自驾漫游",
         "done": true,
-        "image": "./images/wish_dali.jpg"
+        "image": "./images/wish_dali_romantic.jpg"
       },
       {
         "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",
