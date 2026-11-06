@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261106_06').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261107_01').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -6836,23 +6836,25 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
       };
 
-      const getFastThumb = (src) => {
-        if (!src || typeof src !== 'string') return '';
-        if (isVideoMedia(src)) return '';
+      const getFastImg = (src) => {
+        if (!src) return '';
+        if (typeof src !== 'string') return src;
         if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap[src]) {
           return window.__liveUploadedBlobMap[src];
         }
         if (src.startsWith('blob:') || src.startsWith('data:') || (src.startsWith('http') && !src.includes('github'))) {
           return src;
         }
-        const clean = src.replace(/^\.?\//, '');
+        // 确保使用 100% 原始超清全分辨率原图，绝不降质
+        const clean = src.replace(/^\.?\//, '').replace('images/thumb/', 'images/');
         if (clean.startsWith('images/')) {
-          if (clean.startsWith('images/thumb/')) {
-            return './' + clean;
+          if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap['./' + clean]) {
+            return window.__liveUploadedBlobMap['./' + clean];
           }
-          // 缩略图加速：文件从 350KB 降至 15KB，国内访问秒开，带宽节省 95%
-          const sub = clean.replace(/^images\//, '');
-          return './images/thumb/' + sub;
+          if (clean.startsWith('images/uploads/') && !clean.includes('?')) {
+            return './' + clean + '?v=2';
+          }
+          return './' + clean;
         }
         return src;
       };
@@ -6860,7 +6862,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const getFastCover = (item) => {
         if (!item) return '';
         if (typeof item === 'object') {
-          if (item.cover) return getFastThumb(item.cover);
+          if (item.cover) return getFastImg(item.cover);
           const src = item.image || item.src || '';
           if (src && liveCoverMap[src]) return liveCoverMap[src];
           if (src && typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
@@ -6868,9 +6870,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           if (isVideoMedia(src)) {
             const match = (siteData.photoPool || []).find(p => p && p.image === src);
-            if (match && match.cover) return getFastThumb(match.cover);
+            if (match && match.cover) return getFastImg(match.cover);
+            return '';
           }
-          return isVideoMedia(src) ? '' : getFastThumb(src);
+          return isVideoMedia(src) ? '' : getFastImg(src);
         } else if (typeof item === 'string') {
           if (liveCoverMap[item]) return liveCoverMap[item];
           if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[item]) {
@@ -6878,9 +6881,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           if (isVideoMedia(item)) {
             const match = (siteData.photoPool || []).find(p => p && p.image === item);
-            if (match && match.cover) return getFastThumb(match.cover);
+            if (match && match.cover) return getFastImg(match.cover);
+            return '';
           }
-          return isVideoMedia(item) ? '' : getFastThumb(item);
+          return isVideoMedia(item) ? '' : getFastImg(item);
         }
         return '';
       };
@@ -6888,7 +6892,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const getFastCoverOrImg = (item) => {
         if (!item) return FALLBACK_PHOTO_SVG;
         if (typeof item === 'object') {
-          if (item.cover) return getFastThumb(item.cover);
+          if (item.cover) return getFastImg(item.cover);
           const src = item.image || item.src || '';
           if (src && liveCoverMap[src]) return liveCoverMap[src];
           if (src && typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
@@ -6896,10 +6900,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           if (isVideoMedia(src)) {
             const match = (siteData.photoPool || []).find(p => p && p.image === src);
-            if (match && match.cover) return getFastThumb(match.cover);
+            if (match && match.cover) return getFastImg(match.cover);
             return FALLBACK_PHOTO_SVG;
           }
-          return getFastThumb(src);
+          return getFastImg(src);
         }
         const src = String(item);
         if (liveCoverMap[src]) return liveCoverMap[src];
@@ -6908,10 +6912,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
         if (isVideoMedia(src)) {
           const match = (siteData.photoPool || []).find(p => p && p.image === src);
-          if (match && match.cover) return getFastThumb(match.cover);
+          if (match && match.cover) return getFastImg(match.cover);
           return FALLBACK_PHOTO_SVG;
         }
-        return getFastThumb(src);
+        return getFastImg(src);
       };
 
       const handleVideoError = (event) => {
@@ -6929,29 +6933,6 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             activeLightboxVideo.value = null;
           }
         }
-      };
-
-      const getFastImg = (src) => {
-        if (!src) return '';
-        if (typeof src !== 'string') return src;
-        if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap[src]) {
-          return window.__liveUploadedBlobMap[src];
-        }
-        if (src.startsWith('blob:') || src.startsWith('data:') || (src.startsWith('http') && !src.includes('github'))) {
-          return src;
-        }
-        const clean = src.replace(/^\.?\//, '').replace('images/thumb/', 'images/');
-        if (clean.startsWith('images/')) {
-          if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap['./' + clean]) {
-            return window.__liveUploadedBlobMap['./' + clean];
-          }
-          // 新上传 slot_ 资源自动附加版本参数，彻底穿透 Cloudflare 7 天 404 边缘陈旧缓存
-          if (clean.startsWith('images/uploads/') && !clean.includes('?')) {
-            return './' + clean + '?v=2';
-          }
-          return './' + clean;
-        }
-        return src;
       };
 
 
