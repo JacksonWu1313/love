@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261107_02').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261107_03').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -818,13 +818,13 @@
 
   <!-- 全站通用本地相册选图器 (支持超清原图、GIF/WebP/APNG 动图与 LivePhoto 动态视频) -->
 
-  <input type="file" ref="universalAlbumInput" accept="image/*,.gif,.webp,.apng,.png,.jpg,.jpeg,.avif,video/mp4,video/quicktime,video/webm" @change="handleUniversalAlbumPicked" class="hidden">
+  <input type="file" ref="universalAlbumInput" accept="image/*,video/*" @change="handleUniversalAlbumPicked" class="hidden">
 
 
 
   
   <!-- Timeline Photo Action Bottom Sheet Modal -->
-  <div v-if="showUniversalPhotoActionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" @click="closeUniversalPhotoAction">
+  <div v-if="showUniversalPhotoActionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4" @click="closeUniversalPhotoAction">
     <div class="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-3 animate-in fade-in slide-in-from-bottom-6 duration-200" @click.stop>
       <div class="text-center pb-2 border-b border-sand">
         <h4 class="text-sm font-bold text-ink font-serif">更换此位置相片</h4>
@@ -2839,7 +2839,7 @@
         </span>
 
         <button type="button" @click="openIosLiveModal('pool')" class="px-4 py-2 rounded-full bg-gradient-to-r from-rose-500 to-clay text-white text-xs font-semibold shadow-soft hover:opacity-95 transition flex items-center space-x-1.5 transform active:scale-95"><span class="w-2 h-2 rounded-full bg-white animate-ping"></span><span>🍎 iPhone 实况一键直传 (LIVE ⭕)</span></button>
-        <input type="file" ref="poolFileInput" multiple accept="image/*,video/quicktime,video/mp4,video/webm,.mov,.mp4,.gif,.webp" @change="handlePoolFilesSelected" class="hidden">
+        <input type="file" ref="poolFileInput" multiple accept="image/*,video/*" @change="handlePoolFilesSelected" class="hidden">
 
       </div>
       
@@ -3282,12 +3282,12 @@
 
           </button>
 
-          <button @click="triggerPoolUpload" class="px-3.5 py-1.5 rounded-full bg-clay text-white text-xs font-medium hover:bg-clay/90 transition shadow-sm flex items-center space-x-1.5">
-
+          <button @click="openUniversalPhotoAction('pool', null)" class="px-3 py-1.5 rounded-full bg-clay text-white text-xs font-medium hover:bg-clay/90 transition shadow-sm flex items-center space-x-1">
             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-
-            <span class="hidden sm:inline">存入新照片</span>
-
+            <span>存入新照片</span>
+          </button>
+          <button type="button" @click="openIosLiveModal('pool')" class="px-3 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-clay text-white text-xs font-semibold shadow-sm hover:opacity-95 transition flex items-center space-x-1">
+            <span>🍎 传实况</span>
           </button>
 
         </div>
@@ -3553,7 +3553,7 @@
 
   <!-- Fullscreen Lightbox Modal (支持超清原图、GIF 动图与 LivePhoto 原声原生视频播放) -->
 
-  <div v-if="activeLightboxImg || activeLightboxVideo" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out select-none" @click="closeLightbox">
+  <div v-if="activeLightboxImg || activeLightboxVideo" class="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center p-4 cursor-zoom-out select-none" @click="closeLightbox">
 
     <div class="max-w-4xl max-h-[90vh] relative flex flex-col items-center justify-center" @click.stop>
 
@@ -3702,7 +3702,7 @@
 
 
   <!-- iPhone Live Photo One-Tap Bridge Modal -->
-  <div v-if="showIosLiveModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto" @click.self="closeIosLiveModal">
+  <div v-if="showIosLiveModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[80] flex items-end sm:items-center justify-center p-4 overflow-y-auto" @click.self="closeIosLiveModal">
     <div class="max-w-md w-full glass-card rounded-3xl p-6 bg-warmwhite shadow-2xl border border-sand relative my-6" @click.stop>
       <button @click="closeIosLiveModal" class="absolute top-4 right-4 p-2 rounded-full bg-sand/50 text-muted hover:text-ink transition"><i data-lucide="x" class="w-4 h-4"></i></button>
       <div class="flex items-center space-x-2.5 mb-3">
@@ -3718,7 +3718,7 @@
           <span>{{ isUploadingIosLive ? '⏳ 正在上传 3 秒完整实况视频...' : '📥 第 2 步：选完返回后，点此一键导入并上传' }}</span>
         </button>
         <!-- 备选 A：相册直接选择实况视频 (MOV/MP4) -->
-        <input type="file" ref="iosLiveDirectFileInput" accept="image/*,video/*,image/heic,image/heif,video/quicktime,video/mp4,.mov,.mp4" @change="handleIosLiveDirectFileSelected" class="hidden">
+        <input type="file" ref="iosLiveDirectFileInput" accept="image/*,video/*" @change="handleIosLiveDirectFileSelected" class="hidden">
         <button type="button" @click="triggerIosLiveDirectFile" class="w-full py-2.5 px-3 rounded-2xl bg-sand/30 hover:bg-sand/60 text-stone-600 text-xs font-semibold border border-sand/80 transition flex items-center justify-center gap-1.5">
           <span>📁 或直接从手机相册选择 3 秒实况/视频 (MOV/MP4)</span>
         </button>
@@ -4550,7 +4550,7 @@
             </button>
             <button type="button" @click="openIosLiveModal('record')" class="px-3 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold whitespace-nowrap transition shadow-xs">🍎 实况直传</button>
 
-            <input type="file" ref="recordImageInput" accept="image/*,video/quicktime,video/mp4,video/webm,.mov,.mp4,.gif,.webp" @change="handleRecordImageUpload" class="hidden">
+            <input type="file" ref="recordImageInput" accept="image/*,video/*" @change="handleRecordImageUpload" class="hidden">
 
           </div>
           
@@ -7365,12 +7365,12 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const syncLoveRecordsFromCloud = async () => {
 
         try {
+          if (isWithinLocalUploadGrace()) return;
 
           const res = await fetch(`./data/love_records.json?t=${Date.now()}`);
 
           if (res.ok) {
 
-            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             if (Array.isArray(data) && data.length > 0) {
@@ -7715,9 +7715,37 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       // 跨端同步核心：从云端拉取整站最新状态 (解决手机看不到电脑修改的问题)
 
+      const isWithinLocalUploadGrace = () => {
+        if (typeof window !== 'undefined' && window.__lastLocalUploadTs && (Date.now() - window.__lastLocalUploadTs < 120000)) return true;
+        try {
+          const ts = Number(localStorage.getItem('couple_last_upload_ts') || 0);
+          if (ts && (Date.now() - ts < 120000)) return true;
+        } catch(e){}
+        return false;
+      };
+      const markLocalUploadTimestamp = (newPoolItems = null) => {
+        const now = Date.now();
+        if (typeof window !== 'undefined') window.__lastLocalUploadTs = now;
+        try {
+          localStorage.setItem('couple_last_upload_ts', String(now));
+          localStorage.setItem('couple_site_updated_at', String(now));
+          localStorage.setItem('couple_site_custom_ts', String(now));
+          if (Array.isArray(newPoolItems) && newPoolItems.length > 0) {
+            const raw = localStorage.getItem('couple_recent_pool_uploads');
+            const prev = raw ? JSON.parse(raw) : [];
+            const validPrev = Array.isArray(prev) ? prev.filter(x => x && x.item && (now - (x.ts || 0) < 600000)) : [];
+            for (const it of newPoolItems) {
+              if (it && it.image) validPrev.unshift({ ts: now, item: it });
+            }
+            localStorage.setItem('couple_recent_pool_uploads', JSON.stringify(validPrev.slice(0, 30)));
+          }
+        } catch(e){}
+      };
+
       const syncSiteStateFromCloud = async () => {
 
         try {
+          if (isWithinLocalUploadGrace()) return;
 
           // 【大陆极速秒开】读取优先走同源相对路径，0秒直达，彻底杜绝 api.github.com 在大陆被墙导致的 60 秒挂起
           let res = await fetch(`./data/site_state.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
@@ -7742,8 +7770,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             const cloudTs = Number(cloudState.updatedAt || 0);
 
-            // 【全端章节实时对齐】非编辑模式下全端对齐云端篇章真值
-            if (cloudState.siteData && (!isEditing.value && !isTimelineOnlyEditing.value)) {
+            // 【全端章节实时对齐】非编辑模式下且云端时间戳不落后于本地时对齐云端篇章真值
+            if (cloudState.siteData && (!isEditing.value && !isTimelineOnlyEditing.value) && (localTs === 0 || cloudTs >= localTs)) {
               if (Array.isArray(cloudState.siteData.timeline) && cloudState.siteData.timeline.length >= 6) {
                 siteData.timeline = cloudState.siteData.timeline;
               }
@@ -11008,6 +11036,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
         // 1. 严格仅调用一次 callback，使用持久可复现的 dataUrl
+        markLocalUploadTimestamp();
         const initialUrl = prep.dataUrl;
         if (prep.coverBase64) {
           setLiveCover(initialUrl, prep.coverBase64);
@@ -11317,6 +11346,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
 
         if (changed) {
+          markLocalUploadTimestamp(targetType === 'pool' && targetCtx ? [targetCtx] : null);
           try {
             localStorage.setItem('couple_site_updated_at', String(nowTs));
             localStorage.setItem(storageKey, JSON.stringify(siteData));
@@ -11374,7 +11404,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 applyMediaReplacement('pool', target.ctx, newSrc, null, false, file);
               });
             } else {
-              triggerUniversalAlbumPicker();
+              triggerPoolUpload();
             }
           } else if (target.type === 'wishes') {
             promptChangeArrayImage('wishes', target.ctx.idx, target.ctx.field || 'image');
@@ -11970,6 +12000,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const syncFromCloudRegistry = async () => {
         try {
+          if ((typeof isSyncingPool !== 'undefined' && isSyncingPool.value) || (typeof isUploadingIosLive !== 'undefined' && isUploadingIosLive.value) || isWithinLocalUploadGrace()) {
+            return;
+          }
           // 【大陆极速秒开】优先走同源相对路径，50ms 内完成照片池对齐
           let res = await fetch(`./data/photo_pool.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
           if (!res || !res.ok) {
@@ -12012,6 +12045,24 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                   seenImgs.add(p.image);
                   return true;
                 });
+                try {
+                  const rawRecent = localStorage.getItem('couple_recent_pool_uploads');
+                  if (rawRecent) {
+                    const recentArr = JSON.parse(rawRecent);
+                    const now = Date.now();
+                    if (Array.isArray(recentArr)) {
+                      for (let rIdx = recentArr.length - 1; rIdx >= 0; rIdx--) {
+                        const entry = recentArr[rIdx];
+                        if (entry && entry.item && entry.item.image && (now - (entry.ts || 0) < 600000)) {
+                          if (!seenImgs.has(entry.item.image)) {
+                            seenImgs.add(entry.item.image);
+                            cleanUnified.unshift(entry.item);
+                          }
+                        }
+                      }
+                    }
+                  }
+                } catch(reErr){}
                 siteData.photoPool = cleanUnified;
               }
               try {
@@ -12444,9 +12495,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         // 一次性批量合并入 Vue 响应式状态，避免循环多次触发深度 Watch 序列化卡死
 
         if (newlyAddedPoolItems.length > 0) {
-
+          markLocalUploadTimestamp(newlyAddedPoolItems);
           siteData.photoPool.unshift(...newlyAddedPoolItems);
-
+          try { localStorage.setItem(storageKey, JSON.stringify(siteData)); } catch(e){}
         }
 
 
@@ -15160,12 +15211,12 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const syncFootprintFromCloud = async () => {
 
         try {
+          if (isWithinLocalUploadGrace()) return;
 
           const res = await fetch('./data/footprint_cities.json?t=' + Date.now());
 
           if (res.ok) {
 
-            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             if (Array.isArray(data) && data.length > 0) {

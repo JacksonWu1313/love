@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v20-original-pure';
+const CACHE_NAME = 'yb-love-v21-iphone-sync-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
