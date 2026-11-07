@@ -1,6 +1,6 @@
 {
-  "updatedAt": 1793950885035,
-  "updatedAtStr": "2026/11/6 15:41:25",
+  "updatedAt": 1794035986494,
+  "updatedAtStr": "2026/11/7 15:19:46",
   "siteData": {
     "hero": {
       "title1": "YB",
@@ -14,7 +14,7 @@
     },
     "stats": [
       {
-        "number": "190",
+        "number": "191",
         "label": "连续记录天数 (天)"
       },
       {
@@ -39,7 +39,7 @@
         "quote": "照片里加了什么 我不懂 好幸福。",
         "images": [
           "./images/timeline_05_1.jpg",
-          "./images/timeline_05_2.jpg"
+          "./images/uploads/slot_1794035766759_46.mov"
         ]
       },
       {
@@ -84,7 +84,7 @@
         "quote": "“吃KFC蘸酱，再去公园散散步。”",
         "images": [
           "./images/uploads/slot_1793271441782_249.jpg?v=2",
-          "./images/uploads/slot_1793271466421_123.jpg?v=2"
+          "./images/uploads/slot_1794035817258_693.mov"
         ]
       },
       {
@@ -176,6 +176,16 @@
       }
     ],
     "photoPool": [
+      {
+        "id": 1793982250421.392,
+        "image": "./images/pool/pool_1793982245831_0.mov",
+        "cover": "./images/hero_cover.jpg",
+        "duration": "00:03",
+        "isVideo": true,
+        "title": "iPhone_Live_1793982242668",
+        "date": "2026-11-06",
+        "uploader": "伍彦博"
+      },
       {
         "id": "tablet_1793893604536_0",
         "image": "./images/pool/pool_1793893604536_0.jpg",
@@ -829,7 +839,7 @@
         "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
         "tag": "自驾漫游",
         "done": true,
-        "image": "./images/wish_dali_romantic.jpg"
+        "image": "./images/wish_dali.jpg"
       },
       {
         "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",
@@ -877,13 +887,13 @@
         "title": "彩云之南 · 大理自驾与夏日微风",
         "content": "在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。",
         "quote": "苍山的雪，洱海的月，身边的悦悦大王。",
-        "image": "./images/hero_cover.jpg"
+        "image": "./images/uploads/slot_1794035945324_838.mov"
       },
       {
         "id": "rec_4",
         "date": "2026年10月26日",
         "tag": "日常甜宠",
-        "title": "KFC不蘸酱与公园吹晚风",
+        "title": "公园吹晚风",
         "content": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。",
         "quote": "全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。",
         "image": "./images/IMG_8727.JPG"
@@ -916,13 +926,13 @@
       "title": "彩云之南 · 大理自驾与夏日微风",
       "content": "在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。",
       "quote": "苍山的雪，洱海的月，身边的悦悦大王。",
-      "image": "./images/hero_cover.jpg"
+      "image": "./images/uploads/slot_1794035945324_838.mov"
     },
     {
       "id": "rec_4",
       "date": "2026年10月26日",
       "tag": "日常甜宠",
-      "title": "KFC不蘸酱与公园吹晚风",
+      "title": "公园吹晚风",
       "content": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。",
       "quote": "全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。",
       "image": "./images/IMG_8727.JPG"
