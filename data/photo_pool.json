@@ -1,8 +1,8 @@
 [
   {
     "id": 1793982250421.392,
-    "image": "./images/pool/pool_1793982245831_0.mov",
-    "cover": "./images/hero_cover.jpg",
+    "image": "./images/pool/pool_1793982245831_0.mp4",
+    "cover": "./images/pool/pool_1793982245831_0_cover.jpg",
     "duration": "00:03",
     "isVideo": true,
     "title": "iPhone_Live_1793982242668",
@@ -44,11 +44,11 @@
   {
     "id": "phone_1793893471701_298",
     "image": "./images/uploads/slot_1793893471701_298.mp4",
-    "cover": "./images/hero_cover.jpg",
+    "cover": "./images/uploads/slot_1793893471701_298_cover.jpg",
     "isVideo": true,
-    "title": "麻糍耶✌️",
+    "title": "拉丝咯",
     "date": "2026-11-05",
-    "story": "",
+    "story": "大理洱海的晴空晚风，还有全世界仅此一个的你。",
     "uploader": "伍彦博"
   },
   {
@@ -80,7 +80,7 @@
   {
     "id": 1793719996604.6628,
     "image": "./images/pool/pool_1793719988825_0.mp4",
-    "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+    "cover": "./images/pool/pool_1793719988825_0_cover.jpg",
     "duration": "00:03",
     "isVideo": true,
     "title": "臭脚脚2",
@@ -90,7 +90,7 @@
   {
     "id": 1793719665703.458,
     "image": "./images/pool/pool_1793719657469_0.mp4",
-    "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+    "cover": "./images/pool/pool_1793719657469_0_cover.jpg",
     "duration": "00:03",
     "isVideo": true,
     "title": "老年悦悦和yb",
@@ -101,7 +101,7 @@
   {
     "id": 1793719567741.2312,
     "image": "./images/pool/pool_1793719562445_0.mp4",
-    "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+    "cover": "./images/pool/pool_1793719562445_0_cover.jpg",
     "duration": "00:02",
     "isVideo": true,
     "title": "宝宝你推我--呦呦",
@@ -112,7 +112,7 @@
   {
     "id": 1793719516587.1074,
     "image": "./images/pool/pool_1793719509586_0.mp4",
-    "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+    "cover": "./images/pool/pool_1793719509586_0_cover.jpg",
     "duration": "00:02",
     "isVideo": true,
     "title": "大碗先生queen",

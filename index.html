@@ -124,7 +124,7 @@
 
   <link rel="icon" type="image/svg+xml" href="./images/icon.svg">
 
-  <link rel="preload" as="image" href="./images/hero_cover.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="./images/uploads/slot_1793090427258_811.jpeg" fetchpriority="high">
 
   <title>Our Love Story | YB & 悦悦大王 数字纪念馆 (CMS 可持续编辑版)</title>
 
@@ -1140,10 +1140,9 @@
 
       <div class="polaroid-frame rounded-2xl cursor-pointer" @click="openLightbox(siteData.hero.coverImage)">
 
-        <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40">
-
-          <img :src="getFastImg(siteData.hero.coverImage)" alt="Hero Cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="eager" decoding="async" fetchpriority="high" @error="onImgError($event, siteData.hero.coverImage)">
-
+        <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+          <img :src="getFastCoverOrImg(siteData.hero.coverImage)" alt="Hero Cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="eager" decoding="async" fetchpriority="high" @error="onImgError($event, siteData.hero.coverImage)">
+          <video v-if="isVideoMedia(siteData.hero.coverImage)" :src="getFastImg(siteData.hero.coverImage)" :poster="getFastCover(siteData.hero.coverImage) || ''" autoplay muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
         </div>
 
         <p class="text-center font-serif text-xs text-muted mt-3 italic">
@@ -1456,7 +1455,7 @@
 
               <div class="polaroid-frame rounded-2xl cursor-pointer" @click="openLightbox(imgSrc)">
 
-                <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative">
+<div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
                   <!-- 永不灰屏：底置静态封面图 -->
                   <img :src="getFastCoverOrImg(imgSrc)"
@@ -1472,16 +1471,13 @@
                          autoplay
                          muted
                          
-                         playsinline @ended="handleLiveVideoEnded($event)"
-                         webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                         playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                          class="absolute inset-0 z-[1] w-full h-full object-cover group-hover/img:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                          style="opacity: 0;"
                          @loadeddata="$event.target.style.opacity = '1'"
                          @canplay="$event.target.style.opacity = '1'"
                          @playing="$event.target.style.opacity = '1'"
-                         @error="handleVideoError($event)"
-                         @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                         @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
+                         @error="handleVideoError($event)"></video>
 
                   <span v-if="isMotionMedia(imgSrc)" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
                     <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(imgSrc) ? 'animate-ping' : ''"></span>LIVE ⭕
@@ -1567,7 +1563,7 @@
 
             <!-- Associated Photo -->
 
-            <div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="openLightbox(q.image)">
+<div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="openLightbox(q.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
               <!-- 永不灰屏：底置静态封面图 -->
               <img :src="getFastCoverOrImg(q.image)" :alt="q.author"
@@ -1577,15 +1573,13 @@
               <video v-if="isVideoMedia(q.image)"
                      :src="getFastImg(q.image)"
                      :poster="getFastCover(q.image) || ''"
-                     autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                     autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                      class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                      style="opacity: 0;"
                      @loadeddata="$event.target.style.opacity = '1'"
                      @canplay="$event.target.style.opacity = '1'"
                      @playing="$event.target.style.opacity = '1'"
-                     @error="handleVideoError($event)"
-                     @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                     @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video><span v-if="isMotionMedia(q.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(q.image) ? 'animate-ping' : ''"></span>LIVE ⭕</span>
+                     @error="handleVideoError($event)"></video><span v-if="isMotionMedia(q.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(q.image) ? 'animate-ping' : ''"></span>LIVE ⭕</span>
 
               <button @click.stop="promptChangeArrayImage('quotes', qIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-85 sm:opacity-0 group-hover:opacity-100'" class="absolute top-2.5 right-2.5 px-2.5 py-1 bg-clay/95 text-white rounded-full text-[11px] flex items-center gap-1 shadow hover:bg-rose-500 transition z-20">
 
@@ -2531,7 +2525,7 @@
 
                 <div class="sphere-card-inner w-full h-full p-1 sm:p-1.5 bg-white rounded-xl sm:rounded-2xl shadow-md flex flex-col border border-sand/80 relative">
 
-                  <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/40 bg-gradient-to-br from-sand/30 via-rose-50/25 to-sand/20">
+<div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/40 bg-gradient-to-br from-sand/30 via-rose-50/25 to-sand/20" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
                     <!-- 永不灰屏：底置静态封面图 -->
                     <img :src="getFastCoverOrImg(photo)"
@@ -2544,13 +2538,11 @@
                     <video v-if="isVideoMedia(photo.image)"
                            :src="getFastImg(photo.image)"
                            :poster="getFastCover(photo) || ''"
-                           autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
+                           autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
                            @loadeddata="$event.target.style.opacity = '1'"
                            @canplay="$event.target.style.opacity = '1'"
                            @playing="$event.target.style.opacity = '1'"
                            @error="handleVideoError($event)"
-                           @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                           @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
                            class="absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300"
                            style="aspect-ratio: 1/1.15; opacity: 0;"></video>
 
@@ -2851,10 +2843,8 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
 
       <div v-for="(photo, pIdx) in filteredAndSortedPhotos.slice(0, 10)" :key="photo.id || pIdx" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
-
         <!-- Photo Container -->
-
-        <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
+        <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
           <!-- 永不灰屏：底置静态封面图 -->
           <img :src="getFastCoverOrImg(photo)"
@@ -2866,15 +2856,13 @@
           <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                  :src="getFastImg(photo.image)"
                  :poster="getFastCover(photo) || ''"
-                 autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                 autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                  class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                  style="opacity: 0;"
                  @loadeddata="$event.target.style.opacity = '1'"
                  @canplay="$event.target.style.opacity = '1'"
                  @playing="$event.target.style.opacity = '1'"
-                 @error="handleVideoError($event)"
-                 @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                 @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
+                 @error="handleVideoError($event)"></video><span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕</span>
 
           <div class="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center space-x-2 text-white">
 
@@ -3044,9 +3032,9 @@
 
           <div class="flex items-center space-x-2">
 
-            <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="openLightbox(w.image)">
-
-              <img :src="getFastImg(w.image)" :alt="w.text" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, w.image)">
+            <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="openLightbox(w.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+              <img :src="getFastCoverOrImg(w.image)" :alt="w.text" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, w.image)">
+              <video v-if="isVideoMedia(w.image)" :src="getFastImg(w.image)" :poster="getFastCover(w.image) || ''" autoplay muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
               <button @click.stop="promptChangeArrayImage('wishes', wIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-0 group-hover/wish:opacity-100'" class="absolute inset-0 bg-black/55 text-white text-[10px] font-semibold flex items-center justify-center transition z-20">
 
@@ -3168,9 +3156,9 @@
 
 
 
-      <div class="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5 bg-sand/40">
-
-        <img :src="getFastImg(siteData.letter.bgImage)" alt="Letter Visual" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, siteData.letter.bgImage)">
+      <div class="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5 bg-sand/40" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+        <img :src="getFastCoverOrImg(siteData.letter.bgImage)" alt="Letter Visual" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, siteData.letter.bgImage)">
+        <video v-if="isVideoMedia(siteData.letter.bgImage)" :src="getFastImg(siteData.letter.bgImage)" :poster="getFastCover(siteData.letter.bgImage) || ''" autoplay muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
         <button @click.stop="promptChangeImage('letter', 'bgImage')" class="absolute top-2.5 right-2.5 px-3 py-1 bg-clay/95 hover:bg-rose-500 text-white rounded-full text-xs shadow flex items-center gap-1 transition z-20">
 
@@ -3447,10 +3435,8 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 md:gap-4">
 
             <div v-for="photo in group.photos" :key="photo.id || photo.image" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
-
               <!-- Photo Container -->
-
-              <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)">
+              <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
                 <!-- 永不灰屏：底置静态封面图 -->
                 <img :src="getFastCoverOrImg(photo)"
@@ -3462,15 +3448,13 @@
                 <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                        :src="getFastImg(photo.image)"
                        :poster="getFastCover(photo) || ''"
-                       autoplay muted  playsinline @ended="handleLiveVideoEnded($event)" webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                       autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                        class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                        style="opacity: 0;"
                        @loadeddata="$event.target.style.opacity = '1'"
                        @canplay="$event.target.style.opacity = '1'"
                        @playing="$event.target.style.opacity = '1'"
-                       @error="handleVideoError($event)"
-                       @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                       @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
+                       @error="handleVideoError($event)"></video>
                 <span v-if="isMotionMedia(photo.image) || photo.isVideo" class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕
                 </span>
@@ -4693,7 +4677,7 @@
 
           <!-- Fixed Aspect-Ratio Container (防抖动 + 100% 原始超清大图点击预览) -->
 
-          <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
+          <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
             <!-- 永不灰屏：底置静态封面图 -->
             <img :src="getFastCoverOrImg(item.rec.image)"
@@ -4709,16 +4693,13 @@
                    autoplay
                    muted
                    
-                   playsinline @ended="handleLiveVideoEnded($event)"
-                   webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                   playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                    class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                    style="opacity: 0;"
                    @loadeddata="$event.target.style.opacity = '1'"
                    @canplay="$event.target.style.opacity = '1'"
                    @playing="$event.target.style.opacity = '1'"
-                   @error="handleVideoError($event)"
-                   @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                   @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
+                   @error="handleVideoError($event)"></video>
 
             <span v-if="isMotionMedia(item.rec.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
               <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(item.rec.image) ? 'animate-ping' : ''"></span>LIVE ⭕
@@ -4960,7 +4941,7 @@
 
 
 
-        <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)">
+        <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
           <!-- 永不灰屏：底置静态封面图 -->
           <img :src="getFastCoverOrImg(item.rec.image)"
@@ -4976,16 +4957,13 @@
                  autoplay
                  muted
                  
-                 playsinline @ended="handleLiveVideoEnded($event)"
-                 webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                 playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                  class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                  style="opacity: 0;"
                  @loadeddata="$event.target.style.opacity = '1'"
                  @canplay="$event.target.style.opacity = '1'"
                  @playing="$event.target.style.opacity = '1'"
-                 @error="handleVideoError($event)"
-                 @mouseenter="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"
-                 @touchstart="$event.target.currentTime = 0; $event.target.play().catch(()=>{})"></video>
+                 @error="handleVideoError($event)"></video>
 
           <span v-if="isMotionMedia(item.rec.image)" class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/65 text-[9px] font-bold text-white tracking-widest flex items-center gap-1 shadow z-10 pointer-events-none">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500" :class="isVideoMedia(item.rec.image) ? 'animate-ping' : ''"></span>LIVE ⭕
@@ -5759,7 +5737,7 @@
       "quote": "照片里加了什么 我不懂 好幸福。",
       "images": [
         "./images/timeline_05_1.jpg",
-        "./images/uploads/slot_1794035766759_46.mov"
+        "./images/uploads/slot_1794035766759_46.mp4"
       ]
     },
     {
@@ -5770,7 +5748,7 @@
       "quote": "“我今天给你修眉，我想吃盛香亭”",
       "images": [
         "./images/uploads/slot_1793771814053_244.jpg?v=2",
-        "./images/uploads/slot_1793787192052_877.mov"
+        "./images/uploads/slot_1793787192052_877.mp4"
       ]
     },
     {
@@ -5791,7 +5769,7 @@
       "desc": "熬过了一个月的分开，终于在盛夏重聚，直奔云南开启浪漫自驾之旅！自驾穿梭在苍山与洱海的环海公路上，吹着傍晚清凉微甜的晚风；漫步在丽江古城光洁温润的石板街与夜色灯火中，牵着你的手一路走一路拍，单日聊天记录狂飙515条，写满了我们最绚烂的夏日记忆。",
       "quote": "大理的晚风太治愈了，自驾在环海路上的感觉好自由，这一路有你真好。",
       "images": [
-        "./images/uploads/slot_1793787287711_571.mov",
+        "./images/uploads/slot_1793787287711_571.mp4",
         "./images/timeline_08_2.jpg",
         "./images/uploads/slot_1793094914212_460.jpeg?v=2"
       ]
@@ -5804,7 +5782,7 @@
       "quote": "“吃KFC蘸酱，再去公园散散步。”",
       "images": [
         "./images/uploads/slot_1793271441782_249.jpg?v=2",
-        "./images/uploads/slot_1794035817258_693.mov"
+        "./images/uploads/slot_1794035817258_693.mp4"
       ]
     },
     {
@@ -5898,8 +5876,8 @@
   "photoPool": [
     {
       "id": 1793982250421.392,
-      "image": "./images/pool/pool_1793982245831_0.mov",
-      "cover": "./images/hero_cover.jpg",
+      "image": "./images/pool/pool_1793982245831_0.mp4",
+      "cover": "./images/pool/pool_1793982245831_0_cover.jpg",
       "duration": "00:03",
       "isVideo": true,
       "title": "iPhone_Live_1793982242668",
@@ -5941,11 +5919,11 @@
     {
       "id": "phone_1793893471701_298",
       "image": "./images/uploads/slot_1793893471701_298.mp4",
-      "cover": "./images/hero_cover.jpg",
+      "cover": "./images/uploads/slot_1793893471701_298_cover.jpg",
       "isVideo": true,
-      "title": "麻糍耶✌️",
+      "title": "拉丝咯",
       "date": "2026-11-05",
-      "story": "",
+      "story": "大理洱海的晴空晚风，还有全世界仅此一个的你。",
       "uploader": "伍彦博"
     },
     {
@@ -5977,7 +5955,7 @@
     {
       "id": 1793719996604.6628,
       "image": "./images/pool/pool_1793719988825_0.mp4",
-      "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+      "cover": "./images/pool/pool_1793719988825_0_cover.jpg",
       "duration": "00:03",
       "isVideo": true,
       "title": "臭脚脚2",
@@ -5987,7 +5965,7 @@
     {
       "id": 1793719665703.458,
       "image": "./images/pool/pool_1793719657469_0.mp4",
-      "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+      "cover": "./images/pool/pool_1793719657469_0_cover.jpg",
       "duration": "00:03",
       "isVideo": true,
       "title": "老年悦悦和yb",
@@ -5998,7 +5976,7 @@
     {
       "id": 1793719567741.2312,
       "image": "./images/pool/pool_1793719562445_0.mp4",
-      "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+      "cover": "./images/pool/pool_1793719562445_0_cover.jpg",
       "duration": "00:02",
       "isVideo": true,
       "title": "宝宝你推我--呦呦",
@@ -6009,7 +5987,7 @@
     {
       "id": 1793719516587.1074,
       "image": "./images/pool/pool_1793719509586_0.mp4",
-      "cover": "./images/uploads/opt_30249c4f0cb3.jpg",
+      "cover": "./images/pool/pool_1793719509586_0_cover.jpg",
       "duration": "00:02",
       "isVideo": true,
       "title": "大碗先生queen",
@@ -6559,7 +6537,7 @@
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
       "tag": "自驾漫游",
       "done": true,
-      "image": "./images/wish_dali.jpg"
+      "image": "./images/wish_dali_romantic.jpg"
     },
     {
       "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",
@@ -6607,16 +6585,58 @@
       "title": "彩云之南 · 大理自驾与夏日微风",
       "content": "在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。",
       "quote": "苍山的雪，洱海的月，身边的悦悦大王。",
-      "image": "./images/uploads/slot_1794035945324_838.mov"
+      "image": "./images/uploads/slot_1794035945324_838.mp4",
+      "cover": "./images/uploads/slot_1794035945324_838_cover.jpg",
+      "isVideo": true
     },
     {
       "id": "rec_4",
       "date": "2026年10月26日",
       "tag": "日常甜宠",
-      "title": "公园吹晚风",
+      "title": "KFC不蘸酱与公园吹晚风",
       "content": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。",
       "quote": "全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。",
       "image": "./images/IMG_8727.JPG"
+    },
+    {
+      "id": "rec_5",
+      "date": "2026年11月12日",
+      "tag": "日常高光",
+      "title": "今天和悦悦大王一起刷校园...",
+      "content": "今天和悦悦大王一起刷校园跑“first time”",
+      "quote": "",
+      "image": "",
+      "recorded_at": "2026-11-12 19:59:07"
+    },
+    {
+      "id": "rec_6",
+      "date": "2026年11月13日",
+      "tag": "日常高光",
+      "title": "今天和悦悦大王一起刷校园...",
+      "content": "今天和悦悦大王一起刷校园跑“first time”",
+      "quote": "",
+      "image": "",
+      "recorded_at": "2026-11-13 00:43:30"
+    },
+    {
+      "id": "rec_7",
+      "date": "2026年11月13日 00:43",
+      "tag": "日常高光",
+      "title": "今天和悦悦大王一起刷校园...",
+      "content": "今天和悦悦大王一起刷校园跑“first time”",
+      "quote": "",
+      "image": "",
+      "recorded_at": "2026-11-13 00:43:35"
+    },
+    {
+      "id": "rec_8",
+      "date": "2026年11月13日 02:24",
+      "tag": "日常高光",
+      "title": "今天和悦悦大王一起刷校园...",
+      "content": "今天和悦悦大王一起刷校园跑“first time”",
+      "quote": "",
+      "image": "",
+      "recorded_at": "2026-11-13 02:24:32"
     }
   ]
 };
@@ -6648,12 +6668,10 @@
       // Dual-route GitHub API caller (direct api.github.com + Cloudflare proxy fallback)
       const fetchGithubApi = async (relPath, options = {}) => {
         const cleanRel = relPath.replace(/^\/?repos\/[^/]+\/[^/]+\//, '').replace(/^\//, '');
-        const urls = [
-          `https://api.github.com/repos/${GITHUB_REPO}/${cleanRel}`,
-          `https://api.github.com/repos/${GITHUB_REPO}/${cleanRel}`
-        ];
+        const u = `https://api.github.com/repos/${GITHUB_REPO}/${cleanRel}`;
         let lastResp = null;
-        for (const u of urls) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 350));
           try {
             const resp = await fetch(u, options);
             if (resp.ok || resp.status === 404 || resp.status === 409 || resp.status === 422) {
@@ -6804,7 +6822,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const versionKey = 'couple_site_version';
 
-      const CURRENT_VERSION = 'v6_unified_70_photos_and_6_chapters';
+      const CURRENT_VERSION = 'v7_h264_5loop_unified_2026';
 
 
 
@@ -6839,20 +6857,38 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
       };
 
+      const deriveLocalVideoCover = (src) => {
+        if (!src || typeof src !== 'string') return '';
+        const clean = src.split('?')[0].trim();
+        if (clean.startsWith('./images/') && /\.(mp4|mov|webm|m4v)$/i.test(clean)) {
+          return clean.replace(/\.[^/.]+$/, '') + '_cover.jpg';
+        }
+        return '';
+      };
+
       const getFastCover = (item) => {
         if (!item) return '';
         if (typeof item === 'object') {
-          if (item.cover) return getFastImg(item.cover);
+          if (item.cover && !String(item.cover).includes('hero_cover.jpg') && !String(item.cover).includes('opt_30249c4f0cb3')) {
+            return getFastImg(item.cover);
+          }
           const src = item.image || item.src || '';
           if (src && liveCoverMap[src]) return liveCoverMap[src];
           if (src && typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
             return window.__liveCoverCache[src];
           }
+          const dCov = deriveLocalVideoCover(src);
+          if (dCov) return getFastImg(dCov);
+          if (item.cover) return getFastImg(item.cover);
         } else if (typeof item === 'string') {
           if (liveCoverMap[item]) return liveCoverMap[item];
           if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[item]) {
             return window.__liveCoverCache[item];
           }
+          const match = (siteData.photoPool || []).find(p => p && p.image === item && p.cover && !String(p.cover).includes('hero_cover.jpg') && !String(p.cover).includes('opt_30249c4f0cb3'));
+          if (match) return getFastImg(match.cover);
+          const dCov = deriveLocalVideoCover(item);
+          if (dCov) return getFastImg(dCov);
         }
         return '';
       };
@@ -6860,29 +6896,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const getFastCoverOrImg = (item) => {
         if (!item) return FALLBACK_PHOTO_SVG;
         if (typeof item === 'object') {
-          if (item.cover) return getFastImg(item.cover);
+          const cov = getFastCover(item);
+          if (cov) return cov;
           const src = item.image || item.src || '';
-          if (src && liveCoverMap[src]) return liveCoverMap[src];
-          if (src && typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
-            return window.__liveCoverCache[src];
-          }
-          if (isVideoMedia(src)) {
-            const match = (siteData.photoPool || []).find(p => p && p.image === src);
-            if (match && match.cover) return getFastImg(match.cover);
-            return FALLBACK_PHOTO_SVG;
-          }
+          if (isVideoMedia(src)) return FALLBACK_PHOTO_SVG;
           return getFastImg(src);
         }
         const src = String(item);
-        if (liveCoverMap[src]) return liveCoverMap[src];
-        if (typeof window !== 'undefined' && window.__liveCoverCache && window.__liveCoverCache[src]) {
-          return window.__liveCoverCache[src];
-        }
-        if (isVideoMedia(src)) {
-          const match = (siteData.photoPool || []).find(p => p && p.image === src);
-          if (match && match.cover) return getFastImg(match.cover);
-          return FALLBACK_PHOTO_SVG;
-        }
+        const cov = getFastCover(src);
+        if (cov) return cov;
+        if (isVideoMedia(src)) return FALLBACK_PHOTO_SVG;
         return getFastImg(src);
       };
 
@@ -6951,17 +6974,34 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       // ??/????????? 5 ?????????????? 1 ????????????????????
       const handleLiveVideoEnded = (event) => {
-        const vid = event.target;
+        const vid = event && event.target;
         if (!vid) return;
+        if (vid.closest && vid.closest('#lightbox-modal')) return;
         let count = Number(vid.dataset.loopCount || 1);
         if (count < 5) {
-          vid.dataset.loopCount = count + 1;
+          vid.dataset.loopCount = String(count + 1);
+          vid.dataset.loopDone = '0';
+          vid.loop = false;
           vid.currentTime = 0;
           vid.play().catch(() => {});
         } else {
+          vid.dataset.loopDone = 'true';
+          vid.loop = false;
           vid.pause();
-          vid.currentTime = 0; // ?? 5 ??????????
+          try { vid.currentTime = 0; } catch(e){}
         }
+      };
+
+      const replayLiveVideo = (event) => {
+        const root = event && (event.currentTarget || event.target);
+        if (!root) return;
+        const vid = (root.tagName && root.tagName.toLowerCase() === 'video') ? root : (root.querySelector ? root.querySelector('video') : null);
+        if (!vid) return;
+        vid.dataset.loopCount = '1';
+        vid.dataset.loopDone = '0';
+        vid.loop = false;
+        try { vid.currentTime = 0; } catch(e){}
+        vid.play().catch(() => {});
       };
 
       const onImgError = (event, fallbackSrc) => {
@@ -7147,9 +7187,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           const savedVersion = localStorage.getItem(versionKey);
           if (savedVersion !== CURRENT_VERSION) {
-            console.log('[Schema Migration] Version mismatch, resetting to unified default schema:', CURRENT_VERSION);
+            console.log('[Schema Migration] Version mismatch, upgrading to unified schema:', CURRENT_VERSION);
             localStorage.setItem(versionKey, CURRENT_VERSION);
             localStorage.setItem(storageKey, JSON.stringify(defaultSiteData));
+            localStorage.removeItem('couple_site_updated_at');
+            localStorage.removeItem('couple_site_custom_ts');
             return JSON.parse(JSON.stringify(defaultSiteData));
           }
 
@@ -7180,6 +7222,19 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               './images/pool/pool_1793719657469_0.mov': './images/pool/pool_1793719657469_0.mp4',
               './images/pool/pool_1793719562445_0.mov': './images/pool/pool_1793719562445_0.mp4',
               './images/pool/pool_1793719509586_0.mov': './images/pool/pool_1793719509586_0.mp4',
+              './images/pool/pool_1793719200231_0.mov': './images/pool/pool_1793719200231_0.mp4',
+              './images/pool/pool_1793873744859_0.mov': './images/pool/pool_1793873744859_0.mp4',
+              './images/pool/pool_1793982245831_0.mov': './images/pool/pool_1793982245831_0.mp4',
+              './images/uploads/slot_1793773909662_101.mov': './images/uploads/slot_1793773909662_101.mp4',
+              './images/uploads/slot_1793773992182_815.mov': './images/uploads/slot_1793773992182_815.mp4',
+              './images/uploads/slot_1793774021407_342.mov': './images/uploads/slot_1793774021407_342.mp4',
+              './images/uploads/slot_1793787192052_877.mov': './images/uploads/slot_1793787192052_877.mp4',
+              './images/uploads/slot_1793787287711_571.mov': './images/uploads/slot_1793787287711_571.mp4',
+              './images/uploads/slot_1793852597749_111.mov': './images/uploads/slot_1793852597749_111.mp4',
+              './images/uploads/slot_1793852653881_533.mov': './images/uploads/slot_1793852653881_533.mp4',
+              './images/uploads/slot_1794035766759_46.mov': './images/uploads/slot_1794035766759_46.mp4',
+              './images/uploads/slot_1794035817258_693.mov': './images/uploads/slot_1794035817258_693.mp4',
+              './images/uploads/slot_1794035945324_838.mov': './images/uploads/slot_1794035945324_838.mp4',
               './images/pool/pool_sphere_0.jpg': './images/uploads/opt_5dc44aa52cd1.jpg'
             };
             if (Array.isArray(merged.photoPool)) {
@@ -7288,81 +7343,117 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       // --- Love Records Timeline Engine (专属记忆纪实长卷) ---
 
-      const initialLoveRecords = [
-
-        {
-
-          id: 'rec_1',
-
-          date: '2026年4月30日',
-
-          tag: '心动启航',
-
-          title: '相恋与故事的开篇',
-
-          content: '从这一天开始，两人的宇宙有了专属的频率。“全世界仅此一个的我，尽情幸福吧。”对话框亮起的每一次震动，都是初夏最心动的回响。',
-
-          quote: '照片里加了什么 我不懂好幸福。',
-
-          image: './images/IMG_8708.JPG'
-
+      // 选图与上传竞态保护锁（防止 iPhone/桌面调起原生文件选择器切回页面时 focus/visibilitychange 抢跑覆盖）
+      const SyncGuard = {
+        isSelectingFile: false,
+        isUploading: false,
+        lastEndTs: 0,
+        _timer: null,
+        beginPick() {
+          this.isSelectingFile = true;
+          this.lastEndTs = Date.now();
+          if (this._timer) clearTimeout(this._timer);
+          this._timer = setTimeout(() => { this.isSelectingFile = false; }, 120000);
         },
-
-        {
-
-          id: 'rec_2',
-
-          date: '2026年5月19日',
-
-          tag: '命中注定',
-
-          title: '正式确立关系 · 22:30 的心跳同频',
-
-          content: '在这个美好的夜晚 22:30，两颗心紧紧相扣。决定把手交给你，走向同一个未来。从此以后，每一声晚安、每一个微笑，都是独属于我们的浪漫默契。',
-
-          quote: '从 5月19日 开始，以后的每个春夏秋冬，我都陪着你。',
-
-          image: './images/IMG_8716.JPG'
-
+        endPick(graceMs = 3500) {
+          this.isSelectingFile = false;
+          this.lastEndTs = Date.now() + graceMs;
+          if (this._timer) { clearTimeout(this._timer); this._timer = null; }
         },
-
-        {
-
-          id: 'rec_3',
-
-          date: '2026年8月15日',
-
-          tag: '漫游苍山洱海',
-
-          title: '彩云之南 · 大理自驾与夏日微风',
-
-          content: '在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。',
-
-          quote: '苍山的雪，洱海的月，身边的悦悦大王。',
-
-          image: './images/hero_cover.jpg'
-
+        beginUpload() {
+          this.isSelectingFile = false;
+          this.isUploading = true;
+          this.lastEndTs = Date.now() + 8000;
         },
-
-        {
-
-          id: 'rec_4',
-
-          date: '2026年10月26日',
-
-          tag: '日常甜宠',
-
-          title: 'KFC不蘸酱与公园吹晚风',
-
-          content: '生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。',
-
-          quote: '全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。',
-
-          image: './images/IMG_8727.JPG'
-
+        endUpload(graceMs = 5000) {
+          this.isUploading = false;
+          this.lastEndTs = Date.now() + graceMs;
+        },
+        isBusy() {
+          return this.isSelectingFile || this.isUploading || Date.now() < this.lastEndTs;
         }
+      };
 
-      ];
+      const initialLoveRecords = [
+        {
+                "id": "rec_1",
+                "date": "2026年4月30日",
+                "tag": "心动启航",
+                "title": "相恋与故事的开篇",
+                "content": "从这一天开始，两人的宇宙有了专属的频率。“全世界仅此一个的我，尽情幸福吧。”对话框亮起的每一次震动，都是初夏最心动的回响。",
+                "quote": "照片里加了什么 我不懂好幸福。",
+                "image": "./images/IMG_8708.JPG"
+        },
+        {
+                "id": "rec_2",
+                "date": "2026年5月19日",
+                "tag": "命中注定",
+                "title": "正式确立关系 · 22:30 的心跳同频",
+                "content": "在这个美好的夜晚 22:30，两颗心紧紧相扣。决定把手交给你，走向同一个未来。从此以后，每一声晚安、每一个微笑，都是独属于我们的浪漫默契。",
+                "quote": "从 5月19日 开始，以后的每个春夏秋冬，我都陪着你。",
+                "image": "./images/IMG_8716.JPG"
+        },
+        {
+                "id": "rec_3",
+                "date": "2026年8月15日",
+                "tag": "漫游苍山洱海",
+                "title": "彩云之南 · 大理自驾与夏日微风",
+                "content": "在大理洱海边吹着温热的风，在丽江古城看满天星光。副驾上的你吃着零食笑得像个小孩子，这一刻，世界再大也不及身边的你。",
+                "quote": "苍山的雪，洱海的月，身边的悦悦大王。",
+                "image": "./images/uploads/slot_1794035945324_838.mp4",
+                "cover": "./images/uploads/slot_1794035945324_838_cover.jpg",
+                "isVideo": true
+        },
+        {
+                "id": "rec_4",
+                "date": "2026年10月26日",
+                "tag": "日常甜宠",
+                "title": "KFC不蘸酱与公园吹晚风",
+                "content": "生活里最踏实的小确幸，不过是一起吃热腾腾的炸鸡，把最脆的皮留给你；牵着手在公园里压马路，晚风吹过来，满心都是安稳与欢喜。",
+                "quote": "全世界仅此一个的悦悦大王，在 YB 身边尽情幸福吧。",
+                "image": "./images/IMG_8727.JPG"
+        },
+        {
+                "id": "rec_5",
+                "date": "2026年11月12日",
+                "tag": "日常高光",
+                "title": "今天和悦悦大王一起刷校园...",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "quote": "",
+                "image": "",
+                "recorded_at": "2026-11-12 19:59:07"
+        },
+        {
+                "id": "rec_6",
+                "date": "2026年11月13日",
+                "tag": "日常高光",
+                "title": "今天和悦悦大王一起刷校园...",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "quote": "",
+                "image": "",
+                "recorded_at": "2026-11-13 00:43:30"
+        },
+        {
+                "id": "rec_7",
+                "date": "2026年11月13日 00:43",
+                "tag": "日常高光",
+                "title": "今天和悦悦大王一起刷校园...",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "quote": "",
+                "image": "",
+                "recorded_at": "2026-11-13 00:43:35"
+        },
+        {
+                "id": "rec_8",
+                "date": "2026年11月13日 02:24",
+                "tag": "日常高光",
+                "title": "今天和悦悦大王一起刷校园...",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "quote": "",
+                "image": "",
+                "recorded_at": "2026-11-13 02:24:32"
+        }
+];
 
 
 
@@ -7373,9 +7464,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const syncLoveRecordsFromCloud = async () => {
-
         try {
-          if (isWithinLocalUploadGrace()) return;
+          if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
 
           const res = await fetch(`./data/love_records.json?t=${Date.now()}`);
 
@@ -7408,37 +7498,22 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const saveLoveRecordsToCloud = async () => {
-
         saveMessage.value = '☁️ 正在将时光长卷同步至云端...';
-
         try {
-
-          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/love_records.json`;
-
-          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-
-          let sha = null;
-
-          if (getReg.ok) sha = (await getReg.json()).sha;
-
-          await fetch(regUrl, {
-
-            method: 'PUT',
-
-            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              message: `feat: Cloud sync love records timeline (${loveRecordsList.value.length} stories)`,
-
-              content: safeUtf8ToBase64(JSON.stringify(loveRecordsList.value, null, 2)),
-
-              sha
-
-            })
-
-          });
-
+          const contentB64 = safeUtf8ToBase64(JSON.stringify(loveRecordsList.value, null, 2));
+          for (const recPath of ['data/love_records.json', 'dist/data/love_records.json']) {
+            const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${recPath}`;
+            const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
+            let sha = null;
+            if (getReg.ok) sha = (await getReg.json()).sha;
+            const body = { message: `feat: Cloud sync love records timeline (${loveRecordsList.value.length} stories)`, content: contentB64, branch: 'main' };
+            if (sha) body.sha = sha;
+            await fetch(regUrl, {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+          }
           saveMessage.value = '☁️ 时光长卷已珍藏并全网同步 ♥';
 
         } catch (e) {
@@ -7472,19 +7547,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const recordForm = reactive({
-
         date: '',
-
         tag: '心动启航',
-
         title: '',
-
         content: '',
-
         quote: '',
-
-        image: ''
-
+        image: '',
+        cover: ''
       });
 
 
@@ -7602,123 +7671,88 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const triggerRecordImageUpload = () => {
-
+        SyncGuard.beginPick();
         if (recordImageInput.value) recordImageInput.value.click();
-
       };
 
-
-
       const handleRecordImageUpload = async (event) => {
-
+        SyncGuard.endPick();
         const file = event.target.files && event.target.files[0];
-
         if (!file) return;
-
-        saveMessage.value = '📷 正在无损读取并上传原始超清大图...';
-
+        SyncGuard.beginUpload();
+        markLocalUploadTimestamp();
+        saveMessage.value = '📷 正在无损处理与上传至云端...';
         try {
-
-          const reader = new FileReader();
-
-          reader.onload = async (e) => {
-
-            const fullDataUrl = e.target.result;
-
-            const b64 = fullDataUrl.split(',')[1];
-
-            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-
-            const fileName = 'record_uhd_' + Date.now() + '.' + ext;
-
-            try {
-
-              const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/${fileName}`;
-
-              const res = await fetch(upUrl, {
-
-                method: 'PUT',
-
-                headers: {
-
-                  'Authorization': `Bearer ${GITHUB_TOKEN}`,
-
-                  'Accept': 'application/vnd.github.v3+json',
-
-                  'Content-Type': 'application/json'
-
-                },
-
-                body: JSON.stringify({
-
-                  message: `feat(record-img): upload original ultra-HD photo ${fileName}`,
-
-                  content: b64
-
-                })
-
-              });
-
-              if (res.ok) {
-
-                recordForm.image = `./images/${fileName}`;
-
-                saveMessage.value = '✅ 原始超清大图已无损上传至仓库！';
-
-              } else {
-
-                recordForm.image = fullDataUrl;
-
-                saveMessage.value = '✅ 原始超清大图已就绪！';
-
+          const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file);
+          const prep = await compressImageForUpload(liveExtracted || file);
+          if (!prep || !prep.b64) throw new Error('read failed');
+          const safeExt = prep.ext || (file.name.split('.').pop() || 'jpg').toLowerCase();
+          const fileName = 'record_uhd_' + Date.now() + '.' + safeExt;
+          if (prep.coverBase64) setLiveCover(prep.dataUrl, prep.coverBase64);
+          recordForm.image = prep.dataUrl;
+          try {
+            const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${fileName}`;
+            const res = await fetch(upUrl, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                message: `feat(record-img): upload original media ${fileName}`,
+                content: prep.b64
+              })
+            });
+            if (res.ok) {
+              const repoPath = `./images/uploads/${fileName}`;
+              if (prep.isVideo && prep.coverBase64) {
+                try {
+                  const covName = fileName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
+                  const covRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${covName}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `feat(record-cover): upload ${covName}`, content: prep.coverBase64.replace(/^data:[^,]+,/, '') })
+                  });
+                  if (covRes.ok) {
+                    const covPath = `./images/uploads/${covName}`;
+                    recordForm.cover = covPath;
+                    setLiveCover(repoPath, covPath);
+                  } else {
+                    setLiveCover(repoPath, prep.coverBase64);
+                  }
+                } catch (ce) { setLiveCover(repoPath, prep.coverBase64); }
               }
-
-              const copy = generateRomanticCopy(file, 'record');
-
-              if (!recordForm.title || recordForm.title.includes('新增') || recordForm.title.includes('KFC')) {
-
-                recordForm.title = copy.title;
-
-              }
-
-              if (!recordForm.content || recordForm.content.length < 5) {
-
-                recordForm.content = copy.content;
-
-              }
-
-              if (!recordForm.quote) {
-
-                recordForm.quote = copy.quote;
-
-              }
-
-              if (!recordForm.tag || recordForm.tag.includes('日常高光')) {
-
-                recordForm.tag = copy.tag;
-
-              }
-
-            } catch (err) {
-
-              recordForm.image = fullDataUrl;
-
-              saveMessage.value = '✅ 原始超清大图已就绪！';
-
+              recordForm.image = repoPath;
+              saveMessage.value = prep.isVideo ? '✅ 实况与封面已无损上传至仓库！' : '✅ 原始超清大图已无损上传至仓库！';
+            } else {
+              saveMessage.value = '✅ 媒体已就绪（本地暂存）！';
             }
-
-            setTimeout(() => { saveMessage.value = ''; }, 2500);
-
-          };
-
-          reader.readAsDataURL(file);
-
+            const copy = generateRomanticCopy(file, 'record');
+            if (!recordForm.title || recordForm.title.includes('新增') || recordForm.title.includes('KFC')) {
+              recordForm.title = copy.title;
+            }
+            if (!recordForm.content || recordForm.content.length < 5) {
+              recordForm.content = copy.content;
+            }
+            if (!recordForm.quote) {
+              recordForm.quote = copy.quote;
+            }
+            if (!recordForm.tag || recordForm.tag.includes('日常高光')) {
+              recordForm.tag = copy.tag;
+            }
+            try { event.target.value = ''; } catch(e){}
+          } catch (err) {
+            saveMessage.value = '⚠️ 上传遇到波动，已在本地就绪';
+          } finally {
+            SyncGuard.endUpload();
+          }
+          setTimeout(() => { saveMessage.value = ''; }, 2500);
         } catch (err) {
-
-          console.error(err);
-
+          SyncGuard.endUpload();
+          saveMessage.value = '上传失败，请重试';
+          setTimeout(() => { saveMessage.value = ''; }, 2500);
         }
-
       };
 
 
@@ -7753,9 +7787,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const syncSiteStateFromCloud = async () => {
-
         try {
-          if (isWithinLocalUploadGrace()) return;
+          if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
 
           // 【大陆极速秒开】读取优先走同源相对路径，0秒直达，彻底杜绝 api.github.com 在大陆被墙导致的 60 秒挂起
           let res = await fetch(`./data/site_state.json?t=${Date.now()}`, { cache: 'no-store' }).catch(() => null);
@@ -7795,22 +7828,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               console.log('[Cloud Sync] All 6 timeline chapters & sections successfully unified.');
             }
 
-            if (Array.isArray(cloudState.loveRecords) && cloudState.loveRecords.length > 0 && cloudTs >= localTs) {
-
+            if (Array.isArray(cloudState.loveRecords) && cloudState.loveRecords.length >= (loveRecordsList.value ? loveRecordsList.value.length : 0) && cloudTs >= localTs) {
               loveRecordsList.value = cloudState.loveRecords;
-
               siteData.loveRecords = cloudState.loveRecords;
-
               localStorage.setItem('yb_love_records', JSON.stringify(cloudState.loveRecords));
-
             }
-
-            if (Array.isArray(cloudState.loveMessages) && cloudState.loveMessages.length > 0 && cloudTs >= localTs) {
-
+            if (Array.isArray(cloudState.loveMessages) && cloudState.loveMessages.length >= (loveMessagesList.value ? loveMessagesList.value.length : 0) && cloudTs >= localTs) {
               loveMessagesList.value = cloudState.loveMessages;
-
               localStorage.setItem('yb_love_messages', JSON.stringify(cloudState.loveMessages));
-
             }
 
           }
@@ -8014,7 +8039,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         recordForm.quote = '';
 
         recordForm.image = '';
-
+        recordForm.cover = '';
         showRecordEditModal.value = true;
 
         nextTick(() => { if (window.lucide) lucide.createIcons(); });
@@ -8038,7 +8063,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         recordForm.quote = rec.quote || '';
 
         recordForm.image = rec.image || '';
-
+        recordForm.cover = rec.cover || '';
         showRecordEditModal.value = true;
 
       };
@@ -8064,21 +8089,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
 
         const dataObj = {
-
           id: editingRecordIndex.value >= 0 ? loveRecordsList.value[editingRecordIndex.value].id : ('rec_' + Date.now()),
-
           date: recordForm.date.trim() || '2026年',
-
           tag: recordForm.tag.trim() || '心动启航',
-
           title: recordForm.title.trim() || '我们的故事',
-
           content: recordForm.content.trim() || '',
-
           quote: recordForm.quote.trim() || '',
-
-          image: recordForm.image.trim() || ''
-
+          image: recordForm.image.trim() || '',
+          ...(recordForm.cover ? { cover: recordForm.cover.trim() } : {})
         };
 
 
@@ -8164,88 +8182,102 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const initialLoveMessages = [
-
         {
-
-          id: 'msg_1',
-
-          author: 'YB',
-
-          tag: '👑 专属宠溺',
-
-          color: 'pink',
-
-          content: '从 5月19日 22:30 牵手那一刻起，我就知道遇到了要用一生宠爱的人。吃鸡块永远给你留着最脆的皮，只要你在身边，无论逛哪个公园，晚风都是甜的。悦悦大王要每天都开开心心！',
-
-          date: '2026-05-19 22:30'
-
+                "id": "msg_1",
+                "author": "YB",
+                "tag": "👑 专属宠溺",
+                "color": "pink",
+                "content": "从 5月19日 22:30 牵手那一刻起，我就知道遇到了要用一生宠爱的人。吃鸡块永远给你留着最脆的皮，只要你在身边，无论逛哪个公园，晚风都是甜的。悦悦大王要每天都开开心心！",
+                "date": "2026-05-19 22:30"
         },
-
         {
-
-          id: 'msg_2',
-
-          author: '悦悦大王',
-
-          tag: '🌸 日常心动',
-
-          color: 'yellow',
-
-          content: '大理的洱海、丽江的雪山，都不如坐在副驾看你认真的侧脸。谢谢你一直迁就我的小脾气，做我永远的靠山。下一次旅行，我们还要一起去看更广阔的世界！',
-
-          date: '2026-08-15 14:20'
-
+                "id": "msg_2",
+                "author": "悦悦大王",
+                "tag": "🌸 日常心动",
+                "color": "yellow",
+                "content": "大理的洱海、丽江的雪山，都不如坐在副驾看你认真的侧脸。谢谢你一直迁就我的小脾气，做我永远的靠山。下一次旅行，我们还要一起去看更广阔的世界！",
+                "date": "2026-08-15 14:20"
         },
-
         {
-
-          id: 'msg_3',
-
-          author: 'YB',
-
-          tag: '🍟 KFC不蘸酱默契',
-
-          color: 'white',
-
-          content: '无论生活是平淡还是忙碌，只要回家能抱抱你，所有疲惫都烟消云散了。以后的每个春夏秋冬、每一个纪念日，我都陪在你身边。',
-
-          date: '2026-09-20 20:15'
-
+                "id": "msg_3",
+                "author": "YB",
+                "tag": "🍟 KFC不蘸酱默契",
+                "color": "white",
+                "content": "无论生活是平淡还是忙碌，只要回家能抱抱你，所有疲惫都烟消云散了。以后的每个春夏秋冬、每一个纪念日，我都陪在你身边。",
+                "date": "2026-09-20 20:15"
         },
-
         {
-
-          id: 'msg_4',
-
-          author: '悦悦大王',
-
-          tag: '✨ 未来心愿',
-
-          color: 'sage',
-
-          content: '今天也是超爱 YB 的一天！要一起把我们的小家布置得越来越温馨，一起吃好多好多顿好吃的，看好多好多场晚霞！',
-
-          date: '2026-10-26 21:00'
-
+                "id": "msg_4",
+                "author": "悦悦大王",
+                "tag": "🌙 晚风私语",
+                "color": "pink",
+                "content": "“全世界仅此一个的我，尽情幸福吧。” 遇见你之后，这句话变成了最踏实的现实。爱你呀，我的 YB 小笨蛋！",
+                "date": "2026-10-26 21:00"
         },
-
         {
-
-          id: 'msg_5',
-
-          author: 'YB',
-
-          tag: '💌 悄悄话',
-
-          color: 'purple',
-
-          content: '给未来的悦悦大王：哪怕时光走过几十年，你在我心里永远是那个被捧在手心里的小公主。',
-
-          date: '2026-10-26 22:30'
-
+                "id": "msg_5",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-12 19:59",
+                "recorded_at": "2026-11-12 19:59:07"
+        },
+        {
+                "id": "msg_6",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-13 00:36",
+                "recorded_at": "2026-11-13 00:36:07"
+        },
+        {
+                "id": "msg_7",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-13 00:36",
+                "recorded_at": "2026-11-13 00:36:37"
+        },
+        {
+                "id": "msg_8",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-13 00:37",
+                "recorded_at": "2026-11-13 00:37:28"
+        },
+        {
+                "id": "msg_9",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-13 00:43",
+                "recorded_at": "2026-11-13 00:43:30"
+        },
+        {
+                "id": "msg_10",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-13 00:43",
+                "recorded_at": "2026-11-13 00:43:35"
+        },
+        {
+                "id": "msg_11",
+                "author": "悦悦大王",
+                "tag": "💖 日常高光",
+                "color": "pink",
+                "content": "今天和悦悦大王一起刷校园跑“first time”",
+                "date": "2026-11-13 02:24",
+                "recorded_at": "2026-11-13 02:24:32"
         }
-
-      ];
+];
 
 
 
@@ -8256,14 +8288,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const syncLoveMessagesFromCloud = async () => {
-
         try {
-
-          const res = await fetch(`./data/love_messages.json?t=${Date.now()}`);
-
+          if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
+          const res = await fetch(`./data/love_messages.json?t=${Date.now()}`, { cache: 'no-store' });
           if (res.ok) {
-
-            if (timeoutId) clearTimeout(timeoutId);
             const data = await res.json();
 
             if (Array.isArray(data) && data.length > 0) {
@@ -8289,37 +8317,22 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const saveLoveMessagesToCloud = async () => {
-
         saveMessage.value = '☁️ 正在将留声便签同步至云端...';
-
         try {
-
-          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/love_messages.json`;
-
-          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-
-          let sha = null;
-
-          if (getReg.ok) sha = (await getReg.json()).sha;
-
-          await fetch(regUrl, {
-
-            method: 'PUT',
-
-            headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              message: `feat: Cloud sync love messages wall (${loveMessagesList.value.length} notes)`,
-
-              content: safeUtf8ToBase64(JSON.stringify(loveMessagesList.value, null, 2)),
-
-              sha
-
-            })
-
-          });
-
+          const contentB64 = safeUtf8ToBase64(JSON.stringify(loveMessagesList.value, null, 2));
+          for (const msgPath of ['data/love_messages.json', 'dist/data/love_messages.json']) {
+            const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${msgPath}`;
+            const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
+            let sha = null;
+            if (getReg.ok) sha = (await getReg.json()).sha;
+            const body = { message: `feat: Cloud sync love messages wall (${loveMessagesList.value.length} notes)`, content: contentB64, branch: 'main' };
+            if (sha) body.sha = sha;
+            await fetch(regUrl, {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+          }
           saveMessage.value = '💌 留声便签已上云，双方设备实时同步 ♥';
 
         } catch (e) {
@@ -9142,29 +9155,6 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             } catch(subE){}
           }
 
-          try {
-
-            const distRegUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/dist/data/photo_pool.json`;
-
-            const getDist = await fetch(distRegUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-
-            let distSha = null;
-
-            if (getDist.ok) distSha = (await getDist.json()).sha;
-
-            if (distSha) poolPayload.sha = distSha;
-
-            await fetch(distRegUrl, {
-
-              method: 'PUT',
-
-              headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-
-              body: JSON.stringify(poolPayload)
-
-            });
-
-          } catch(e){}
 
           saveMessage.value = '☁️ 记忆星球已同步至云端 ♥';
 
@@ -9542,8 +9532,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const isFrontFacing = (zWorld > 0.05);
             const vid = el.querySelector('video');
             if (vid) {
+              vid.loop = false;
               if (isFrontFacing) {
-                if (vid.paused) vid.play().catch(() => {});
+                if (vid.paused && vid.dataset.loopDone !== 'true') vid.play().catch(() => {});
               } else {
                 if (!vid.paused) vid.pause();
               }
@@ -10008,13 +9999,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             liveVideoObserver = new IntersectionObserver((entries) => {
               entries.forEach(entry => {
                 const v = entry.target;
+                const isLightbox = v.closest && v.closest('#lightbox-modal');
                 if (entry.isIntersecting) {
-                  v.muted = true;
+                  v.muted = !isLightbox;
                   v.playsInline = true;
-                  v.loop = true;
-                  v.play().catch(() => {});
+                  v.loop = !!isLightbox;
+                  if (isLightbox || v.dataset.loopDone !== 'true') {
+                    v.play().catch(() => {});
+                  }
                 } else {
-                  if (!v.paused) {
+                  if (!v.paused && !isLightbox) {
                     v.pause();
                   }
                 }
@@ -10025,9 +10019,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             });
           }
           document.querySelectorAll('video').forEach(v => {
+            const isLightbox = v.closest && v.closest('#lightbox-modal');
+            if (isLightbox) return;
             v.muted = true;
             v.playsInline = true;
-            v.loop = true;
+            v.loop = false;
             liveVideoObserver.observe(v);
           });
         };
@@ -10067,7 +10063,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         // 【全端实时双工对齐网桥】：切回前台或窗口获焦瞬间自动拉取云端，各设备无需硬刷即刻同步
         if (typeof window !== 'undefined') {
           document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
+            if (document.visibilityState === 'visible' && !SyncGuard.isBusy() && !isWithinLocalUploadGrace()) {
               syncFromCloudRegistry();
               syncSiteStateFromCloud();
               syncLoveRecordsFromCloud();
@@ -10076,11 +10072,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             }
           });
           window.addEventListener('focus', () => {
-            syncFromCloudRegistry();
-            syncSiteStateFromCloud();
+            if (!SyncGuard.isBusy() && !isWithinLocalUploadGrace()) {
+              syncFromCloudRegistry();
+              syncSiteStateFromCloud();
+            }
           });
           setInterval(() => {
-            if (document.visibilityState === 'visible') {
+            if (document.visibilityState === 'visible' && !SyncGuard.isBusy() && !isWithinLocalUploadGrace()) {
               syncFromCloudRegistry();
               syncSiteStateFromCloud();
             }
@@ -10370,32 +10368,24 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if (!parent) return;
 
+          if (parent.querySelector('video:not([data-live-motion="true"])')) return;
           let existingVid = parent.querySelector('video[data-live-motion="true"]');
-
           if (isVid) {
-
             if (!existingVid) {
-
               existingVid = document.createElement('video');
-
               existingVid.setAttribute('data-live-motion', 'true');
-
               existingVid.autoplay = true;
-
-              existingVid.loop = true;
-
+              existingVid.loop = false;
               existingVid.muted = true;
-
               existingVid.playsInline = true;
-
               existingVid.setAttribute('playsinline', '');
-
               existingVid.setAttribute('webkit-playsinline', '');
-
+              const covUrl = getFastCover(rawSrc);
+              if (covUrl) existingVid.poster = covUrl;
+              existingVid.onended = (ev) => handleLiveVideoEnded(ev);
+              existingVid.onerror = (ev) => handleVideoError(ev);
               existingVid.className = imgEl.className;
-
               existingVid.style.cssText = imgEl.style.cssText;
-
               parent.insertBefore(existingVid, imgEl);
               if (!parent.querySelector('[data-live-badge]')) {
                 const badge = document.createElement('span');
@@ -10404,19 +10394,17 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>LIVE ⭕';
                 parent.appendChild(badge);
               }
-
             }
-
-            if (existingVid.src !== rawSrc) {
-
+            if ((existingVid.dataset.rawSrc || '') !== rawSrc) {
+              existingVid.dataset.rawSrc = rawSrc;
+              existingVid.dataset.loopCount = '1';
+              delete existingVid.dataset.loopDone;
+              const covUrl = getFastCover(rawSrc);
+              if (covUrl) existingVid.poster = covUrl;
               existingVid.src = rawSrc;
-
               existingVid.play().catch(() => {});
-
             }
-
             imgEl.style.display = 'none';
-
           } else if (existingVid) {
 
             existingVid.remove();
@@ -10795,8 +10783,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
 
-      const openLocalAlbumPicker = (onPicked) => {
+      const openLocalAlbumPicker = (onPicked, explicitTarget = null) => {
+        SyncGuard.beginPick();
         pendingAlbumPickCallback = onPicked;
+        universalAlbumCallback = onPicked;
+        if (explicitTarget) {
+          activeMediaTarget = explicitTarget;
+        }
+        const capturedTarget = explicitTarget || (activeMediaTarget ? { ...activeMediaTarget } : null);
         const tempInput = document.createElement('input');
         tempInput.type = 'file';
         tempInput.accept = 'image/*,video/mp4,video/quicktime,video/webm,.mov,.mp4,.gif,.webp';
@@ -10805,7 +10799,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         tempInput.style.top = '-9999px';
         tempInput.style.opacity = '0';
         tempInput.onchange = (e) => {
-          handleUniversalAlbumPicked(e);
+          SyncGuard.endPick();
+          if (capturedTarget && !activeMediaTarget) {
+            activeMediaTarget = capturedTarget;
+          }
+          handleUniversalAlbumPicked(e, capturedTarget);
           setTimeout(() => { try { document.body.removeChild(tempInput); } catch(err){} }, 1000);
         };
         document.body.appendChild(tempInput);
@@ -11001,57 +10999,50 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         }
 
-        if (siteData.loveRecords) {
-
-          siteData.loveRecords.forEach(r => {
-
-            if (r.image === oldUrl) r.image = newUrl;
-
+        if (siteData.wishes) {
+          siteData.wishes.forEach(w => {
+            if (w.image === oldUrl) w.image = newUrl;
           });
-
         }
-
+        if (siteData.letter && siteData.letter.bgImage === oldUrl) {
+          siteData.letter.bgImage = newUrl;
+        }
+        if (siteData.loveRecords) {
+          siteData.loveRecords.forEach(r => {
+            if (r.image === oldUrl) r.image = newUrl;
+          });
+        }
+        if (recordForm.image === oldUrl) {
+          recordForm.image = newUrl;
+        }
       };
 
 
 
-      const handleUniversalAlbumPicked = async (event) => {
-
-        const file = event.target.files && event.target.files[0];
-
-        if (!file || typeof pendingAlbumPickCallback !== 'function') return;
-
+      const handleUniversalAlbumPicked = async (event, pickedTarget = null) => {
+        const file = event && event.target && event.target.files && event.target.files[0];
         const callback = (typeof pendingAlbumPickCallback === 'function') ? pendingAlbumPickCallback : (typeof universalAlbumCallback === 'function' ? universalAlbumCallback : null);
         if (!file || typeof callback !== 'function') return;
         pendingAlbumPickCallback = null;
         universalAlbumCallback = null;
-        const currentTarget = activeMediaTarget ? { ...activeMediaTarget } : null;
-
-
-
-        saveMessage.value = '⏳ 正在处理照片画质...';
-
-        const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file); const prep = await compressImageForUpload(liveExtracted || file);
-
+        const currentTarget = pickedTarget || (activeMediaTarget ? { ...activeMediaTarget } : null);
+        activeMediaTarget = null;
+        SyncGuard.beginUpload();
+        saveMessage.value = '⏳ 正在处理照片/实况画质...';
+        const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file);
+        const prep = await compressImageForUpload(liveExtracted || file);
         if (!prep || !prep.dataUrl) {
-
+          SyncGuard.endUpload();
           saveMessage.value = '❌ 读取照片失败，请重试';
-
           setTimeout(() => { saveMessage.value = ''; }, 2500);
-
           return;
-
         }
-
-
-
-        // 1. 严格仅调用一次 callback，使用持久可复现的 dataUrl
         markLocalUploadTimestamp();
         const initialUrl = prep.dataUrl;
         if (prep.coverBase64) {
           setLiveCover(initialUrl, prep.coverBase64);
         }
-        callback(initialUrl, file);
+        callback(initialUrl, file, prep.coverBase64);
 
         saveMessage.value = prep.isAnim ? '🎞️ 动图已即时生效，正在同步至云端...' : '📷 照片已即时生效，正在同步至云端...';
 
@@ -11109,12 +11100,37 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               window.__liveUploadedBlobMap[repoRelPath] = initialUrl;
               window.__liveUploadedBlobMap['./' + repoRelPath.replace(/^\.?\//, '')] = initialUrl;
             }
-            if (prep.coverBase64) {
-              setLiveCover(repoRelPath, prep.coverBase64);
-              setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), prep.coverBase64);
+            let persistentCover = prep.coverBase64 || null;
+            if (prep.isVideo && prep.coverBase64) {
+              try {
+                const covName = fileName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
+                const covRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${covName}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    message: `feat(media): upload cover for ${fileName}`,
+                    content: prep.coverBase64.replace(/^data:[^,]+,/, '')
+                  })
+                });
+                if (covRes.ok) {
+                  persistentCover = `./images/uploads/${covName}`;
+                }
+              } catch (covErr) {
+                console.warn('[Universal Cover Upload] non-fatal:', covErr);
+              }
+            }
+            if (persistentCover) {
+              setLiveCover(repoRelPath, persistentCover);
+              setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), persistentCover);
             }
             if (currentTarget && currentTarget.type) {
-              applyMediaReplacement(currentTarget.type, currentTarget.ctx, repoRelPath, prep.coverBase64, prep.isVideo, file);
+              applyMediaReplacement(currentTarget.type, currentTarget.ctx, repoRelPath, persistentCover, prep.isVideo, file);
+            } else {
+              callback(repoRelPath, file, persistentCover);
             }
 
             try {
@@ -11151,69 +11167,43 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
 
         } catch (err) {
-
           console.warn('[Universal Album Upload]', err);
-
           saveMessage.value = '✅ 已在当前页面生效 ♥';
-
+        } finally {
+          SyncGuard.endUpload();
         }
-
         nextTick(() => { hydrateMotionVideoSlots(); });
-
         setTimeout(() => { saveMessage.value = ''; }, 3000);
-
       };
 
 
 
       const promptChangeImage = (section, field) => {
-
         openLocalAlbumPicker((newSrc, file) => {
-
           siteData[section][field] = newSrc;
-
-          if (section === 'hero') {
-
+          if (section === 'hero' && String(newSrc).startsWith('data:')) {
             const copy = generateRomanticCopy(file, 'hero');
-
             if (copy.coverCaption) siteData.hero.coverCaption = copy.coverCaption;
-
             if (copy.quote) siteData.hero.quote = copy.quote;
-
           }
-
-        });
-
+        }, { type: section, ctx: { field } });
       };
 
-
-
       const promptChangeArrayImage = (arrName, idx, field) => {
-
         openLocalAlbumPicker((newSrc, file) => {
-
           if (siteData[arrName] && siteData[arrName][idx]) {
-
             siteData[arrName][idx][field] = newSrc;
-
-            const copy = generateRomanticCopy(file, arrName);
-
-            if (arrName === 'gallery') {
-
-              siteData.gallery[idx].title = copy.title;
-
-              siteData.gallery[idx].desc = copy.desc || copy.story;
-
-            } else if (arrName === 'quotes') {
-
-              siteData.quotes[idx].text = copy.quote || copy.story;
-
+            if (String(newSrc).startsWith('data:')) {
+              const copy = generateRomanticCopy(file, arrName);
+              if (arrName === 'gallery') {
+                siteData.gallery[idx].title = copy.title;
+                siteData.gallery[idx].desc = copy.desc || copy.story;
+              } else if (arrName === 'quotes') {
+                siteData.quotes[idx].text = copy.quote || copy.story;
+              }
             }
-
           }
-
-        });
-
+        }, { type: arrName, ctx: { idx, field } });
       };
 
 
@@ -11299,8 +11289,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               }
             }
           } else {
-            newRecordImage.value = newSrc;
-            if (coverSrc) newRecordCover.value = coverSrc;
+            recordForm.image = newSrc;
+            if (coverSrc) recordForm.cover = coverSrc;
           }
         } else if (targetType === 'hero') {
           const field = (targetCtx && targetCtx.field) || 'coverImage';
@@ -11362,7 +11352,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             localStorage.setItem(storageKey, JSON.stringify(siteData));
           } catch (e) {}
           if (typeof debouncedCloudSync === 'function') {
-            if (typeof savePoolToCloud === 'function') {
+            if (['timeline', 'hero', 'gallery', 'quotes', 'wishes', 'letter'].includes(targetType) && typeof saveSiteCustomToCloud === 'function') {
+              debouncedCloudSync('siteCustom', saveSiteCustomToCloud, 400);
+            } else if (['pool', 'sphere'].includes(targetType) && typeof savePoolToCloud === 'function') {
               debouncedCloudSync('photoPool', savePoolToCloud, 400);
             }
           }
@@ -11381,22 +11373,21 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const chooseUniversalAction = (actionMethod) => {
-        const target = activeMediaTarget;
-        closeUniversalPhotoAction();
+        const target = activeMediaTarget ? { ...activeMediaTarget } : null;
+        showUniversalPhotoActionModal.value = false;
         if (!target) return;
-
         if (actionMethod === 'album') {
-          // 本地相册或普通动图选图
+          activeMediaTarget = target;
           if (target.type === 'timeline') {
             promptChangeTimelineImage(target.ctx.mIdx, target.ctx.imgIdx);
           } else if (target.type === 'record') {
             const recIdx = (target.ctx && typeof target.ctx.recIdx === 'number') ? target.ctx.recIdx : ((target.ctx && typeof target.ctx.origIdx === 'number') ? target.ctx.origIdx : null);
             if (recIdx !== null) {
-              openLocalAlbumPicker((newSrc, file) => {
-                applyMediaReplacement('record', { recIdx }, newSrc, null, false, file);
-              });
+              openLocalAlbumPicker((newSrc, file, cov) => {
+                applyMediaReplacement('record', { recIdx }, newSrc, cov || null, isVideoMedia(newSrc), file);
+              }, { type: 'record', ctx: { recIdx } });
             } else {
-              document.getElementById('record-image-input') && document.getElementById('record-image-input').click();
+              triggerRecordImageUpload();
             }
           } else if (target.type === 'hero') {
             promptChangeImage('hero', target.ctx ? target.ctx.field : 'coverImage');
@@ -11405,14 +11396,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           } else if (target.type === 'quotes') {
             promptChangeArrayImage('quotes', target.ctx.idx, target.ctx.field || 'image');
           } else if (target.type === 'sphere') {
-            openLocalAlbumPicker((newSrc, file) => {
-              applyMediaReplacement('sphere', target.ctx, newSrc, null, false, file);
-            });
+            openLocalAlbumPicker((newSrc, file, cov) => {
+              applyMediaReplacement('sphere', target.ctx, newSrc, cov || null, isVideoMedia(newSrc), file);
+            }, target);
           } else if (target.type === 'pool') {
             if (target.ctx) {
-              openLocalAlbumPicker((newSrc, file) => {
-                applyMediaReplacement('pool', target.ctx, newSrc, null, false, file);
-              });
+              openLocalAlbumPicker((newSrc, file, cov) => {
+                applyMediaReplacement('pool', target.ctx, newSrc, cov || null, isVideoMedia(newSrc), file);
+              }, target);
             } else {
               triggerPoolUpload();
             }
@@ -11421,12 +11412,12 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           } else if (target.type === 'letter') {
             promptChangeImage('letter', target.ctx ? target.ctx.field : 'bgImage');
           } else if (target.type === 'city') {
-            openLocalAlbumPicker((newSrc, file) => {
-              applyMediaReplacement('city', target.ctx, newSrc, null, false, file);
-            });
+            openLocalAlbumPicker((newSrc, file, cov) => {
+              applyMediaReplacement('city', target.ctx, newSrc, cov || null, isVideoMedia(newSrc), file);
+            }, target);
           }
         } else if (actionMethod === 'ios-live') {
-          // 唤起 iPhone 快捷指令或直接上传实况
+          activeMediaTarget = null;
           openIosLiveModal(target.type, target.ctx);
         }
       };
@@ -11437,19 +11428,12 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const closeTimelinePhotoAction = closeUniversalPhotoAction;
       const chooseTimelineAction = chooseUniversalAction;
 
-
       const promptChangeTimelineImage = (mIdx, imgIdx) => {
-
         openLocalAlbumPicker((newSrc) => {
-
           if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
-
             siteData.timeline[mIdx].images[imgIdx] = newSrc;
-
           }
-
-        });
-
+        }, { type: 'timeline', ctx: { mIdx, imgIdx } });
       };
 
 
@@ -11999,9 +11983,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const triggerPoolUpload = () => {
-
+        SyncGuard.beginPick();
         if (poolFileInput.value) poolFileInput.value.click();
-
       };
 
 
@@ -12010,7 +11993,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const syncFromCloudRegistry = async () => {
         try {
-          if ((typeof isSyncingPool !== 'undefined' && isSyncingPool.value) || (typeof isUploadingIosLive !== 'undefined' && isUploadingIosLive.value) || isWithinLocalUploadGrace()) {
+          if ((typeof isSyncingPool !== 'undefined' && isSyncingPool.value) || (typeof isUploadingIosLive !== 'undefined' && isUploadingIosLive.value) || SyncGuard.isBusy() || isWithinLocalUploadGrace()) {
             return;
           }
           // 【大陆极速秒开】优先走同源相对路径，50ms 内完成照片池对齐
@@ -12137,7 +12120,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           video.playsInline = true;
 
-          const url = URL.createObjectURL(videoFile); setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} resolve({ coverBase64: null, durationStr: '00:03' }); }, 1200); video.src = url; try { video.load(); } catch(e){}
+          const url = URL.createObjectURL(videoFile); setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} resolve({ coverBase64: null, durationStr: '00:03' }); }, 4500); video.src = url; try { video.load(); } catch(e){}
 
           video.onloadedmetadata = () => {
 
@@ -12316,11 +12299,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const handlePoolFilesSelected = async (event) => {
-
+        SyncGuard.endPick();
         const files = event.target.files;
-
         if (!files || files.length === 0) return;
-
+        SyncGuard.beginUpload();
         isSyncingPool.value = true;
 
         saveMessage.value = `准备上传 ${files.length} 张照片...`;
@@ -12450,7 +12432,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
                 image: cloudImgUrl,
 
-                cover: cleanCoverUrl || (isVideo ? './images/hero_cover.jpg' : null),
+                cover: cleanCoverUrl || processed.coverBase64 || null,
 
                 duration: processed.durationStr || '',
 
@@ -12515,65 +12497,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         // 2. Update cloud registry data/photo_pool.json on GitHub
 
         try {
-
-          const cleanPool = siteData.photoPool.filter(p => p && p.image && (typeof p.image !== 'string' || !p.image.startsWith('blob:')));
-
-          const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
-
-          const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-
-          let sha = null;
-
-          if (getReg.ok) {
-
-            const regData = await getReg.json();
-
-            sha = regData.sha;
-
+          if (typeof savePoolToCloud === 'function') {
+            await savePoolToCloud();
           }
-
-          const regPayload = {
-
-            message: `feat: Update cloud photo pool registry (+${successCount} items)`,
-
-            content: safeUtf8ToBase64(JSON.stringify(cleanPool, null, 2))
-
-          };
-
-          if (sha) regPayload.sha = sha;
-
-
-
-          await fetch(regUrl, {
-
-            method: 'PUT',
-
-            headers: {
-
-              'Authorization': `Bearer ${GITHUB_TOKEN}`,
-
-              'Accept': 'application/vnd.github.v3+json',
-
-              'Content-Type': 'application/json'
-
-            },
-
-            body: JSON.stringify(regPayload)
-
-          });
-
           console.log('[Cloud Sync] Registry updated on GitHub successfully.');
-
         } catch (regErr) {
-
           console.warn('[Cloud Sync] Registry update failed:', regErr);
-
+        } finally {
+          SyncGuard.endUpload();
         }
-
-
-
         event.target.value = '';
-
         isSyncingPool.value = false;
 
         saveMessage.value = `✨ 成功上传 ${successCount} 张照片，双端可见！`;
@@ -12717,37 +12650,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           siteData.photoPool.splice(pIdx, 1);
 
           saveMessage.value = '正在从云端同步移除...';
-
           try {
-
-            const regUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/photo_pool.json`;
-
-            const getReg = await fetch(regUrl, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-
-            if (getReg.ok) {
-
-              const sha = (await getReg.json()).sha;
-
-              await fetch(regUrl, {
-
-                method: 'PUT',
-
-                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-
-                body: JSON.stringify({
-
-                  message: 'feat: Remove photo from cloud pool registry',
-
-                  content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)),
-
-                  sha
-
-                })
-
-              });
-
+            if (typeof savePoolToCloud === 'function') {
+              await savePoolToCloud();
             }
-
           } catch (e) {}
 
           saveMessage.value = '已从云端与本地同步移除';
@@ -12979,6 +12885,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       
       const iosManualB64 = ref('');
       const iosLiveDirectFileInput = ref(null);
+      const triggerIosLiveDirectFile = () => {
+        SyncGuard.beginPick();
+        if (iosLiveDirectFileInput.value) iosLiveDirectFileInput.value.click();
+      };
 
       // 统一实况分发上传管线：无论是快捷指令剪贴板一键导入、相册直接选 MOV 视频还是手动粘贴，统一进入此管线
       const executeIosLiveUpload = async (file) => {
@@ -13049,20 +12959,22 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const handleIosLiveDirectFileSelected = async (event) => {
+        SyncGuard.endPick();
         const file = event.target.files && event.target.files[0];
         if (!file) return;
+        SyncGuard.beginUpload();
         try {
           isUploadingIosLive.value = true;
           iosLiveStatusMsg.value = '✨ 正在处理相册 3 秒视频 (' + Math.round(file.size / 1024) + ' KB)，正在覆盖原图...';
-
           await executeIosLiveUpload(file);
-
           isUploadingIosLive.value = false;
           showIosLiveModal.value = false;
         } catch (e) {
           console.error(e);
           iosLiveStatusMsg.value = '❌ 上传视频失败：' + (e.message || '请重试');
           isUploadingIosLive.value = false;
+        } finally {
+          SyncGuard.endUpload();
         }
       };
 
@@ -13128,62 +13040,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           const file = new File([bytes], 'iPhone_Live_' + Date.now() + '.mov', { type: 'video/quicktime', lastModified: Date.now() });
           iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传云端...';
-          if (iosLiveTarget === 'record') {
-            // 随记/便签直接接收实况
-            pendingAlbumPickCallback = (newSrc) => {
-               universalAlbumCallback = pendingAlbumPickCallback;
-             
-              newRecordImage.value = newSrc;
-            };
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          } else if (iosLiveTarget === 'timeline' && iosLiveContext) {
-            const { mIdx, imgIdx } = iosLiveContext;
-            pendingAlbumPickCallback = (newSrc) => {
-               universalAlbumCallback = pendingAlbumPickCallback;
-             
-              if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
-                siteData.timeline[mIdx].images[imgIdx] = newSrc;
-              }
-            };
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          } else if (iosLiveTarget === 'gallery' && iosLiveContext) {
-            const { idx, field } = iosLiveContext;
-            pendingAlbumPickCallback = (newSrc) => {
-               universalAlbumCallback = pendingAlbumPickCallback;
-             
-              if (siteData.gallery && siteData.gallery[idx]) {
-                siteData.gallery[idx][field || 'image'] = newSrc;
-              }
-            };
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          } else if (iosLiveTarget === 'quotes' && iosLiveContext) {
-            const { idx, field } = iosLiveContext;
-            pendingAlbumPickCallback = (newSrc) => {
-               universalAlbumCallback = pendingAlbumPickCallback;
-             
-              if (siteData.quotes && siteData.quotes[idx]) {
-                siteData.quotes[idx][field || 'image'] = newSrc;
-              }
-            };
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          } else if (iosLiveTarget === 'hero' && iosLiveContext) {
-            const field = iosLiveContext.field || 'cover';
-            pendingAlbumPickCallback = (newSrc) => {
-               universalAlbumCallback = pendingAlbumPickCallback;
-             
-              if (siteData.hero) siteData.hero[field] = newSrc;
-            };
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          } else if (iosLiveTarget === 'sphere' && iosLiveContext) {
-            pendingAlbumPickCallback = (newSrc) => {
-               universalAlbumCallback = pendingAlbumPickCallback;
-             
-              iosLiveContext.image = newSrc;
-            };
-            await handleUniversalAlbumPicked({ target: { files: [file] } });
-          } else {
-            await handlePoolFilesSelected({ target: { files: [file], value: '' } });
-          }
+          await executeIosLiveUpload(file);
           isUploadingIosLive.value = false;
           showIosLiveModal.value = false;
         } catch (err) {
@@ -13909,247 +13766,138 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       // Initial Curated Footprint Cities
 
       const initialFootprintCities = [
-
-  {
-
-    "id": "home_changsha",
-
-    "name": "长沙 · YB的家 🏠",
-
-    "lat": 28.2282,
-
-    "lng": 112.9388,
-
-    "province": "湖南",
-
-    "date": "爱的港湾 · YB的小窝",
-
-    "status": "home",
-
-    "tag": "YB的家 🏠",
-
-    "story": "湘江中路吹吹温柔晚风，橘子洲头看万山红遍，这里是YB的家与温暖港湾。",
-
-    "image": "./images/hero_cover.jpg"
-
-  },
-
-  {
-
-    "id": "home_loudi",
-
-    "name": "娄底 · 悦悦大王的家 🏠",
-
-    "lat": 27.7019,
-
-    "lng": 112.0084,
-
-    "province": "湖南",
-
-    "date": "爱的港湾 · 大王城堡",
-
-    "status": "home",
-
-    "tag": "悦悦大王的家 🏠",
-
-    "story": "全世界仅此一个的悦悦大王生长的地方，是必须被用心珍藏和守护一辈子的城堡。",
-
-    "image": "./images/hero_cover.jpg"
-
-  },
-
-  {
-
-    "id": "dali",
-
-    "name": "大理 · 苍山洱海",
-
-    "lat": 25.606,
-
-    "lng": 100.267,
-
-    "province": "云南",
-
-    "date": "2026 盛夏",
-
-    "status": "visited",
-
-    "tag": "环海自驾 · 已点亮 ♥",
-
-    "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
-
-    "image": "./images/timeline_08_1.jpg"
-
-  },
-
-  {
-
-    "id": "lijiang",
-
-    "name": "丽江 · 玉龙雪山",
-
-    "lat": 26.872,
-
-    "lng": 100.229,
-
-    "province": "云南",
-
-    "date": "2026 盛夏",
-
-    "status": "visited",
-
-    "tag": "古城漫步 · 已点亮 ♥",
-
-    "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
-
-    "image": "./images/timeline_08_2.jpg"
-
-  },
-
-  {
-
-    "id": "kunming",
-
-    "name": "昆明 · 春城微风",
-
-    "lat": 25.045,
-
-    "lng": 102.709,
-
-    "province": "云南",
-
-    "date": "2026 盛夏",
-
-    "status": "visited",
-
-    "tag": "旅途起点 · 已点亮 ♥",
-
-    "story": "自驾漫游的温馨起点，满城鲜花盛开，落地第一眼就觉得这次旅程一定很甜。",
-
-    "image": "./images/hero_cover.jpg"
-
-  },
-
-  {
-
-    "id": "shenzhen",
-
-    "name": "深圳 · 温暖海风",
-
-    "lat": 22.543,
-
-    "lng": 114.057,
-
-    "province": "广东",
-
-    "date": "甜蜜足迹",
-
-    "status": "visited",
-
-    "tag": "甜蜜足迹 · 已点亮 ♥",
-
-    "story": "彼此走过的大街小巷，大梅沙的落日余晖与深圳湾海风，每一顿饭、每一次散步都是稳稳的幸福。",
-
-    "image": "./images/life_food_1.jpg"
-
-  },
-
-  {
-
-    "id": "chengdu",
-
-    "name": "成都 · 烟火锦官城",
-
-    "lat": 30.572,
-
-    "lng": 104.066,
-
-    "province": "四川",
-
-    "date": "心动愿望 · 待打卡",
-
-    "status": "wish",
-
-    "tag": "愿望清单 · 待解锁 ✈️",
-
-    "story": "约好下次一起去吃地道牛油火锅、逛宽窄巷子和太古里、看憨态可掬的大熊猫。",
-
-    "image": "./images/wish_cook.jpg"
-
-  },
-
-  {
-
-    "id": "chongqing",
-
-    "name": "重庆 · 赛博山城",
-
-    "lat": 29.563,
-
-    "lng": 106.551,
-
-    "province": "重庆",
-
-    "date": "愿望清单 · 待打卡",
-
-    "status": "wish",
-
-    "tag": "愿望清单 · 待解锁 ✈️",
-
-    "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
-
-    "image": "./images/wish_dali_romantic.jpg"
-
-  },
-
-  {
-
-    "id": "paris",
-
-    "name": "巴黎 · 浪漫之都",
-
-    "lat": 48.856,
-
-    "lng": 2.352,
-
-    "province": "法国",
-
-    "date": "远期梦想 · 待打卡",
-
-    "status": "wish",
-
-    "tag": "世界之旅 · 愿望清单 ✈️",
-
-    "story": "一起去塞纳河畔散步、看埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。",
-
-    "image": "./images/quote_1.jpg"
-
-  },
-
-  {
-
-    "id": "santorini",
-
-    "name": "圣托里尼 · 爱琴海",
-
-    "lat": 36.393,
-
-    "lng": 25.461,
-
-    "province": "希腊",
-
-    "date": "远期梦想 · 待打卡",
-
-    "status": "wish",
-
-    "tag": "世界之旅 · 愿望清单 ✈️",
-
-    "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
-
-    "image": "./images/wish_concert.jpg"
-
-  }
-
+        {
+                "id": "home_changsha",
+                "name": "长沙 · YB的家 🏠",
+                "lat": 28.2282,
+                "lng": 112.9388,
+                "province": "湖南",
+                "date": "爱的港湾 · YB的小窝",
+                "status": "home",
+                "tag": "YB的家 🏠",
+                "story": "湘江中路吹吹温柔晚风，橘子洲头看万山红遍，这里是YB的家与温暖港湾。",
+                "image": "./images/hero_cover.jpg"
+        },
+        {
+                "id": "home_loudi",
+                "name": "娄底 · 悦悦大王的家 🏠",
+                "lat": 27.7019,
+                "lng": 112.0084,
+                "province": "湖南",
+                "date": "爱的港湾 · 大王城堡",
+                "status": "home",
+                "tag": "悦悦大王的家 🏠",
+                "story": "全世界仅此一个的悦悦大王生长的地方，是必须被用心珍藏和守护一辈子的城堡。",
+                "image": "./images/hero_cover.jpg"
+        },
+        {
+                "id": "dali",
+                "name": "大理 · 苍山洱海",
+                "lat": 25.606,
+                "lng": 100.267,
+                "province": "云南",
+                "date": "2026 盛夏",
+                "status": "visited",
+                "tag": "环海自驾 · 已点亮 ♥",
+                "story": "租车环洱海西路，双廊日落吹风，喜洲古镇金黄麦田，悦悦一直在抓拍云朵。",
+                "image": "./images/timeline_08_1.jpg"
+        },
+        {
+                "id": "lijiang",
+                "name": "丽江 · 玉龙雪山",
+                "lat": 26.872,
+                "lng": 100.229,
+                "province": "云南",
+                "date": "2026 盛夏",
+                "status": "visited",
+                "tag": "古城漫步 · 已点亮 ♥",
+                "story": "小雨后的束河古镇青石板路，看古城夜景流水，手牵手吃热气腾腾的云南烤肉。",
+                "image": "./images/timeline_08_2.jpg"
+        },
+        {
+                "id": "kunming",
+                "name": "昆明 · 春城微风",
+                "lat": 25.045,
+                "lng": 102.709,
+                "province": "云南",
+                "date": "2026 盛夏",
+                "status": "visited",
+                "tag": "旅途起点 · 已点亮 ♥",
+                "story": "自驾漫游的温馨起点，满城鲜花盛开，落地第一眼就觉得这次旅程一定很甜。",
+                "image": "./images/hero_cover.jpg"
+        },
+        {
+                "id": "shenzhen",
+                "name": "深圳 · 温暖海风",
+                "lat": 22.543,
+                "lng": 114.057,
+                "province": "广东",
+                "date": "甜蜜足迹",
+                "status": "visited",
+                "tag": "甜蜜足迹 · 已点亮 ♥",
+                "story": "彼此走过的大街小巷，大梅沙的落日余晖与深圳湾海风，每一顿饭、每一次散步都是稳稳的幸福。",
+                "image": "./images/life_food_1.jpg"
+        },
+        {
+                "id": "chengdu",
+                "name": "成都 · 烟火锦官城",
+                "lat": 30.572,
+                "lng": 104.066,
+                "province": "四川",
+                "date": "心动愿望 · 待打卡",
+                "status": "wish",
+                "tag": "愿望清单 · 待解锁 ✈️",
+                "story": "约好下次一起去吃地道牛油火锅、逛宽窄巷子和太古里、看憨态可掬的大熊猫。",
+                "image": "./images/wish_cook.jpg"
+        },
+        {
+                "id": "chongqing",
+                "name": "重庆 · 赛博山城",
+                "lat": 29.563,
+                "lng": 106.551,
+                "province": "重庆",
+                "date": "愿望清单 · 待打卡",
+                "status": "wish",
+                "tag": "愿望清单 · 待解锁 ✈️",
+                "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
+                "image": "./images/wish_dali_romantic.jpg"
+        },
+        {
+                "id": "paris",
+                "name": "巴黎 · 浪漫之都",
+                "lat": 48.856,
+                "lng": 2.352,
+                "province": "法国",
+                "date": "远期梦想 · 待打卡",
+                "status": "wish",
+                "tag": "世界之旅 · 愿望清单 ✈️",
+                "story": "一起去塞纳河畔散步、看埃菲尔铁塔亮灯、在法式街角咖啡馆晒太阳。",
+                "image": "./images/quote_1.jpg"
+        },
+        {
+                "id": "santorini",
+                "name": "圣托里尼 · 爱琴海",
+                "lat": 36.393,
+                "lng": 25.461,
+                "province": "希腊",
+                "date": "远期梦想 · 待打卡",
+                "status": "wish",
+                "tag": "世界之旅 · 愿望清单 ✈️",
+                "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
+                "image": "./images/wish_concert.jpg"
+        },
+        {
+                "id": "city_1793700271707",
+                "name": "香格里拉 · 云南",
+                "province": "云南",
+                "lat": 27.8251,
+                "lng": 99.7073,
+                "status": "visited",
+                "date": "2026 盛夏",
+                "tag": "中国足迹 · 点亮 ♥",
+                "story": "想和全世界仅此一个的悦悦大王，漫步在香格里拉的街头巷尾，看尽人间烟火。",
+                "image": "./images/wish_dali_romantic.jpg"
+        }
 ];
 
 
@@ -14201,9 +13949,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         tag: '甜蜜足迹 · 已点亮 ♥',
 
         story: '',
-
-        image: './images/hero_cover.jpg'
-
+        image: './images/wish_dali_romantic.jpg'
       });
 
 
@@ -15124,7 +14870,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           story: newCityForm.story.trim() || '想和全世界仅此一个的你，踏遍这里的每一寸土地。',
 
-          image: newCityForm.image || './images/hero_cover.jpg'
+image: newCityForm.image || './images/wish_dali_romantic.jpg'
 
         };
 
@@ -15221,9 +14967,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const syncFootprintFromCloud = async () => {
 
         try {
-          if (isWithinLocalUploadGrace()) return;
-
-          const res = await fetch('./data/footprint_cities.json?t=' + Date.now());
+          if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
+          const res = await fetch('./data/footprint_cities.json?t=' + Date.now(), { cache: 'no-store' });
 
           if (res.ok) {
 
@@ -15252,37 +14997,22 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       const saveFootprintToCloud = async () => {
-
         saveMessage.value = '正在将足迹地图同步至云端...';
-
         try {
-
-          const regUrl = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/data/footprint_cities.json';
-
-          const getReg = await fetch(regUrl, { headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN } });
-
-          let sha = null;
-
-          if (getReg.ok) sha = (await getReg.json()).sha;
-
-          await fetch(regUrl, {
-
-            method: 'PUT',
-
-            headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              message: 'feat: Update footprint world map cities (' + footprintCities.length + ' cities)',
-
-              content: safeUtf8ToBase64(JSON.stringify(footprintCities, null, 2)),
-
-              sha: sha
-
-            })
-
-          });
-
+          const contentB64 = safeUtf8ToBase64(JSON.stringify(footprintCities, null, 2));
+          for (const fcPath of ['data/footprint_cities.json', 'dist/data/footprint_cities.json']) {
+            const regUrl = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + fcPath;
+            const getReg = await fetch(regUrl, { headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN } });
+            let sha = null;
+            if (getReg.ok) sha = (await getReg.json()).sha;
+            const body = { message: 'feat: Update footprint world map cities (' + footprintCities.length + ' cities)', content: contentB64, branch: 'main' };
+            if (sha) body.sha = sha;
+            await fetch(regUrl, {
+              method: 'PUT',
+              headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+          }
           saveMessage.value = '🌍 足迹地图已珍藏并全网同步 ♥';
 
         } catch (e) {
@@ -15363,6 +15093,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         getFastCover,
         getFastCoverOrImg,
         handleLiveVideoEnded,
+        replayLiveVideo,
+        triggerIosLiveDirectFile,
         handleVideoError,
         onLightboxVideoError,
         showUniversalPhotoActionModal,

@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "updated_at": "2026-11-01 00:00:00",
+  "updated_at": "2026-11-13 02:24:32",
   "pc_wechat_online": false,
   "wechat_pids": [],
   "today_media_count": 0,
@@ -14,5 +14,76 @@
   "duplicate_blocked_samples": [],
   "total_records_count": 4,
   "total_messages_count": 4,
-  "candidate_pool": []
+  "candidate_pool": [
+    {
+      "idx": 1,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王出来住了，吃了大碗先生",
+      "reason": "📖 已收录至手帐《今天和悦悦大王出来住了，...》",
+      "time": "2026-11-03 02:10",
+      "status": "archived"
+    },
+    {
+      "idx": 2,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王一起刷校园跑“first time”",
+      "reason": "📖 已收录至手帐《今天和悦悦大王一起刷校园...》",
+      "time": "2026-11-12 19:59",
+      "status": "archived"
+    },
+    {
+      "idx": 3,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王一起刷校园跑“first time”",
+      "reason": "📖 已收录至手帐《今天和悦悦大王一起刷校园...》",
+      "time": "2026-11-13 00:36",
+      "status": "archived"
+    },
+    {
+      "idx": 4,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王一起刷校园跑“first time”",
+      "reason": "📖 已收录至手帐《今天和悦悦大王一起刷校园...》",
+      "time": "2026-11-13 00:36",
+      "status": "archived"
+    },
+    {
+      "idx": 5,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王一起刷校园跑“first time”",
+      "reason": "📖 已收录至手帐《今天和悦悦大王一起刷校园...》",
+      "time": "2026-11-13 00:37",
+      "status": "archived"
+    },
+    {
+      "idx": 6,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王一起刷校园跑“first time”",
+      "reason": "📖 已收录至手帐《今天和悦悦大王一起刷校园...》",
+      "time": "2026-11-13 00:43",
+      "status": "archived"
+    },
+    {
+      "idx": 7,
+      "category": "highlight",
+      "target_type": "record",
+      "sender": "悦悦大王",
+      "text": "今天和悦悦大王一起刷校园跑“first time”",
+      "reason": "📖 已收录至手帐《今天和悦悦大王一起刷校园...》",
+      "time": "2026-11-13 02:24",
+      "status": "archived"
+    }
+  ]
 }

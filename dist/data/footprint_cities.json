@@ -93,7 +93,7 @@
     "status": "wish",
     "tag": "愿望清单 · 待解锁 ✈️",
     "story": "看洪崖洞万家灯火与两江夜景，吹江风吃夜市小吃。",
-    "image": "./images/wish_dali.jpg"
+    "image": "./images/wish_dali_romantic.jpg"
   },
   {
     "id": "paris",
@@ -118,5 +118,17 @@
     "tag": "世界之旅 · 愿望清单 ✈️",
     "story": "看世界上最美的伊亚落日，住在蓝顶白墙的悬崖酒店，在蔚蓝爱琴海边许愿。",
     "image": "./images/wish_concert.jpg"
+  },
+  {
+    "id": "city_1793700271707",
+    "name": "香格里拉 · 云南",
+    "province": "云南",
+    "lat": 27.8251,
+    "lng": 99.7073,
+    "status": "visited",
+    "date": "2026 盛夏",
+    "tag": "中国足迹 · 点亮 ♥",
+    "story": "想和全世界仅此一个的悦悦大王，漫步在香格里拉的街头巷尾，看尽人间烟火。",
+    "image": "./images/wish_dali_romantic.jpg"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1794035771375,
+  "updatedAt": 1794586396430,
   "hero": {
     "title1": "YB",
     "title2": "悦悦大王",
@@ -19,7 +19,7 @@
       "quote": "照片里加了什么 我不懂 好幸福。",
       "images": [
         "./images/timeline_05_1.jpg",
-        "./images/uploads/slot_1794035766759_46.mov"
+        "./images/uploads/slot_1794035766759_46.mp4"
       ]
     },
     {
@@ -30,7 +30,7 @@
       "quote": "“我今天给你修眉，我想吃盛香亭”",
       "images": [
         "./images/uploads/slot_1793771814053_244.jpg?v=2",
-        "./images/uploads/slot_1793787192052_877.mov"
+        "./images/uploads/slot_1793787192052_877.mp4"
       ]
     },
     {
@@ -51,7 +51,7 @@
       "desc": "熬过了一个月的分开，终于在盛夏重聚，直奔云南开启浪漫自驾之旅！自驾穿梭在苍山与洱海的环海公路上，吹着傍晚清凉微甜的晚风；漫步在丽江古城光洁温润的石板街与夜色灯火中，牵着你的手一路走一路拍，单日聊天记录狂飙515条，写满了我们最绚烂的夏日记忆。",
       "quote": "大理的晚风太治愈了，自驾在环海路上的感觉好自由，这一路有你真好。",
       "images": [
-        "./images/uploads/slot_1793787287711_571.mov",
+        "./images/uploads/slot_1793787287711_571.mp4",
         "./images/timeline_08_2.jpg",
         "./images/uploads/slot_1793094914212_460.jpeg?v=2"
       ]
@@ -64,7 +64,7 @@
       "quote": "“吃KFC蘸酱，再去公园散散步。”",
       "images": [
         "./images/uploads/slot_1793271441782_249.jpg?v=2",
-        "./images/uploads/slot_1793271466421_123.jpg?v=2"
+        "./images/uploads/slot_1794035817258_693.mp4"
       ]
     },
     {
@@ -122,7 +122,7 @@
       "text": "云南自驾游：环洱海吹晚风，漫步丽江古城",
       "tag": "自驾漫游",
       "done": true,
-      "image": "./images/wish_dali.jpg"
+      "image": "./images/wish_dali_romantic.jpg"
     },
     {
       "text": "冬天一起煮一顿热气腾腾的日式寿喜烧",

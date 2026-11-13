@@ -1,10 +1,10 @@
-const CACHE_NAME = 'yb-love-v21-iphone-sync-fix';
+const CACHE_NAME = 'yb-love-v22-h264-sync-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './images/icon.svg',
-  './images/hero_cover.jpg'
+  './images/uploads/slot_1793090427258_811.jpeg'
 ];
 
 self.addEventListener('install', (e) => {
