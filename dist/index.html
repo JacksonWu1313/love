@@ -940,7 +940,7 @@
 
     </div>
 
-    <audio ref="audioPlayer" loop preload="auto">
+    <audio ref="audioPlayer" loop preload="none">
 
       <source src="./audio/hug_me.mp3" type="audio/mpeg">
 
@@ -1142,7 +1142,7 @@
 
         <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
           <img :src="getFastCoverOrImg(siteData.hero.coverImage)" alt="Hero Cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="eager" decoding="async" fetchpriority="high" @error="onImgError($event, siteData.hero.coverImage)">
-          <video v-if="isVideoMedia(siteData.hero.coverImage)" :src="getFastImg(siteData.hero.coverImage)" :poster="getFastCover(siteData.hero.coverImage) || ''" autoplay muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
+          <video v-if="isVideoMedia(siteData.hero.coverImage)" :src="getFastImg(siteData.hero.coverImage)" :poster="getFastCover(siteData.hero.coverImage) || ''" autoplay preload="auto" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
         </div>
 
         <p class="text-center font-serif text-xs text-muted mt-3 italic">
@@ -1468,7 +1468,7 @@
                   <video v-if="isVideoMedia(imgSrc)"
                          :src="getFastImg(imgSrc)"
                          :poster="getFastCover(imgSrc) || ''"
-                         autoplay
+                         preload="none"
                          muted
                          
                          playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
@@ -1573,7 +1573,7 @@
               <video v-if="isVideoMedia(q.image)"
                      :src="getFastImg(q.image)"
                      :poster="getFastCover(q.image) || ''"
-                     autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                     preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                      class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                      style="opacity: 0;"
                      @loadeddata="$event.target.style.opacity = '1'"
@@ -2538,7 +2538,7 @@
                     <video v-if="isVideoMedia(photo.image)"
                            :src="getFastImg(photo.image)"
                            :poster="getFastCover(photo) || ''"
-                           autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
+                           preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
                            @loadeddata="$event.target.style.opacity = '1'"
                            @canplay="$event.target.style.opacity = '1'"
                            @playing="$event.target.style.opacity = '1'"
@@ -2856,7 +2856,7 @@
           <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                  :src="getFastImg(photo.image)"
                  :poster="getFastCover(photo) || ''"
-                 autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                 preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                  class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                  style="opacity: 0;"
                  @loadeddata="$event.target.style.opacity = '1'"
@@ -3034,7 +3034,7 @@
 
             <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="openLightbox(w.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
               <img :src="getFastCoverOrImg(w.image)" :alt="w.text" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, w.image)">
-              <video v-if="isVideoMedia(w.image)" :src="getFastImg(w.image)" :poster="getFastCover(w.image) || ''" autoplay muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
+              <video v-if="isVideoMedia(w.image)" :src="getFastImg(w.image)" :poster="getFastCover(w.image) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
               <button @click.stop="promptChangeArrayImage('wishes', wIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-0 group-hover/wish:opacity-100'" class="absolute inset-0 bg-black/55 text-white text-[10px] font-semibold flex items-center justify-center transition z-20">
 
@@ -3158,7 +3158,7 @@
 
       <div class="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5 bg-sand/40" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
         <img :src="getFastCoverOrImg(siteData.letter.bgImage)" alt="Letter Visual" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, siteData.letter.bgImage)">
-        <video v-if="isVideoMedia(siteData.letter.bgImage)" :src="getFastImg(siteData.letter.bgImage)" :poster="getFastCover(siteData.letter.bgImage) || ''" autoplay muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
+        <video v-if="isVideoMedia(siteData.letter.bgImage)" :src="getFastImg(siteData.letter.bgImage)" :poster="getFastCover(siteData.letter.bgImage) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
         <button @click.stop="promptChangeImage('letter', 'bgImage')" class="absolute top-2.5 right-2.5 px-3 py-1 bg-clay/95 hover:bg-rose-500 text-white rounded-full text-xs shadow flex items-center gap-1 transition z-20">
 
@@ -3448,7 +3448,7 @@
                 <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                        :src="getFastImg(photo.image)"
                        :poster="getFastCover(photo) || ''"
-                       autoplay muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
+                       preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                        class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                        style="opacity: 0;"
                        @loadeddata="$event.target.style.opacity = '1'"
@@ -4690,7 +4690,7 @@
             <video v-if="isVideoMedia(item.rec.image)"
                    :src="getFastImg(item.rec.image)"
                    :poster="getFastCover(item.rec.image) || ''"
-                   autoplay
+                   preload="none"
                    muted
                    
                    playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
@@ -4954,7 +4954,7 @@
           <video v-if="isVideoMedia(item.rec.image)"
                  :src="getFastImg(item.rec.image)"
                  :poster="getFastCover(item.rec.image) || ''"
-                 autoplay
+                 preload="none"
                  muted
                  
                  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
@@ -7065,7 +7065,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         const allPhotosToPrewarm = [
 
-          './images/hero_cover.jpg',
+          './images/uploads/slot_1793090427258_811.jpeg',
 
           './images/capsule_bg.jpg',
 
@@ -7192,6 +7192,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             localStorage.setItem(storageKey, JSON.stringify(defaultSiteData));
             localStorage.removeItem('couple_site_updated_at');
             localStorage.removeItem('couple_site_custom_ts');
+            localStorage.removeItem('yb_love_records');
+            localStorage.removeItem('yb_love_messages');
+            localStorage.removeItem('couple_recent_pool_uploads');
+            localStorage.removeItem('couple_last_upload_ts');
             return JSON.parse(JSON.stringify(defaultSiteData));
           }
 
@@ -7460,6 +7464,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const storedRecords = typeof window !== 'undefined' ? localStorage.getItem('yb_love_records') : null;
 
       const loveRecordsList = ref(storedRecords ? JSON.parse(storedRecords) : ((siteData.loveRecords && siteData.loveRecords.length > 0) ? siteData.loveRecords : initialLoveRecords));
+      if (!storedRecords && typeof window !== 'undefined') { try { localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value)); } catch(e){} }
 
 
 
@@ -7826,6 +7831,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               localStorage.setItem(storageKey, JSON.stringify(siteData));
               localStorage.setItem('couple_site_updated_at', String(cloudTs || Date.now()));
               console.log('[Cloud Sync] All 6 timeline chapters & sections successfully unified.');
+              nextTick(() => { if (typeof observeLiveVideos === 'function') observeLiveVideos(); });
             }
 
             if (Array.isArray(cloudState.loveRecords) && cloudState.loveRecords.length >= (loveRecordsList.value ? loveRecordsList.value.length : 0) && cloudTs >= localTs) {
@@ -8284,6 +8290,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const storedNotes = typeof window !== 'undefined' ? localStorage.getItem('yb_love_messages') : null;
 
       const loveMessagesList = ref(storedNotes ? JSON.parse(storedNotes) : initialLoveMessages);
+      if (!storedNotes && typeof window !== 'undefined') { try { localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value)); } catch(e){} }
 
 
 
@@ -10001,6 +10008,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 const v = entry.target;
                 const isLightbox = v.closest && v.closest('#lightbox-modal');
                 if (entry.isIntersecting) {
+                  if (v.preload === 'none') v.preload = 'auto';
                   v.muted = !isLightbox;
                   v.playsInline = true;
                   v.loop = !!isLightbox;
@@ -10014,13 +10022,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 }
               });
             }, {
-              rootMargin: '120px 0px',
-              threshold: 0.1
+              rootMargin: '300px 0px',
+              threshold: 0.05
             });
           }
           document.querySelectorAll('video').forEach(v => {
             const isLightbox = v.closest && v.closest('#lightbox-modal');
-            if (isLightbox) return;
+            if (isLightbox || v.dataset.liveObserved === '1') return;
+            v.dataset.liveObserved = '1';
             v.muted = true;
             v.playsInline = true;
             v.loop = false;
@@ -10035,8 +10044,6 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           initWorldMap();
 
           tickSphere();
-
-          tryAutoPlay();
 
           observeLiveVideos();
 
@@ -10085,7 +10092,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }, 45000);
         }
 
-        if (window.innerWidth > 1024) prewarmAllImages();
+        if (window.innerWidth > 1024) setTimeout(prewarmAllImages, 6000);
 
 
 
