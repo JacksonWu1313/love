@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v31').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v32').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -2528,7 +2528,7 @@
 <div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/40 bg-gradient-to-br from-sand/30 via-rose-50/25 to-sand/20" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
 
                     <!-- 永不灰屏：底置静态封面图 -->
-                    <img :src="getFastCoverOrImg(photo)"
+                    <img :src="sIdx < sphereUnlockedLimit ? getFastCoverOrImg(photo) : SPHERE_PLACEHOLDER_SVG"
                          :alt="photo.title || '照片'"
                          class="w-full h-full object-cover pointer-events-none"
                          loading="lazy" fetchpriority="low" decoding="async"
@@ -6975,6 +6975,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       // 标准 Base64 编码的粉色爱心卡片（彻底解决 iOS Safari 非 Base64 SVG 渲染为蓝色问号 [?] 的 WebKit 缺陷）
       const FALLBACK_PHOTO_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiB2aWV3Qm94PSIwIDAgNDAwIDUwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiNGQUY3RjIiIHJ4PSIyNCIvPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM2OCIgaGVpZ2h0PSI0NjgiIGZpbGw9IiNGRkZERjkiIHN0cm9rZT0iI0VERTREOCIgc3Ryb2tlLXdpZHRoPSIyIiByeD0iMTYiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMjAiIHI9IjUyIiBmaWxsPSIjRjdFQ0UxIi8+PHBhdGggZD0iTTIwMCAyMDUgQzE5MCAxODUgMTYwIDE4NSAxNjAgMjE1IEMxNjAgMjQwIDIwMCAyNjUgMjAwIDI2NSBDMjAwIDI2NSAyNDAgMjQwIDI0MCAyMTUgQzI0MCAxODUgMjEwIDE4NSAyMDAgMjA1IFoiIGZpbGw9IiNFMDdBNUYiIG9wYWNpdHk9IjAuODUiLz48dGV4dCB4PSIyMDAiIHk9IjMxNSIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sQmxpbmtNYWNTeXN0ZW1Gb250LFBpbmdGYW5nIFNDLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiM5QzhCN0MiIHRleHQtYW5jaG9yPSJtaWRkbGUiPu+/veWlveWbnuW/hiDCt+OAiOato+WcqOi/nuaOpSDimaU8L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIzNDAiIGZvbnQtZmFtaWx5PSItYXBwbGUtc3lzdGVtLEJsaW5rTWFjU3lzdGVtRm9udCxQaW5nRmFuZyBTQyxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExIiBmaWxsPSIjQzVCOEFDIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5PdXIgTG92ZSBTdG9yeSDCt+KAiFlCICYg5oKm5oKmPC90ZXh0Pjwvc3ZnPg==';
+      const SPHERE_PLACEHOLDER_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiB2aWV3Qm94PSIwIDAgNDAwIDUwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0ZBRjNFQiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0Y1RTVERiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiBmaWxsPSJ1cmwoI2cpIiByeD0iMTYiLz48L3N2Zz4=';
 
       // ??/????????? 5 ?????????????? 1 ????????????????????
       const handleLiveVideoEnded = (event) => {
@@ -9262,6 +9263,60 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       // 3D Photo Constellation Sphere (Dynamic Fibonacci Sphere, Pinch/Wheel Zoom & Backface Culling)
 
+      const sphereUnlockedLimit = ref(0);
+      let sphereVisibleForLoad = false;
+      let sphereDwellTimer = null;
+      let sphereWaveTimer = null;
+      const scheduleSphereWave = () => {
+        if (!sphereVisibleForLoad || sphereUnlockedLimit.value >= 9999) return;
+        if (sphereWaveTimer) clearTimeout(sphereWaveTimer);
+        sphereWaveTimer = setTimeout(() => {
+          sphereWaveTimer = null;
+          if (!sphereVisibleForLoad) return;
+          if (typeof window !== 'undefined' && window.__liveVideoFetching) {
+            scheduleSphereWave();
+            return;
+          }
+          const nextLimit = sphereUnlockedLimit.value === 0 ? 6 : sphereUnlockedLimit.value + 6;
+          sphereUnlockedLimit.value = nextLimit >= 36 ? 9999 : nextLimit;
+          if (sphereUnlockedLimit.value < 9999) scheduleSphereWave();
+        }, sphereUnlockedLimit.value === 0 ? 0 : 350);
+      };
+      const unlockSphereImagesNow = () => {
+        sphereVisibleForLoad = true;
+        if (sphereDwellTimer) { clearTimeout(sphereDwellTimer); sphereDwellTimer = null; }
+        if (sphereUnlockedLimit.value === 0) sphereUnlockedLimit.value = 6;
+        scheduleSphereWave();
+      };
+      const observeSphereImages = () => {
+        if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+          sphereUnlockedLimit.value = 9999;
+          return;
+        }
+        const stage = document.querySelector('.photo-sphere-stage');
+        if (!stage) return;
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              sphereVisibleForLoad = true;
+              if (sphereUnlockedLimit.value < 9999 && !sphereDwellTimer) {
+                sphereDwellTimer = setTimeout(() => {
+                  sphereDwellTimer = null;
+                  if (sphereVisibleForLoad) scheduleSphereWave();
+                }, 500);
+              }
+            } else {
+              sphereVisibleForLoad = false;
+              if (sphereDwellTimer) { clearTimeout(sphereDwellTimer); sphereDwellTimer = null; }
+              if (sphereWaveTimer) { clearTimeout(sphereWaveTimer); sphereWaveTimer = null; }
+            }
+          });
+        }, { rootMargin: '40px 0px', threshold: 0.1 });
+        obs.observe(stage);
+        stage.addEventListener('pointerdown', unlockSphereImagesNow, { once: true, passive: true });
+        stage.addEventListener('touchstart', unlockSphereImagesNow, { once: true, passive: true });
+      };
+
       const sphereScale = ref(1.0);
 
       let liveSphereScale = 1.0;
@@ -9892,6 +9947,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const shuffleSpherePhotos = () => {
 
+        unlockSphereImagesNow();
+
         spherePhotoPoolIndex.value++;
 
         triggerConfetti();
@@ -10062,6 +10119,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         const releaseFetchSlot = (vid) => {
           if (currentFetchingVideo && (!vid || currentFetchingVideo === vid)) {
             currentFetchingVideo = null;
+            if (typeof window !== 'undefined') window.__liveVideoFetching = false;
             if (currentFetchTimer) { clearTimeout(currentFetchTimer); currentFetchTimer = null; }
           }
         };
@@ -10114,6 +10172,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               continue;
             }
             currentFetchingVideo = nextVid;
+            if (typeof window !== 'undefined') window.__liveVideoFetching = true;
             const done = () => {
               if (currentFetchingVideo === nextVid) {
                 releaseFetchSlot(nextVid);
@@ -10169,7 +10228,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 if (isLightbox) {
                   activate();
                 } else {
-                  v.__liveEnterTimer = setTimeout(activate, 500);
+                  v.__liveEnterTimer = setTimeout(activate, 220);
                 }
               });
               if (needDrain) drainLiveQueue();
@@ -10198,6 +10257,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           tickSphere();
 
           observeLiveVideos();
+
+          observeSphereImages();
 
         });
 
@@ -13275,7 +13336,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v31').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v32').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
@@ -15500,6 +15561,10 @@ image: newCityForm.image || './images/wish_drive.jpg'
         // 3D Photo Constellation Sphere (Adaptive & Editable)
 
         spherePhotosList,
+
+        sphereUnlockedLimit,
+
+        SPHERE_PLACEHOLDER_SVG,
 
         sphereTransformStyle,
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v31-live-video-queue-fix';
+const CACHE_NAME = 'yb-love-v32-sphere-progressive-live-priority';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
