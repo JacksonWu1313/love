@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v34').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v35').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -9680,14 +9680,20 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         pauseSphereSlot(0);
         pauseSphereSlot(1);
       };
+      const sphereFetchPromises = new Map();
       const resolveSphereMediaUrl = (rawUrl) => {
         const fast = getFastImg(rawUrl);
         if (!fast || fast.startsWith('blob:') || fast.startsWith('data:')) return Promise.resolve(fast);
         const cache = (typeof window !== 'undefined' && window.__liveUploadedBlobMap) ? window.__liveUploadedBlobMap : null;
         if (cache && (cache[fast] || cache[rawUrl])) return Promise.resolve(cache[fast] || cache[rawUrl]);
-        return fetch(fast, { headers: { 'x-live-prewarm': '1' } })
+        if (sphereFetchPromises.has(fast)) return sphereFetchPromises.get(fast);
+        const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch(e){} }, 8000) : null;
+        const p = fetch(fast, ctrl ? { headers: { 'x-live-prewarm': '1' }, signal: ctrl.signal } : { headers: { 'x-live-prewarm': '1' } })
           .then((res) => (res && res.ok ? res.blob() : null))
           .then((blob) => {
+            if (timer) clearTimeout(timer);
+            sphereFetchPromises.delete(fast);
             if (!blob || blob.size === 0) return fast;
             const blobUrl = URL.createObjectURL(blob);
             registerLiveBlobVariants(rawUrl, blobUrl);
@@ -9698,9 +9704,15 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             }
             return blobUrl;
           })
-          .catch(() => fast);
+          .catch(() => {
+            if (timer) clearTimeout(timer);
+            sphereFetchPromises.delete(fast);
+            return fast;
+          });
+        sphereFetchPromises.set(fast, p);
+        return p;
       };
-      const bindDecoderToCard = (slotIdx, targetIdx, photo) => {
+      const bindDecoderToCard = (slotIdx, targetIdx, photo, force = false) => {
         const slot = sphereSlotStates[slotIdx];
         const vid = getSphereDecoder(slotIdx);
         if (!slot || !vid || !photo || !photo.image) return;
@@ -9731,7 +9743,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           return;
         }
         const now = Date.now();
-        if (slot.idx >= 0 && (now - slot.lastSwitchTs < 380)) return;
+        if (!force && slot.idx >= 0 && (now - slot.lastSwitchTs < 600)) return;
         if (slot.idx >= 0) fadeOutSphereCanvas(slot.idx);
         slot.idx = targetIdx;
         slot.rawUrl = photo.image;
@@ -9795,7 +9807,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           const list = spherePhotosList.value || [];
           if (list[sIdx] && isVideoMedia(list[sIdx].image)) {
-            bindDecoderToCard(0, sIdx, list[sIdx]);
+            bindDecoderToCard(0, sIdx, list[sIdx], true);
           }
         };
       }
@@ -9809,7 +9821,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         const vpEl = shouldCheckCulling ? (sphereViewportDomEl || (sphereViewportDomEl = document.getElementById('photo-sphere-viewport')) || document.getElementById('photo-sphere-world-el')) : null;
         const sphereRect = vpEl ? vpEl.getBoundingClientRect() : null;
         if (shouldCheckCulling) {
-          sphereInViewportNow = !!(sphereRect && sphereRect.height > 0 && sphereRect.bottom > 20 && sphereRect.top < (window.innerHeight || 900) - 20);
+          sphereInViewportNow = !!(sphereRect && sphereRect.height > 0 && sphereRect.bottom > -40 && sphereRect.top < (window.innerHeight || 900) + 40);
         }
 
         const radX = (rxDeg || 0) * Math.PI / 180;
@@ -9818,6 +9830,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         const cosY = Math.cos(radY), sinY = Math.sin(radY);
         const photos = spherePhotosList.value || [];
         const frontCandidates = [];
+        const cardZ = shouldCheckCulling ? new Array(coords.length) : null;
 
         for (let i = 0; i < coords.length; i++) {
           const el = document.getElementById('sphere-card-' + i);
@@ -9838,6 +9851,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const x1 = x0 * cosY + z0 * sinY;
             const z1 = -x0 * sinY + z0 * cosY;
             const zWorld = -y0 * sinX + z1 * cosX;
+            cardZ[i] = zWorld;
 
             const badge = el.querySelector('.sphere-live-badge');
             if (badge) {
@@ -9852,32 +9866,36 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
 
         if (shouldCheckCulling) {
-          const allowSphereVideo = sphereInViewportNow && sphereVisibleForLoad && sphereUnlockedLimit.value > 0 && !(typeof window !== 'undefined' && window.__liveVideoFetching && (now - sphereMountTs < 3000));
-          if (!allowSphereVideo || frontCandidates.length === 0) {
+          const allowSphereVideo = sphereInViewportNow && sphereVisibleForLoad && sphereUnlockedLimit.value > 0 && !(typeof window !== 'undefined' && window.__liveVideoFetching && (now - sphereMountTs < 2000));
+          if (!allowSphereVideo || (frontCandidates.length === 0 && sphereSlotStates[0].idx < 0 && sphereSlotStates[1].idx < 0)) {
             pauseSphereSlot(0);
             pauseSphereSlot(1);
           } else {
-            frontCandidates.sort((a, b) => b.z - a.z);
-            const top = frontCandidates.slice(0, 2);
-            const wantedIdxs = top.map(t => t.idx);
-            // Keep matching active slot intact before reassigning freed slots
+            // Sticky front-hemisphere hysteresis: keep active/loading slots pinned until zWorld <= 0.05, 5 loops done, or stalled > 12s
             const slotUsed = [false, false];
-            const paired = [false, false];
+            const claimedIdxs = new Set();
             for (let s = 0; s < 2; s++) {
-              const found = wantedIdxs.indexOf(sphereSlotStates[s].idx);
-              if (found !== -1) {
-                slotUsed[s] = true;
-                paired[found] = true;
-                bindDecoderToCard(s, top[found].idx, top[found].photo);
+              const st = sphereSlotStates[s];
+              const sIdx = st ? st.idx : -1;
+              if (sIdx >= 0 && !claimedIdxs.has(sIdx) && sIdx < photos.length && sIdx < sphereUnlockedLimit.value && photos[sIdx] && isVideoMedia(photos[sIdx].image) && !sphereCardLoopDone.get(sIdx) && cardZ[sIdx] > 0.05) {
+                const dec = getSphereDecoder(s);
+                const hasSrc = !!(dec && dec.getAttribute('src'));
+                if (hasSrc || (now - st.lastSwitchTs < 12000)) {
+                  slotUsed[s] = true;
+                  claimedIdxs.add(sIdx);
+                  bindDecoderToCard(s, sIdx, photos[sIdx]);
+                }
               }
             }
-            for (let w = 0; w < top.length; w++) {
-              if (paired[w]) continue;
+            frontCandidates.sort((a, b) => b.z - a.z);
+            for (let c = 0; c < frontCandidates.length; c++) {
               const freeSlot = !slotUsed[0] ? 0 : (!slotUsed[1] ? 1 : -1);
-              if (freeSlot !== -1) {
-                slotUsed[freeSlot] = true;
-                bindDecoderToCard(freeSlot, top[w].idx, top[w].photo);
-              }
+              if (freeSlot === -1) break;
+              const cand = frontCandidates[c];
+              if (claimedIdxs.has(cand.idx)) continue;
+              slotUsed[freeSlot] = true;
+              claimedIdxs.add(cand.idx);
+              bindDecoderToCard(freeSlot, cand.idx, cand.photo);
             }
             for (let s = 0; s < 2; s++) {
               if (!slotUsed[s]) pauseSphereSlot(s);
@@ -13693,7 +13711,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v34').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v35').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 

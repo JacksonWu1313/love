@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v34-sphere-canvas-lock';
+const CACHE_NAME = 'yb-love-v35-sphere-sticky-slots';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
