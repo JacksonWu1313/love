@@ -9,7 +9,7 @@
     "status": "home",
     "tag": "YB的家 🏠",
     "story": "湘江中路吹吹温柔晚风，橘子洲头看万山红遍，这里是YB的家与温暖港湾。",
-    "image": "./images/hero_cover.jpg"
+    "image": "./images/wish_dali_romantic.jpg"
   },
   {
     "id": "home_loudi",
@@ -21,7 +21,7 @@
     "status": "home",
     "tag": "悦悦大王的家 🏠",
     "story": "全世界仅此一个的悦悦大王生长的地方，是必须被用心珍藏和守护一辈子的城堡。",
-    "image": "./images/hero_cover.jpg"
+    "image": "./images/wish_dali_romantic.jpg"
   },
   {
     "id": "dali",
@@ -57,7 +57,7 @@
     "status": "visited",
     "tag": "旅途起点 · 已点亮 ♥",
     "story": "自驾漫游的温馨起点，满城鲜花盛开，落地第一眼就觉得这次旅程一定很甜。",
-    "image": "./images/hero_cover.jpg"
+    "image": "./images/wish_dali_romantic.jpg"
   },
   {
     "id": "shenzhen",

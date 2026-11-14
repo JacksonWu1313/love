@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v32').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v33').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -124,7 +124,7 @@
 
   <link rel="icon" type="image/svg+xml" href="./images/icon.svg">
 
-<link rel="preload" as="image" href="./images/uploads/slot_1793090427258_811.jpeg?v=3" fetchpriority="high">
+<link rel="preload" as="image" href="./images/uploads/slot_1793090427258_811.jpeg?v=4" fetchpriority="high">
 
   <title>Our Love Story | YB & 悦悦大王 数字纪念馆 (CMS 可持续编辑版)</title>
 
@@ -6836,6 +6836,37 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       }
 
+      const registerLiveBlobVariants = (rawPath, blobUrl, opts = {}) => {
+        if (typeof window === 'undefined' || !rawPath) return;
+        const str = String(rawPath).trim();
+        if (!str || /^(blob:|data:|https?:)/i.test(str)) return;
+        if (!window.__liveUploadedBlobMap) window.__liveUploadedBlobMap = {};
+        const invalidateOnly = !!(opts && opts.invalidateOnly);
+        const cleanWithQuery = str.replace(/^\.?\//, '').replace('images/thumb/', 'images/');
+        const cleanNoQuery = cleanWithQuery.split('?')[0];
+        const baseName = cleanNoQuery.split('/').pop();
+        const keys = new Set([
+          str,
+          cleanWithQuery,
+          './' + cleanWithQuery,
+          cleanNoQuery,
+          './' + cleanNoQuery,
+          cleanNoQuery + '?v=3',
+          './' + cleanNoQuery + '?v=3',
+          cleanNoQuery + '?v=4',
+          './' + cleanNoQuery + '?v=4'
+        ]);
+        if (baseName && baseName.length > 4) keys.add(baseName);
+        keys.forEach((k) => {
+          if (!k) return;
+          if (invalidateOnly) {
+            delete window.__liveUploadedBlobMap[k];
+          } else if (blobUrl) {
+            window.__liveUploadedBlobMap[k] = blobUrl;
+          }
+        });
+      };
+
       
       // 实况照片封面智能提取与本地持久化缓存（防止实况视频播放完毕或 WebKit 回收显存时变灰）
       const liveCoverMap = reactive({});
@@ -6932,9 +6963,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         if (typeof src !== 'string') return src;
 
-        if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap[src]) {
+        const blobMap = (typeof window !== 'undefined' && window.__liveUploadedBlobMap) ? window.__liveUploadedBlobMap : null;
 
-          return window.__liveUploadedBlobMap[src];
+        if (blobMap && blobMap[src]) {
+
+          return blobMap[src];
 
         }
 
@@ -6948,19 +6981,23 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         if (clean.startsWith('images/')) {
 
-          if (typeof window !== 'undefined' && window.__liveUploadedBlobMap && window.__liveUploadedBlobMap['./' + clean]) {
-
-            return window.__liveUploadedBlobMap['./' + clean];
-
+          if (blobMap) {
+            const cleanNoQuery = clean.split('?')[0];
+            const bareName = cleanNoQuery.split('/').pop();
+            const cachedBlob = blobMap['./' + clean] || blobMap[clean] || blobMap['./' + cleanNoQuery] || blobMap[cleanNoQuery] || (bareName && blobMap[bareName]);
+            if (cachedBlob) return cachedBlob;
           }
 
-          // 新上传 slot_ 与优化后的实况 .mp4 资源自动附加 ?v=3 版本参数，彻底穿透 Cloudflare immutable/7天陈旧边缘缓存
+          // 新上传 slot_ 与优化后的实况 .mp4 资源自动附加 ?v=4 版本参数，彻底穿透 Cloudflare immutable/7天陈旧边缘缓存
           if (clean.startsWith('images/uploads/')) {
-            if (!clean.includes('?')) return './' + clean + (clean.match(/\.(jpe?g|png|webp|gif|mp4|mov|m4v|webm)$/i) ? '?v=3' : '?v=2');
-            if (clean.match(/\.(jpe?g|png|webp|gif|mp4|mov|m4v|webm)\?v=2$/i)) return './' + clean.replace(/\?v=2$/i, '?v=3');
+            if (!clean.includes('?')) return './' + clean + (clean.match(/\.(jpe?g|png|webp|gif|mp4|mov|m4v|webm)$/i) ? '?v=4' : '?v=2');
+            if (clean.match(/\.(jpe?g|png|webp|gif|mp4|mov|m4v|webm)\?v=[23]$/i)) return './' + clean.replace(/\?v=[23]$/i, '?v=4');
           }
           if (clean.startsWith('images/pool/') && /\.mp4$/i.test(clean) && !clean.includes('?')) {
-            return './' + clean + '?v=3';
+            return './' + clean + '?v=4';
+          }
+          if (clean.startsWith('images/pool/') && /\.mp4\?v=[23]$/i.test(clean)) {
+            return './' + clean.replace(/\?v=[23]$/i, '?v=4');
           }
 
           return './' + clean;
@@ -7741,8 +7778,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               }
               if (recordForm.image === tempPreviewUrl) recordForm.image = repoPath;
               if (typeof window !== 'undefined') {
-                if (!window.__liveUploadedBlobMap) window.__liveUploadedBlobMap = {};
-                window.__liveUploadedBlobMap[repoPath] = tempPreviewUrl;
+                registerLiveBlobVariants(repoPath, tempPreviewUrl);
               }
               let savedListMutated = false;
               if (Array.isArray(loveRecordsList.value)) {
@@ -9303,7 +9339,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 sphereDwellTimer = setTimeout(() => {
                   sphereDwellTimer = null;
                   if (sphereVisibleForLoad) scheduleSphereWave();
-                }, 500);
+                }, 750);
               }
             } else {
               sphereVisibleForLoad = false;
@@ -9638,13 +9674,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const vid = el.querySelector('video');
             if (vid) {
               vid.loop = false;
-              if (sphereInViewport && isFrontFacing && spherePlayingCount < 2) {
+              const allowSphereVideo = sphereInViewport && sphereVisibleForLoad && sphereUnlockedLimit.value > 0 && !(typeof window !== 'undefined' && window.__liveVideoFetching);
+              if (allowSphereVideo && isFrontFacing && spherePlayingCount < 2) {
                 spherePlayingCount += 1;
                 if (vid.preload === 'none') vid.preload = 'auto';
                 if (vid.paused && vid.dataset.loopDone !== 'true') vid.play().catch(() => {});
               } else {
                 if (!vid.paused) vid.pause();
-                if (!sphereInViewport && vid.readyState === 0 && vid.preload !== 'none') vid.preload = 'none';
+                if ((!sphereInViewport || !sphereVisibleForLoad || sphereUnlockedLimit.value === 0) && vid.readyState === 0 && vid.preload !== 'none') vid.preload = 'none';
               }
             }
           }
@@ -10087,6 +10124,65 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
 
+      const prewarmPrimaryLiveVideos = () => {
+        if (typeof window === 'undefined' || typeof fetch !== 'function') return Promise.resolve();
+        const primaryTargets = [];
+        if (Array.isArray(siteData.timeline)) {
+          for (const chapter of siteData.timeline) {
+            if (chapter && Array.isArray(chapter.images)) {
+              for (const item of chapter.images) {
+                if (typeof item === 'string' && isVideoMedia(item)) {
+                  const bare = item.split('?')[0];
+                  if (!primaryTargets.includes(bare)) primaryTargets.push(bare);
+                  if (primaryTargets.length >= 2) break;
+                }
+              }
+            }
+            if (primaryTargets.length >= 2) break;
+          }
+        }
+        for (const fallbackSrc of ['./images/uploads/slot_1794035766759_46.mp4', './images/uploads/slot_1793787192052_877.mp4']) {
+          if (primaryTargets.length >= 2) break;
+          if (!primaryTargets.includes(fallbackSrc)) primaryTargets.push(fallbackSrc);
+        }
+        return Promise.allSettled(primaryTargets.map(async (rawPath) => {
+          const fetchUrl = getFastImg(rawPath);
+          if (!fetchUrl || fetchUrl.startsWith('blob:') || fetchUrl.startsWith('data:')) return;
+          try {
+            const res = await fetch(fetchUrl, { priority: 'high', headers: { 'x-live-prewarm': '1' } });
+            if (!res || !res.ok) return;
+            const blob = await res.blob();
+            if (!blob || blob.size === 0) return;
+            const blobUrl = URL.createObjectURL(blob);
+            registerLiveBlobVariants(rawPath, blobUrl);
+            registerLiveBlobVariants(fetchUrl, blobUrl);
+            if (!window.__liveVideoBlobSet) window.__liveVideoBlobSet = new Set();
+            window.__liveVideoBlobSet.add(blobUrl);
+            const clean = String(rawPath).replace(/^\.?\//, '').split('?')[0];
+            const bareName = clean.split('/').pop();
+            document.querySelectorAll('video').forEach((v) => {
+              if (v.closest && (v.closest('#lightbox-modal') || v.closest('.photo-sphere-stage'))) return;
+              const attrSrc = v.getAttribute('src') || v.dataset.rawSrc || v.currentSrc || '';
+              if (!attrSrc.includes(clean) && !(bareName && attrSrc.includes(bareName))) return;
+              v.dataset.prewarmed = '1';
+              if (v.dataset && v.dataset.poster && !v.getAttribute('poster')) {
+                v.setAttribute('poster', v.dataset.poster);
+              }
+              if (v.getAttribute('src') !== blobUrl && v.currentSrc !== blobUrl) {
+                const wasPlaying = !v.paused;
+                v.src = blobUrl;
+                v.preload = 'auto';
+                try { v.load(); } catch (e) {}
+                if (wasPlaying) v.play().catch(() => {});
+              } else if (v.preload !== 'auto') {
+                v.preload = 'auto';
+                try { v.load(); } catch (e) {}
+              }
+            });
+          } catch (e) {}
+        }));
+      };
+
       onMounted(() => {
         if (typeof dismissSitePreloader === "function") dismissSitePreloader();
         try {
@@ -10099,7 +10195,41 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
         } catch (e) {}
 
-        window.__appMounted = true;
+        prewarmPrimaryLiveVideos();
+
+        const firstTimelineVid = Array.from(document.querySelectorAll('video')).find((v) => {
+          return !(v.closest && (v.closest('#lightbox-modal') || v.closest('.photo-sphere-stage')));
+        }) || null;
+        if (firstTimelineVid) {
+          firstTimelineVid.dataset.primaryPrewarm = '1';
+          if (firstTimelineVid.dataset && firstTimelineVid.dataset.poster && !firstTimelineVid.getAttribute('poster')) {
+            firstTimelineVid.setAttribute('poster', firstTimelineVid.dataset.poster);
+          }
+          if (firstTimelineVid.preload !== 'auto') {
+            firstTimelineVid.preload = 'auto';
+            try { firstTimelineVid.load(); } catch (e) {}
+          }
+        }
+
+        let appMountedTimer = null;
+        const markAppMounted = () => {
+          if (appMountedTimer) { clearTimeout(appMountedTimer); appMountedTimer = null; }
+          window.__appMounted = true;
+          var _g = document.getElementById('anti-white-toast');
+          if (_g) _g.remove();
+        };
+        if (!firstTimelineVid || firstTimelineVid.readyState >= 1) {
+          markAppMounted();
+        } else {
+          const onPrimaryMeta = () => {
+            if (firstTimelineVid.readyState >= 1) markAppMounted();
+          };
+          firstTimelineVid.addEventListener('loadedmetadata', onPrimaryMeta, { once: true });
+          firstTimelineVid.addEventListener('loadeddata', onPrimaryMeta, { once: true });
+          firstTimelineVid.addEventListener('canplay', onPrimaryMeta, { once: true });
+          firstTimelineVid.addEventListener('error', markAppMounted, { once: true });
+          appMountedTimer = setTimeout(markAppMounted, 5000);
+        }
 
         var _g = document.getElementById('anti-white-toast');
 
@@ -10182,7 +10312,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             nextVid.addEventListener('loadeddata', done, { once: true });
             nextVid.addEventListener('canplay', done, { once: true });
             nextVid.addEventListener('error', () => { nextVid.dataset.needReload = '1'; done(); }, { once: true });
-            currentFetchTimer = setTimeout(done, 7000);
+            currentFetchTimer = setTimeout(done, 15000);
             startLiveVideo(nextVid, false);
             break;
           }
@@ -10225,10 +10355,14 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                   if (!pendingLiveQueue.includes(v)) pendingLiveQueue.push(v);
                   drainLiveQueue();
                 };
-                if (isLightbox) {
+                const isPrewarmed = v.dataset.prewarmed === '1' ||
+                  v.dataset.primaryPrewarm === '1' ||
+                  (v.currentSrc && v.currentSrc.startsWith('blob:')) ||
+                  (v.getAttribute('src') && v.getAttribute('src').startsWith('blob:'));
+                if (isLightbox || isPrewarmed) {
                   activate();
                 } else {
-                  v.__liveEnterTimer = setTimeout(activate, 220);
+                  v.__liveEnterTimer = setTimeout(activate, 650);
                 }
               });
               if (needDrain) drainLiveQueue();
@@ -10239,8 +10373,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           document.querySelectorAll('video').forEach(v => {
             const isLightbox = v.closest && v.closest('#lightbox-modal');
-            if (isLightbox || v.dataset.liveObserved === '1') return;
+            if (isLightbox || (v.closest && v.closest('.photo-sphere-stage')) || v.dataset.liveObserved === '1') return;
             v.dataset.liveObserved = '1';
+            if (v.dataset && v.dataset.poster && !v.getAttribute('poster')) {
+              v.setAttribute('poster', v.dataset.poster);
+            }
             v.muted = true;
             v.playsInline = true;
             v.loop = false;
@@ -10268,15 +10405,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           window.addEventListener('scroll', observeLiveVideos, { passive: true });
         }
 
-        syncSiteStateFromCloud();
-
-        syncLoveRecordsFromCloud();
-
-        syncLoveMessagesFromCloud();
-
-        syncFromCloudRegistry();
-
-        syncFootprintFromCloud();
+        setTimeout(() => {
+          syncSiteStateFromCloud();
+          syncLoveRecordsFromCloud();
+          syncLoveMessagesFromCloud();
+          syncFromCloudRegistry();
+          syncFootprintFromCloud();
+        }, 1500);
 
         checkPwaStatus(); sortTimelineChronologically(); setTimeout(hydrateMotionVideoSlots, 600);
 
@@ -11336,9 +11471,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             replaceMediaUrlInSiteData(initialUrl, repoRelPath);
             if (typeof window !== 'undefined') {
-              if (!window.__liveUploadedBlobMap) window.__liveUploadedBlobMap = {};
-              window.__liveUploadedBlobMap[repoRelPath] = initialUrl;
-              window.__liveUploadedBlobMap['./' + repoRelPath.replace(/^\.?\//, '')] = initialUrl;
+              registerLiveBlobVariants(repoRelPath, initialUrl);
             }
             let persistentCover = prep.coverBase64 || null;
             if (prep.isVideo && prep.coverBase64) {
@@ -11462,6 +11595,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (!targetType || !newSrc) return;
         const nowTs = Date.now();
         let changed = false;
+        let replacedOldSrc = '';
 
         if (coverSrc) {
           setLiveCover(newSrc, coverSrc);
@@ -11471,6 +11605,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (targetType === 'pool' && targetCtx) {
           const photo = targetCtx;
           const oldSrc = photo.image;
+          replacedOldSrc = oldSrc || '';
           photo.image = newSrc;
           if (coverSrc) photo.cover = coverSrc;
           if (isVideo !== undefined) photo.isVideo = !!isVideo;
@@ -11492,6 +11627,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         } else if (targetType === 'sphere' && targetCtx) {
           const photo = targetCtx;
           const oldSrc = photo.image;
+          replacedOldSrc = oldSrc || '';
           photo.image = newSrc;
           if (coverSrc) photo.cover = coverSrc;
           if (isVideo !== undefined) photo.isVideo = !!isVideo;
@@ -11514,6 +11650,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           const { mIdx, imgIdx } = targetCtx;
           if (siteData.timeline && siteData.timeline[mIdx] && siteData.timeline[mIdx].images) {
             const oldSrc = siteData.timeline[mIdx].images[imgIdx];
+            replacedOldSrc = oldSrc || '';
             siteData.timeline[mIdx].images[imgIdx] = newSrc;
             replaceMediaUrlInSiteData(oldSrc, newSrc);
             changed = true;
@@ -11523,6 +11660,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (recIdx !== null) {
             if (loveRecordsList.value && loveRecordsList.value[recIdx]) {
               const oldSrc = loveRecordsList.value[recIdx].image;
+              replacedOldSrc = oldSrc || '';
               loveRecordsList.value[recIdx].image = newSrc;
               if (coverSrc) loveRecordsList.value[recIdx].cover = coverSrc;
               replaceMediaUrlInSiteData(oldSrc, newSrc);
@@ -11532,6 +11670,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               }
             }
           } else {
+            replacedOldSrc = recordForm.image || '';
             recordForm.image = newSrc;
             if (coverSrc) recordForm.cover = coverSrc;
           }
@@ -11539,6 +11678,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           const field = (targetCtx && targetCtx.field) || 'coverImage';
           if (siteData.hero) {
             const oldSrc = siteData.hero[field];
+            replacedOldSrc = oldSrc || '';
             siteData.hero[field] = newSrc;
             replaceMediaUrlInSiteData(oldSrc, newSrc);
             changed = true;
@@ -11548,6 +11688,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (siteData.gallery && siteData.gallery[idx]) {
             const f = field || 'image';
             const oldSrc = siteData.gallery[idx][f];
+            replacedOldSrc = oldSrc || '';
             siteData.gallery[idx][f] = newSrc;
             replaceMediaUrlInSiteData(oldSrc, newSrc);
             changed = true;
@@ -11557,6 +11698,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (siteData.quotes && siteData.quotes[idx]) {
             const f = field || 'image';
             const oldSrc = siteData.quotes[idx][f];
+            replacedOldSrc = oldSrc || '';
             siteData.quotes[idx][f] = newSrc;
             replaceMediaUrlInSiteData(oldSrc, newSrc);
             changed = true;
@@ -11566,6 +11708,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (siteData.wishes && siteData.wishes[idx]) {
             const f = field || 'image';
             const oldSrc = siteData.wishes[idx][f];
+            replacedOldSrc = oldSrc || '';
             siteData.wishes[idx][f] = newSrc;
             replaceMediaUrlInSiteData(oldSrc, newSrc);
             changed = true;
@@ -11574,18 +11717,24 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           const field = (targetCtx && targetCtx.field) || 'bgImage';
           if (siteData.letter) {
             const oldSrc = siteData.letter[field];
+            replacedOldSrc = oldSrc || '';
             siteData.letter[field] = newSrc;
             replaceMediaUrlInSiteData(oldSrc, newSrc);
             changed = true;
           }
         } else if (targetType === 'city' && targetCtx) {
           const oldSrc = targetCtx.image;
+          replacedOldSrc = oldSrc || '';
           targetCtx.image = newSrc;
           replaceMediaUrlInSiteData(oldSrc, newSrc);
           changed = true;
           if (!SyncGuard.isUploading && typeof saveFootprintToCloud === 'function') {
             debouncedCloudSync('footprint', saveFootprintToCloud, 400);
           }
+        }
+
+        if (replacedOldSrc && replacedOldSrc !== newSrc) {
+          registerLiveBlobVariants(replacedOldSrc, null, { invalidateOnly: true });
         }
 
         if (changed) {
@@ -12594,9 +12743,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             const localPreviewUrl = URL.createObjectURL(file);
 
-            if (typeof window !== 'undefined' && window.__liveUploadedBlobMap) {
+            if (typeof window !== 'undefined') {
 
-              window.__liveUploadedBlobMap[`./images/pool/${safeName}`] = localPreviewUrl;
+              registerLiveBlobVariants(`./images/pool/${safeName}`, localPreviewUrl);
 
             }
 
@@ -13336,7 +13485,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v32').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v33').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
@@ -14427,133 +14576,179 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const initWorldMap = () => {
 
-        if (!window.L) return;
+        if (typeof window === 'undefined' || typeof document === 'undefined' || !window.L) return;
 
         const mapContainer = document.getElementById('love-world-map');
 
         if (!mapContainer || mapContainer._leaflet_id) return;
 
+        const cleanupHydration = () => {
+          if (mapContainer.__worldMapObserver) {
+            mapContainer.__worldMapObserver.disconnect();
+            mapContainer.__worldMapObserver = null;
+          }
+          if (mapContainer.__worldMapIdleTimer) {
+            clearTimeout(mapContainer.__worldMapIdleTimer);
+            mapContainer.__worldMapIdleTimer = null;
+          }
+        };
 
+        const mountWorldMapNow = () => {
 
-        worldMap = L.map('love-world-map', {
+          cleanupHydration();
 
-          center: [27.95, 112.45],
+          if (!window.L) return;
 
-          zoom: 7,
+          const el = document.getElementById('love-world-map');
 
-          minZoom: 2,
-
-          maxZoom: 18,
-
-          zoomControl: false,
-
-          scrollWheelZoom: true,
-
-          touchZoom: true,
-
-          preferCanvas: true,
-
-          updateWhenIdle: false,
-
-          keepBuffer: 6
-
-        });
+          if (!el || el._leaflet_id) return;
 
 
 
-        L.control.zoom({ position: 'topright' }).addTo(worldMap);
+          worldMap = L.map('love-world-map', {
 
+            center: [27.95, 112.45],
 
+            zoom: 7,
 
-        // [Anti-Flicker] 单一主瓦片图层加载，移除重复的底层叠加，消除移动端双层瓦片 Z-fighting 闪烁\n        // 高德矢量底图国内 100ms 极速加载，Esri 海外备选
-
-
-
-        tileLayers = {
-
-          autonavi: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-
-            subdomains: '1234',
+            minZoom: 2,
 
             maxZoom: 18,
 
-            minZoom: 1,
+            zoomControl: false,
 
-            attribution: '&copy; 高德地图 AutoNavi',
+            scrollWheelZoom: true,
 
-            className: 'romantic-map-tiles'
+            touchZoom: true,
 
-          }),
+            preferCanvas: true,
 
-          esriStreet: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            updateWhenIdle: false,
 
-            maxZoom: 18,
+            keepBuffer: 6
 
-            minZoom: 1,
+          });
 
-            attribution: '&copy; Esri WorldStreetMap',
 
-            className: 'romantic-map-tiles'
 
-          }),
+          L.control.zoom({ position: 'topright' }).addTo(worldMap);
 
-          esriGray: L.layerGroup([
 
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 1 }),
 
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 1 })
+          // [Anti-Flicker] 单一主瓦片图层加载，移除重复的底层叠加，消除移动端双层瓦片 Z-fighting 闪烁\n        // 高德矢量底图国内 100ms 极速加载，Esri 海外备选
 
-          ])
+
+
+          tileLayers = {
+
+            autonavi: L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+
+              subdomains: '1234',
+
+              maxZoom: 18,
+
+              minZoom: 1,
+
+              attribution: '&copy; 高德地图 AutoNavi',
+
+              className: 'romantic-map-tiles'
+
+            }),
+
+            esriStreet: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+
+              maxZoom: 18,
+
+              minZoom: 1,
+
+              attribution: '&copy; Esri WorldStreetMap',
+
+              className: 'romantic-map-tiles'
+
+            }),
+
+            esriGray: L.layerGroup([
+
+              L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 1 }),
+
+              L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, minZoom: 1 })
+
+            ])
+
+          };
+
+
+
+          let autonaviTileErrs = 0;
+          if (tileLayers.autonavi && typeof tileLayers.autonavi.on === 'function') {
+            tileLayers.autonavi.on('tileerror', () => {
+              autonaviTileErrs++;
+              if (autonaviTileErrs >= 3 && currentMapTile.value === 'autonavi') {
+                console.warn('[Map] AutoNavi tile TLS/load degraded, falling back to esriStreet');
+                switchMapTile('esriStreet');
+              }
+            });
+          }
+          tileLayers[currentMapTile.value].addTo(worldMap);
+
+
+
+          unlitMarkersGroup = L.layerGroup().addTo(worldMap);
+
+          mapMarkersGroup = L.layerGroup().addTo(worldMap);
+
+
+
+          renderMapMarkers();
+
+
+
+          worldMap.on('click', (e) => {
+
+            openAddCityModalAt(e.latlng.lat, e.latlng.lng);
+
+          });
+
+
+
+          worldMap.on('moveend zoomend', () => {
+
+            updateUnlitMarkers();
+
+          });
+
+
+
+          setTimeout(() => {
+
+            if (worldMap) worldMap.invalidateSize();
+
+          }, 300);
 
         };
 
-
-
-        let autonaviTileErrs = 0;
-        if (tileLayers.autonavi && typeof tileLayers.autonavi.on === 'function') {
-          tileLayers.autonavi.on('tileerror', () => {
-            autonaviTileErrs++;
-            if (autonaviTileErrs >= 3 && currentMapTile.value === 'autonavi') {
-              console.warn('[Map] AutoNavi tile TLS/load degraded, falling back to esriStreet');
-              switchMapTile('esriStreet');
-            }
-          });
+        const rect = mapContainer.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight || 900;
+        const isNearViewport = rect.top <= vh + 350 && rect.bottom >= -350;
+        if (isNearViewport || !('IntersectionObserver' in window)) {
+          mountWorldMapNow();
+          return;
         }
-        tileLayers[currentMapTile.value].addTo(worldMap);
 
+        if (!mapContainer.__worldMapObserver) {
+          mapContainer.__worldMapObserver = new IntersectionObserver((entries) => {
+            if (entries.some(e => e.isIntersecting)) {
+              mountWorldMapNow();
+            }
+          }, { rootMargin: '350px 0px', threshold: 0.01 });
+          mapContainer.__worldMapObserver.observe(mapContainer);
+        }
 
-
-        unlitMarkersGroup = L.layerGroup().addTo(worldMap);
-
-        mapMarkersGroup = L.layerGroup().addTo(worldMap);
-
-
-
-        renderMapMarkers();
-
-
-
-        worldMap.on('click', (e) => {
-
-          openAddCityModalAt(e.latlng.lat, e.latlng.lng);
-
-        });
-
-
-
-        worldMap.on('moveend zoomend', () => {
-
-          updateUnlitMarkers();
-
-        });
-
-
-
-        setTimeout(() => {
-
-          if (worldMap) worldMap.invalidateSize();
-
-        }, 300);
+        if (!mapContainer.__worldMapIdleTimer) {
+          mapContainer.__worldMapIdleTimer = setTimeout(() => {
+            mountWorldMapNow();
+          }, 4000);
+        }
 
       };
 

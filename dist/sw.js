@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v32-sphere-progressive-live-priority';
+const CACHE_NAME = 'yb-love-v33-live-prewarm-h2-priority';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -29,11 +29,32 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
-  // 【核心根治】实况动图视频 (.mov/.mp4/.webm) 与 HTTP Range 字节流绝不走 Service Worker 缓存！
-  // 彻底杜绝因 Service Worker 缺乏 206 Partial Content 切片支持导致的解码管道重置、抽搐与变灰崩溃
-  const isVideoOrRange = url.pathname.match(/\.(mov|mp4|webm|m4v)$/i) ||
-                         e.request.headers.get('range');
-  if (isVideoOrRange) {
+  // 【核心根治】所有 HTTP Range 请求与原生 <video> 媒体流绝不走 Service Worker 缓存，直接透传网络
+  // 彻底杜绝因 Service Worker 缺乏 206 Partial Content 切片支持导致的 Safari/Edge 解码管道重置、抽搐与变灰崩溃
+  if (e.request.headers.get('range') || e.request.destination === 'video') {
+    return; // Pass through directly to native browser HTTP streaming pipeline
+  }
+
+  // Track 1 全量高优先级预热请求 (x-live-prewarm: 1，非 Range 的 200 OK full-file fetch)
+  // 按规范化 e.request.url 缓存并命中 200 OK 完整响应
+  if (e.request.headers.get('x-live-prewarm') === '1') {
+    e.respondWith(
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.match(e.request.url).then((cached) => {
+          if (cached && cached.status === 200) return cached;
+          return fetch(e.request).then((networkResp) => {
+            if (networkResp && networkResp.status === 200) {
+              cache.put(e.request.url, networkResp.clone());
+            }
+            return networkResp;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  if (url.pathname.match(/\.(mov|mp4|webm|m4v)$/i)) {
     return; // Pass through directly to native browser HTTP streaming pipeline
   }
 
