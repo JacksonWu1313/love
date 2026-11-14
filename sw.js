@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v25-network-throttle-fix';
+const CACHE_NAME = 'yb-love-v26-poster-audio-queue-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

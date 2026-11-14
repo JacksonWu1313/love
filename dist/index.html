@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v25').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v26').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -1467,7 +1467,7 @@
                   <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
                   <video v-if="isVideoMedia(imgSrc)"
                          :src="getFastImg(imgSrc)"
-                         :poster="getFastCover(imgSrc) || ''"
+                         :data-poster="getFastCover(imgSrc) || ''"
                          preload="none"
                          muted
                          
@@ -1572,7 +1572,7 @@
               <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
               <video v-if="isVideoMedia(q.image)"
                      :src="getFastImg(q.image)"
-                     :poster="getFastCover(q.image) || ''"
+                     :data-poster="getFastCover(q.image) || ''"
                      preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                      class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                      style="opacity: 0;"
@@ -2537,7 +2537,7 @@
                     <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
                     <video v-if="isVideoMedia(photo.image)"
                            :src="getFastImg(photo.image)"
-                           :poster="getFastCover(photo) || ''"
+                           :data-poster="getFastCover(photo) || ''"
                            preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
                            @loadeddata="$event.target.style.opacity = '1'"
                            @canplay="$event.target.style.opacity = '1'"
@@ -2855,7 +2855,7 @@
           <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
           <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                  :src="getFastImg(photo.image)"
-                 :poster="getFastCover(photo) || ''"
+                 :data-poster="getFastCover(photo) || ''"
                  preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                  class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                  style="opacity: 0;"
@@ -3034,7 +3034,7 @@
 
             <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="openLightbox(w.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
               <img :src="getFastCoverOrImg(w.image)" :alt="w.text" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, w.image)">
-              <video v-if="isVideoMedia(w.image)" :src="getFastImg(w.image)" :poster="getFastCover(w.image) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
+              <video v-if="isVideoMedia(w.image)" :src="getFastImg(w.image)" :data-poster="getFastCover(w.image) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
               <button @click.stop="promptChangeArrayImage('wishes', wIdx, 'image')" :class="isEditing ? 'opacity-100' : 'opacity-0 group-hover/wish:opacity-100'" class="absolute inset-0 bg-black/55 text-white text-[10px] font-semibold flex items-center justify-center transition z-20">
 
@@ -3158,7 +3158,7 @@
 
       <div class="relative overflow-hidden rounded-2xl aspect-[16/9] mb-5 bg-sand/40" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
         <img :src="getFastCoverOrImg(siteData.letter.bgImage)" alt="Letter Visual" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, siteData.letter.bgImage)">
-        <video v-if="isVideoMedia(siteData.letter.bgImage)" :src="getFastImg(siteData.letter.bgImage)" :poster="getFastCover(siteData.letter.bgImage) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
+        <video v-if="isVideoMedia(siteData.letter.bgImage)" :src="getFastImg(siteData.letter.bgImage)" :data-poster="getFastCover(siteData.letter.bgImage) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
         <button @click.stop="promptChangeImage('letter', 'bgImage')" class="absolute top-2.5 right-2.5 px-3 py-1 bg-clay/95 hover:bg-rose-500 text-white rounded-full text-xs shadow flex items-center gap-1 transition z-20">
 
@@ -3447,7 +3447,7 @@
                 <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
                 <video v-if="isVideoMedia(photo.image) || photo.isVideo"
                        :src="getFastImg(photo.image)"
-                       :poster="getFastCover(photo) || ''"
+                       :data-poster="getFastCover(photo) || ''"
                        preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)"
                        class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300"
                        style="opacity: 0;"
@@ -4689,7 +4689,7 @@
             <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
             <video v-if="isVideoMedia(item.rec.image)"
                    :src="getFastImg(item.rec.image)"
-                   :poster="getFastCover(item.rec.image) || ''"
+                   :data-poster="getFastCover(item.rec.image) || ''"
                    preload="none"
                    muted
                    
@@ -4953,7 +4953,7 @@
           <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
           <video v-if="isVideoMedia(item.rec.image)"
                  :src="getFastImg(item.rec.image)"
-                 :poster="getFastCover(item.rec.image) || ''"
+                 :data-poster="getFastCover(item.rec.image) || ''"
                  preload="none"
                  muted
                  
@@ -6997,6 +6997,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (!root) return;
         const vid = (root.tagName && root.tagName.toLowerCase() === 'video') ? root : (root.querySelector ? root.querySelector('video') : null);
         if (!vid) return;
+        if (vid.dataset && vid.dataset.poster && !vid.getAttribute('poster')) vid.setAttribute('poster', vid.dataset.poster);
         if (vid.preload === 'none') vid.preload = 'auto';
         vid.dataset.loopCount = '1';
         vid.dataset.loopDone = '0';
@@ -10018,6 +10019,62 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         // 滑出视口时立即 pause() 释放硬件解码通道，彻底杜绝 15+ 视频同时抢占 GPU 导致的抽搐、卡顿与变灰
         let liveVideoObserver = null;
         const activeLiveVideos = new Set();
+        const pendingLiveQueue = [];
+        let currentFetchingVideo = null;
+        let currentFetchTimer = null;
+        const releaseFetchSlot = (vid) => {
+          if (currentFetchingVideo && (!vid || currentFetchingVideo === vid)) {
+            currentFetchingVideo = null;
+            if (currentFetchTimer) { clearTimeout(currentFetchTimer); currentFetchTimer = null; }
+          }
+        };
+        const startLiveVideo = (v, isLightbox) => {
+          if (!isLightbox && v.dataset.inView !== '1') return;
+          if (!isLightbox && !activeLiveVideos.has(v) && activeLiveVideos.size >= 2) {
+            const oldest = activeLiveVideos.values().next().value;
+            if (oldest && oldest !== v) {
+              activeLiveVideos.delete(oldest);
+              if (!oldest.paused) oldest.pause();
+              if (oldest.readyState === 0 && oldest.preload !== 'none') oldest.preload = 'none';
+            }
+          }
+          if (!isLightbox) activeLiveVideos.add(v);
+          if (v.dataset && v.dataset.poster && !v.getAttribute('poster')) v.setAttribute('poster', v.dataset.poster);
+          if (v.preload === 'none') v.preload = 'auto';
+          v.muted = !isLightbox;
+          v.playsInline = true;
+          v.loop = !!isLightbox;
+          if (isLightbox || v.dataset.loopDone !== 'true') {
+            v.play().catch(() => {});
+          }
+        };
+        const drainLiveQueue = () => {
+          if (currentFetchingVideo && (!document.contains(currentFetchingVideo) || currentFetchingVideo.readyState >= 2 || currentFetchingVideo.dataset.inView !== '1')) {
+            releaseFetchSlot(currentFetchingVideo);
+          }
+          if (currentFetchingVideo) return;
+          while (pendingLiveQueue.length > 0) {
+            const nextVid = pendingLiveQueue.shift();
+            if (!nextVid || !document.contains(nextVid) || nextVid.dataset.inView !== '1' || nextVid.dataset.loopDone === 'true') continue;
+            if (nextVid.readyState >= 2) {
+              startLiveVideo(nextVid, false);
+              continue;
+            }
+            currentFetchingVideo = nextVid;
+            const done = () => {
+              if (currentFetchingVideo === nextVid) {
+                releaseFetchSlot(nextVid);
+                drainLiveQueue();
+              }
+            };
+            nextVid.addEventListener('loadeddata', done, { once: true });
+            nextVid.addEventListener('canplay', done, { once: true });
+            nextVid.addEventListener('error', done, { once: true });
+            currentFetchTimer = setTimeout(done, 6000);
+            startLiveVideo(nextVid, false);
+            break;
+          }
+        };
         const observeLiveVideos = () => {
           if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
           if (!liveVideoObserver) {
@@ -10030,22 +10087,12 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                   if (v.__liveEnterTimer) clearTimeout(v.__liveEnterTimer);
                   const activate = () => {
                     if (v.dataset.inView !== '1') return;
-                    if (!isLightbox && !activeLiveVideos.has(v) && activeLiveVideos.size >= 2) {
-                      const oldest = activeLiveVideos.values().next().value;
-                      if (oldest && oldest !== v) {
-                        activeLiveVideos.delete(oldest);
-                        if (!oldest.paused) oldest.pause();
-                        if (oldest.readyState === 0 && oldest.preload !== 'none') oldest.preload = 'none';
-                      }
+                    if (isLightbox || v.readyState >= 2) {
+                      startLiveVideo(v, isLightbox);
+                      return;
                     }
-                    if (!isLightbox) activeLiveVideos.add(v);
-                    if (v.preload === 'none') v.preload = 'auto';
-                    v.muted = !isLightbox;
-                    v.playsInline = true;
-                    v.loop = !!isLightbox;
-                    if (isLightbox || v.dataset.loopDone !== 'true') {
-                      v.play().catch(() => {});
-                    }
+                    if (!pendingLiveQueue.includes(v)) pendingLiveQueue.push(v);
+                    drainLiveQueue();
                   };
                   if (isLightbox) {
                     activate();
@@ -10055,6 +10102,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 } else {
                   v.dataset.inView = '0';
                   if (v.__liveEnterTimer) { clearTimeout(v.__liveEnterTimer); v.__liveEnterTimer = null; }
+                  const qi = pendingLiveQueue.indexOf(v);
+                  if (qi >= 0) pendingLiveQueue.splice(qi, 1);
+                  if (currentFetchingVideo === v) { releaseFetchSlot(v); drainLiveQueue(); }
                   activeLiveVideos.delete(v);
                   if (!v.paused && !isLightbox) {
                     v.pause();
@@ -10149,15 +10199,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             window.removeEventListener('touchstart', onFirstInteraction);
 
-            window.removeEventListener('scroll', onFirstInteraction);
-
           };
 
           window.addEventListener('click', onFirstInteraction, { passive: true, once: true });
 
           window.addEventListener('touchstart', onFirstInteraction, { passive: true, once: true });
-
-          window.addEventListener('scroll', onFirstInteraction, { passive: true, once: true });
 
 
 
@@ -10432,7 +10478,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               existingVid.setAttribute('playsinline', '');
               existingVid.setAttribute('webkit-playsinline', '');
               const covUrl = getFastCover(rawSrc);
-              if (covUrl) existingVid.poster = covUrl;
+              if (covUrl) existingVid.dataset.poster = covUrl;
               existingVid.onended = (ev) => handleLiveVideoEnded(ev);
               existingVid.onerror = (ev) => handleVideoError(ev);
               existingVid.className = imgEl.className;
@@ -10451,7 +10497,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               existingVid.dataset.loopCount = '1';
               delete existingVid.dataset.loopDone;
               const covUrl = getFastCover(rawSrc);
-              if (covUrl) existingVid.poster = covUrl;
+              if (covUrl) existingVid.dataset.poster = covUrl;
               existingVid.src = rawSrc;
               const r = existingVid.getBoundingClientRect();
               if (r.width > 0 && r.bottom > -40 && r.top < (window.innerHeight || 900) + 40) {
