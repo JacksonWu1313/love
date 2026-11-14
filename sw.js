@@ -1,10 +1,10 @@
-const CACHE_NAME = 'yb-love-v33-live-prewarm-h2-priority';
+const CACHE_NAME = 'yb-love-v34-sphere-canvas-lock';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './images/icon.svg',
-  './images/uploads/slot_1793090427258_811.jpeg?v=3'
+  './images/uploads/slot_1793090427258_811.jpeg?v=4'
 ];
 
 self.addEventListener('install', (e) => {

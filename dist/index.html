@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v33').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v34').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -720,8 +720,6 @@
 
       height: 100%;
 
-      will-change: transform;
-
       transform-origin: center center;
 
       backface-visibility: visible !important;
@@ -732,7 +730,9 @@
 
     .sphere-photo-card img,
 
-    .sphere-photo-card video {
+    .sphere-photo-card video,
+
+    .sphere-photo-card canvas {
 
       transform: none !important;
 
@@ -741,6 +741,16 @@
       -webkit-backface-visibility: visible !important;
 
       image-rendering: -webkit-optimize-contrast;
+
+      object-fit: cover;
+
+    }
+
+    .sphere-live-badge {
+
+      backface-visibility: hidden !important;
+
+      -webkit-backface-visibility: hidden !important;
 
     }
 
@@ -2473,7 +2483,7 @@
 
         <!-- 3D Stage Viewport (经典高度 & 原版紧凑球面包裹) -->
 
-        <div class="relative w-full h-[520px] sm:h-[600px] md:h-[680px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        <div id="photo-sphere-viewport" class="relative w-full h-[520px] sm:h-[600px] md:h-[680px] rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/[0.02] to-stone-900/[0.06] border border-sand/70 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
 
              style="touch-action: none;"
 
@@ -2534,23 +2544,19 @@
                          loading="lazy" fetchpriority="low" decoding="async"
                          style="aspect-ratio: 1/1.15;"
                          @error="onImgError($event, photo.image)">
-                    <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
-                    <video v-if="isVideoMedia(photo.image)"
-                           :src="getFastImg(photo.image)"
-                           :data-poster="getFastCover(photo) || ''"
-                           preload="none" muted  playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" disablePictureInPicture
-                           @loadeddata="$event.target.style.opacity = '1'"
-                           @canplay="$event.target.style.opacity = '1'"
-                           @playing="$event.target.style.opacity = '1'"
-                           @error="handleVideoError($event)"
-                           class="absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-300"
-                           style="aspect-ratio: 1/1.15; opacity: 0;"></video>
+                    <!-- 顶层 3D 锁框动图 Canvas：由离屏解码器逐帧居中裁剪绘制，彻底杜绝移动端硬件视频脱离 3D 相框与黑边 -->
+                    <canvas v-if="isVideoMedia(photo.image)"
+                            :id="'sphere-live-canvas-' + sIdx"
+                            :data-sphere-idx="sIdx"
+                            width="180" height="207"
+                            class="sphere-live-canvas absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300"
+                            style="aspect-ratio: 1/1.15; opacity: 0; object-fit: cover;"></canvas>
 
 
 
                     <!-- LIVE ⭕ 实况/动图标识 -->
 
-                    <span v-if="isMotionMedia(photo.image)" class="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-black/60 text-[8px] font-bold text-white tracking-widest flex items-center gap-1 shadow-xs z-10 pointer-events-none backdrop-filter-none">
+                    <span v-if="isMotionMedia(photo.image)" class="sphere-live-badge absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-black/60 text-[8px] font-bold text-white tracking-widest flex items-center gap-1 shadow-xs z-10 pointer-events-none backdrop-filter-none">
 
                       <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
 
@@ -2610,6 +2616,12 @@
 
 
 
+        </div>
+
+        <!-- 离场 3D 之外的共享实况视频解码池（杜绝移动端 SurfaceView 硬件层脱离 CSS preserve-3d 相框） -->
+        <div id="sphere-decoder-host" aria-hidden="true" style="position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.005;pointer-events:none;z-index:-1;overflow:hidden;">
+          <video id="sphere-decoder-0" muted playsinline webkit-playsinline preload="none" disablePictureInPicture></video>
+          <video id="sphere-decoder-1" muted playsinline webkit-playsinline preload="none" disablePictureInPicture></video>
         </div>
 
 
@@ -7037,6 +7049,12 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const replayLiveVideo = (event) => {
         const root = event && (event.currentTarget || event.target);
         if (!root) return;
+        const canvasEl = root.querySelector ? root.querySelector('.sphere-live-canvas') : null;
+        if (canvasEl && typeof window !== 'undefined' && typeof window.__replaySphereCardLive === 'function') {
+          const sIdxAttr = canvasEl.getAttribute('data-sphere-idx');
+          if (sIdxAttr !== null) window.__replaySphereCardLive(Number(sIdxAttr));
+          return;
+        }
         const vid = (root.tagName && root.tagName.toLowerCase() === 'video') ? root : (root.querySelector ? root.querySelector('video') : null);
         if (!vid) return;
         if (vid.dataset && vid.dataset.poster && !vid.getAttribute('poster')) vid.setAttribute('poster', vid.dataset.poster);
@@ -9303,25 +9321,28 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       let sphereVisibleForLoad = false;
       let sphereDwellTimer = null;
       let sphereWaveTimer = null;
+      let sphereFirstVisibleTs = 0;
+      const sphereMountTs = Date.now();
       const scheduleSphereWave = () => {
         if (!sphereVisibleForLoad || sphereUnlockedLimit.value >= 9999) return;
         if (sphereWaveTimer) clearTimeout(sphereWaveTimer);
         sphereWaveTimer = setTimeout(() => {
           sphereWaveTimer = null;
           if (!sphereVisibleForLoad) return;
-          if (typeof window !== 'undefined' && window.__liveVideoFetching) {
+          if (!sphereFirstVisibleTs) sphereFirstVisibleTs = Date.now();
+          if (typeof window !== 'undefined' && window.__liveVideoFetching && (Date.now() - sphereFirstVisibleTs < 1200) && (Date.now() - sphereMountTs < 2500)) {
             scheduleSphereWave();
             return;
           }
-          const nextLimit = sphereUnlockedLimit.value === 0 ? 6 : sphereUnlockedLimit.value + 6;
+          const nextLimit = sphereUnlockedLimit.value === 0 ? 16 : sphereUnlockedLimit.value + 16;
           sphereUnlockedLimit.value = nextLimit >= 36 ? 9999 : nextLimit;
           if (sphereUnlockedLimit.value < 9999) scheduleSphereWave();
-        }, sphereUnlockedLimit.value === 0 ? 0 : 350);
+        }, sphereUnlockedLimit.value === 0 ? 0 : 90);
       };
       const unlockSphereImagesNow = () => {
         sphereVisibleForLoad = true;
         if (sphereDwellTimer) { clearTimeout(sphereDwellTimer); sphereDwellTimer = null; }
-        if (sphereUnlockedLimit.value === 0) sphereUnlockedLimit.value = 6;
+        if (sphereUnlockedLimit.value < 16) sphereUnlockedLimit.value = 16;
         scheduleSphereWave();
       };
       const observeSphereImages = () => {
@@ -9329,17 +9350,18 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           sphereUnlockedLimit.value = 9999;
           return;
         }
-        const stage = document.querySelector('.photo-sphere-stage');
-        if (!stage) return;
+        const target = document.getElementById('photo-sphere-viewport') || document.querySelector('.photo-sphere-stage');
+        if (!target) return;
         const obs = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
               sphereVisibleForLoad = true;
+              if (!sphereFirstVisibleTs) sphereFirstVisibleTs = Date.now();
               if (sphereUnlockedLimit.value < 9999 && !sphereDwellTimer) {
                 sphereDwellTimer = setTimeout(() => {
                   sphereDwellTimer = null;
                   if (sphereVisibleForLoad) scheduleSphereWave();
-                }, 750);
+                }, 480);
               }
             } else {
               sphereVisibleForLoad = false;
@@ -9347,10 +9369,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               if (sphereWaveTimer) { clearTimeout(sphereWaveTimer); sphereWaveTimer = null; }
             }
           });
-        }, { rootMargin: '40px 0px', threshold: 0.1 });
-        obs.observe(stage);
-        stage.addEventListener('pointerdown', unlockSphereImagesNow, { once: true, passive: true });
-        stage.addEventListener('touchstart', unlockSphereImagesNow, { once: true, passive: true });
+        }, { rootMargin: '250px 0px', threshold: 0.01 });
+        obs.observe(target);
+        target.addEventListener('pointerdown', unlockSphereImagesNow, { once: true, passive: true });
+        target.addEventListener('touchstart', unlockSphereImagesNow, { once: true, passive: true });
       };
 
       const sphereScale = ref(1.0);
@@ -9628,9 +9650,155 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       // 真实立体景深视觉：纯GPU硬件深度缓冲，0 DOM变更杜绝闪烁
-
-      // 3D 星球视锥与朝向精准剔除：前向卡片解码播放，背面卡片暂停省电防崩溃
+      // 3D 星球视锥与朝向精准剔除 + 离3D共享解码池 -> 锁框 Canvas 居中裁剪绘制（彻底杜绝移动端视频脱离3D相框）
       let lastCullCheckTs = 0;
+      let sphereViewportDomEl = null;
+      let sphereInViewportNow = false;
+      const sphereCardLoopDone = new Map();
+      const sphereSlotStates = [
+        { idx: -1, rawUrl: '', lastSwitchTs: 0, loops: 1, reqToken: 0 },
+        { idx: -1, rawUrl: '', lastSwitchTs: 0, loops: 1, reqToken: 0 }
+      ];
+      const getSphereCanvas = (idx) => (idx >= 0 ? document.getElementById('sphere-live-canvas-' + idx) : null);
+      const getSphereDecoder = (slotIdx) => document.getElementById('sphere-decoder-' + slotIdx);
+      const fadeOutSphereCanvas = (idx) => {
+        const c = getSphereCanvas(idx);
+        if (c && c.style.opacity !== '0') c.style.opacity = '0';
+      };
+      const pauseSphereSlot = (slotIdx) => {
+        const slot = sphereSlotStates[slotIdx];
+        if (!slot) return;
+        if (slot.idx >= 0) fadeOutSphereCanvas(slot.idx);
+        slot.idx = -1;
+        slot.rawUrl = '';
+        slot.reqToken += 1;
+        const vid = getSphereDecoder(slotIdx);
+        if (vid && !vid.paused) { try { vid.pause(); } catch(e){} }
+      };
+      const resetAllSphereLiveSlots = () => {
+        sphereCardLoopDone.clear();
+        pauseSphereSlot(0);
+        pauseSphereSlot(1);
+      };
+      const resolveSphereMediaUrl = (rawUrl) => {
+        const fast = getFastImg(rawUrl);
+        if (!fast || fast.startsWith('blob:') || fast.startsWith('data:')) return Promise.resolve(fast);
+        const cache = (typeof window !== 'undefined' && window.__liveUploadedBlobMap) ? window.__liveUploadedBlobMap : null;
+        if (cache && (cache[fast] || cache[rawUrl])) return Promise.resolve(cache[fast] || cache[rawUrl]);
+        return fetch(fast, { headers: { 'x-live-prewarm': '1' } })
+          .then((res) => (res && res.ok ? res.blob() : null))
+          .then((blob) => {
+            if (!blob || blob.size === 0) return fast;
+            const blobUrl = URL.createObjectURL(blob);
+            registerLiveBlobVariants(rawUrl, blobUrl);
+            registerLiveBlobVariants(fast, blobUrl);
+            if (typeof window !== 'undefined') {
+              if (!window.__liveVideoBlobSet) window.__liveVideoBlobSet = new Set();
+              window.__liveVideoBlobSet.add(blobUrl);
+            }
+            return blobUrl;
+          })
+          .catch(() => fast);
+      };
+      const bindDecoderToCard = (slotIdx, targetIdx, photo) => {
+        const slot = sphereSlotStates[slotIdx];
+        const vid = getSphereDecoder(slotIdx);
+        if (!slot || !vid || !photo || !photo.image) return;
+        if (!vid.dataset.sphereHooked) {
+          vid.dataset.sphereHooked = '1';
+          vid.muted = true;
+          vid.playsInline = true;
+          vid.loop = false;
+          vid.addEventListener('ended', () => {
+            const st = sphereSlotStates[slotIdx];
+            if (!st || st.idx < 0) return;
+            if (st.loops < 5) {
+              st.loops += 1;
+              vid.loop = false;
+              try { vid.currentTime = 0; } catch(e){}
+              vid.play().catch(() => {});
+            } else {
+              sphereCardLoopDone.set(st.idx, true);
+              fadeOutSphereCanvas(st.idx);
+              try { vid.pause(); vid.currentTime = 0; } catch(e){}
+            }
+          });
+        }
+        if (slot.idx === targetIdx && slot.rawUrl === photo.image) {
+          if (vid.paused && !sphereCardLoopDone.get(targetIdx) && vid.getAttribute('src')) {
+            vid.play().catch(() => {});
+          }
+          return;
+        }
+        const now = Date.now();
+        if (slot.idx >= 0 && (now - slot.lastSwitchTs < 380)) return;
+        if (slot.idx >= 0) fadeOutSphereCanvas(slot.idx);
+        slot.idx = targetIdx;
+        slot.rawUrl = photo.image;
+        slot.loops = 1;
+        slot.lastSwitchTs = now;
+        const tok = ++slot.reqToken;
+        try { vid.pause(); } catch(e){}
+        resolveSphereMediaUrl(photo.image).then((playUrl) => {
+          if (slot.reqToken !== tok || slot.idx !== targetIdx || !playUrl) return;
+          if (vid.getAttribute('src') !== playUrl) {
+            vid.src = playUrl;
+          }
+          vid.preload = 'auto';
+          vid.muted = true;
+          vid.playsInline = true;
+          vid.loop = false;
+          if (!sphereCardLoopDone.get(targetIdx)) {
+            vid.play().catch(() => {});
+          }
+        });
+      };
+      const drawActiveSphereCanvases = () => {
+        if (!sphereInViewportNow || !sphereVisibleForLoad) return;
+        for (let s = 0; s < 2; s++) {
+          const slot = sphereSlotStates[s];
+          if (!slot || slot.idx < 0 || sphereCardLoopDone.get(slot.idx)) continue;
+          const vid = getSphereDecoder(s);
+          if (!vid || vid.readyState < 2 || vid.paused || vid.ended) continue;
+          const vw = vid.videoWidth || 0;
+          const vh = vid.videoHeight || 0;
+          if (vw <= 0 || vh <= 0) continue;
+          const canvas = getSphereCanvas(slot.idx);
+          if (!canvas) continue;
+          const cw = canvas.width || 180;
+          const ch = canvas.height || 207;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) continue;
+          const scale = Math.max(cw / vw, ch / vh);
+          const dw = vw * scale;
+          const dh = vh * scale;
+          const dx = (cw - dw) * 0.5;
+          const dy = (ch - dh) * 0.5;
+          ctx.drawImage(vid, dx, dy, dw, dh);
+          if (canvas.style.opacity !== '1') canvas.style.opacity = '1';
+        }
+      };
+      if (typeof window !== 'undefined') {
+        window.__replaySphereCardLive = (sIdx) => {
+          if (isNaN(sIdx)) return;
+          sphereCardLoopDone.delete(sIdx);
+          for (let s = 0; s < 2; s++) {
+            const slot = sphereSlotStates[s];
+            const vid = getSphereDecoder(s);
+            if (slot && slot.idx === sIdx && vid) {
+              slot.loops = 1;
+              vid.loop = false;
+              try { vid.currentTime = 0; } catch(e){}
+              vid.play().catch(() => {});
+              return;
+            }
+          }
+          const list = spherePhotosList.value || [];
+          if (list[sIdx] && isVideoMedia(list[sIdx].image)) {
+            bindDecoderToCard(0, sIdx, list[sIdx]);
+          }
+        };
+      }
       const updateCardDepthVisuals = (rxDeg, ryDeg) => {
         const coords = sphereCoordinates.value;
         if (!coords || coords.length === 0 || typeof document === 'undefined') return;
@@ -9638,15 +9806,18 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         const now = Date.now();
         const shouldCheckCulling = (now - lastCullCheckTs > 80);
         if (shouldCheckCulling) lastCullCheckTs = now;
-        const sphereHost = shouldCheckCulling ? (sphereWorldDomEl || document.getElementById('photo-sphere-world-el')) : null;
-        const sphereRect = sphereHost ? sphereHost.getBoundingClientRect() : null;
-        const sphereInViewport = !!(sphereRect && sphereRect.bottom > -40 && sphereRect.top < (window.innerHeight || 900) + 40);
-        let spherePlayingCount = 0;
+        const vpEl = shouldCheckCulling ? (sphereViewportDomEl || (sphereViewportDomEl = document.getElementById('photo-sphere-viewport')) || document.getElementById('photo-sphere-world-el')) : null;
+        const sphereRect = vpEl ? vpEl.getBoundingClientRect() : null;
+        if (shouldCheckCulling) {
+          sphereInViewportNow = !!(sphereRect && sphereRect.height > 0 && sphereRect.bottom > 20 && sphereRect.top < (window.innerHeight || 900) - 20);
+        }
 
         const radX = (rxDeg || 0) * Math.PI / 180;
         const radY = (ryDeg || 0) * Math.PI / 180;
         const cosX = Math.cos(radX), sinX = Math.sin(radX);
         const cosY = Math.cos(radY), sinY = Math.sin(radY);
+        const photos = spherePhotosList.value || [];
+        const frontCandidates = [];
 
         for (let i = 0; i < coords.length; i++) {
           const el = document.getElementById('sphere-card-' + i);
@@ -9660,29 +9831,56 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const latRad = (coord.latDeg || 0) * Math.PI / 180;
             const lonRad = (coord.lonDeg || 0) * Math.PI / 180;
 
-            // 基础球坐标法向量
             const x0 = Math.cos(latRad) * Math.sin(lonRad);
             const y0 = Math.sin(latRad);
             const z0 = Math.cos(latRad) * Math.cos(lonRad);
 
-            // 经过星球整体旋转后的世界深度 z (沿 Y 轴再沿 X 轴旋转)
             const x1 = x0 * cosY + z0 * sinY;
             const z1 = -x0 * sinY + z0 * cosY;
             const zWorld = -y0 * sinX + z1 * cosX;
 
-            const isFrontFacing = (zWorld > 0.05);
-            const vid = el.querySelector('video');
-            if (vid) {
-              vid.loop = false;
-              const allowSphereVideo = sphereInViewport && sphereVisibleForLoad && sphereUnlockedLimit.value > 0 && !(typeof window !== 'undefined' && window.__liveVideoFetching);
-              if (allowSphereVideo && isFrontFacing && spherePlayingCount < 2) {
-                spherePlayingCount += 1;
-                if (vid.preload === 'none') vid.preload = 'auto';
-                if (vid.paused && vid.dataset.loopDone !== 'true') vid.play().catch(() => {});
-              } else {
-                if (!vid.paused) vid.pause();
-                if ((!sphereInViewport || !sphereVisibleForLoad || sphereUnlockedLimit.value === 0) && vid.readyState === 0 && vid.preload !== 'none') vid.preload = 'none';
+            const badge = el.querySelector('.sphere-live-badge');
+            if (badge) {
+              const wantVis = zWorld >= -0.05 ? 'visible' : 'hidden';
+              if (badge.style.visibility !== wantVis) badge.style.visibility = wantVis;
+            }
+
+            if (zWorld > 0.25 && i < sphereUnlockedLimit.value && photos[i] && isVideoMedia(photos[i].image) && !sphereCardLoopDone.get(i)) {
+              frontCandidates.push({ idx: i, z: zWorld, photo: photos[i] });
+            }
+          }
+        }
+
+        if (shouldCheckCulling) {
+          const allowSphereVideo = sphereInViewportNow && sphereVisibleForLoad && sphereUnlockedLimit.value > 0 && !(typeof window !== 'undefined' && window.__liveVideoFetching && (now - sphereMountTs < 3000));
+          if (!allowSphereVideo || frontCandidates.length === 0) {
+            pauseSphereSlot(0);
+            pauseSphereSlot(1);
+          } else {
+            frontCandidates.sort((a, b) => b.z - a.z);
+            const top = frontCandidates.slice(0, 2);
+            const wantedIdxs = top.map(t => t.idx);
+            // Keep matching active slot intact before reassigning freed slots
+            const slotUsed = [false, false];
+            const paired = [false, false];
+            for (let s = 0; s < 2; s++) {
+              const found = wantedIdxs.indexOf(sphereSlotStates[s].idx);
+              if (found !== -1) {
+                slotUsed[s] = true;
+                paired[found] = true;
+                bindDecoderToCard(s, top[found].idx, top[found].photo);
               }
+            }
+            for (let w = 0; w < top.length; w++) {
+              if (paired[w]) continue;
+              const freeSlot = !slotUsed[0] ? 0 : (!slotUsed[1] ? 1 : -1);
+              if (freeSlot !== -1) {
+                slotUsed[freeSlot] = true;
+                bindDecoderToCard(freeSlot, top[w].idx, top[w].photo);
+              }
+            }
+            for (let s = 0; s < 2; s++) {
+              if (!slotUsed[s]) pauseSphereSlot(s);
             }
           }
         }
@@ -9984,6 +10182,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const shuffleSpherePhotos = () => {
 
+        resetAllSphereLiveSlots();
+
         unlockSphereImagesNow();
 
         spherePhotoPoolIndex.value++;
@@ -10092,9 +10292,15 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             applySphereWorldTransform();
 
+          } else if (sphereVisibleForLoad) {
+
+            updateCardDepthVisuals(Number((liveSphereRotX + liveGyroX).toFixed(2)), Number((liveSphereRotY + liveGyroY).toFixed(2)));
+
           }
 
         }
+
+        drawActiveSphereCanvases();
 
         requestAnimationFrame(tickSphere);
 
@@ -10161,7 +10367,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const clean = String(rawPath).replace(/^\.?\//, '').split('?')[0];
             const bareName = clean.split('/').pop();
             document.querySelectorAll('video').forEach((v) => {
-              if (v.closest && (v.closest('#lightbox-modal') || v.closest('.photo-sphere-stage'))) return;
+              if ((v.id && v.id.startsWith('sphere-decoder-')) || (v.closest && (v.closest('#lightbox-modal') || v.closest('.photo-sphere-stage') || v.closest('#sphere-decoder-host')))) return;
               const attrSrc = v.getAttribute('src') || v.dataset.rawSrc || v.currentSrc || '';
               if (!attrSrc.includes(clean) && !(bareName && attrSrc.includes(bareName))) return;
               v.dataset.prewarmed = '1';
@@ -10198,7 +10404,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         prewarmPrimaryLiveVideos();
 
         const firstTimelineVid = Array.from(document.querySelectorAll('video')).find((v) => {
-          return !(v.closest && (v.closest('#lightbox-modal') || v.closest('.photo-sphere-stage')));
+          return !((v.id && v.id.startsWith('sphere-decoder-')) || (v.closest && (v.closest('#lightbox-modal') || v.closest('.photo-sphere-stage') || v.closest('#sphere-decoder-host'))));
         }) || null;
         if (firstTimelineVid) {
           firstTimelineVid.dataset.primaryPrewarm = '1';
@@ -10373,7 +10579,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           document.querySelectorAll('video').forEach(v => {
             const isLightbox = v.closest && v.closest('#lightbox-modal');
-            if (isLightbox || (v.closest && v.closest('.photo-sphere-stage')) || v.dataset.liveObserved === '1') return;
+            if (isLightbox || (v.id && v.id.startsWith('sphere-decoder-')) || (v.closest && (v.closest('.photo-sphere-stage') || v.closest('#sphere-decoder-host'))) || v.dataset.liveObserved === '1') return;
             v.dataset.liveObserved = '1';
             if (v.dataset && v.dataset.poster && !v.getAttribute('poster')) {
               v.setAttribute('poster', v.dataset.poster);
@@ -10710,6 +10916,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (typeof document === 'undefined') return;
 
         document.querySelectorAll('img').forEach(imgEl => {
+
+          if (imgEl.closest && imgEl.closest('.photo-sphere-stage')) return;
 
           const rawSrc = imgEl.getAttribute('src') || '';
 
@@ -13485,7 +13693,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v33').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v34').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
