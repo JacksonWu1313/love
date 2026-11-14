@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v27').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v28').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -6954,10 +6954,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           }
 
-          // 新上传 slot_ 资源自动附加版本参数，彻底穿透 Cloudflare 7 天 404 边缘陈旧缓存
+          // 新上传 slot_ 与优化后的实况 .mp4 资源自动附加 ?v=3 版本参数，彻底穿透 Cloudflare immutable/7天陈旧边缘缓存
           if (clean.startsWith('images/uploads/')) {
-            if (!clean.includes('?')) return './' + clean + (clean.match(/\.(jpe?g|png|webp|gif)$/i) ? '?v=3' : '?v=2');
-            if (clean.match(/\.(jpe?g|png|webp|gif)\?v=2$/i)) return './' + clean.replace(/\?v=2$/i, '?v=3');
+            if (!clean.includes('?')) return './' + clean + (clean.match(/\.(jpe?g|png|webp|gif|mp4|mov|m4v|webm)$/i) ? '?v=3' : '?v=2');
+            if (clean.match(/\.(jpe?g|png|webp|gif|mp4|mov|m4v|webm)\?v=2$/i)) return './' + clean.replace(/\?v=2$/i, '?v=3');
+          }
+          if (clean.startsWith('images/pool/') && /\.mp4$/i.test(clean) && !clean.includes('?')) {
+            return './' + clean + '?v=3';
           }
 
           return './' + clean;
@@ -7481,6 +7484,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             const data = await res.json();
 
+            if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
+
             if (Array.isArray(data) && data.length > 0) {
 
               loveRecordsList.value = data;
@@ -7696,8 +7701,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (!prep || !prep.b64) throw new Error('read failed');
           const safeExt = prep.ext || (file.name.split('.').pop() || 'jpg').toLowerCase();
           const fileName = 'record_uhd_' + Date.now() + '.' + safeExt;
-          if (prep.coverBase64) setLiveCover(prep.dataUrl, prep.coverBase64);
-          recordForm.image = prep.dataUrl;
+          const tempPreviewUrl = prep.dataUrl;
+          if (prep.coverBase64) setLiveCover(tempPreviewUrl, prep.coverBase64);
+          recordForm.image = tempPreviewUrl;
           try {
             const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${fileName}`;
             const res = await fetch(upUrl, {
@@ -7714,6 +7720,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             });
             if (res.ok) {
               const repoPath = `./images/uploads/${fileName}`;
+              let persistentCoverPath = '';
               if (prep.isVideo && prep.coverBase64) {
                 try {
                   const covName = fileName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
@@ -7723,15 +7730,34 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                     body: JSON.stringify({ message: `feat(record-cover): upload ${covName}`, content: prep.coverBase64.replace(/^data:[^,]+,/, '') })
                   });
                   if (covRes.ok) {
-                    const covPath = `./images/uploads/${covName}`;
-                    recordForm.cover = covPath;
-                    setLiveCover(repoPath, covPath);
+                    persistentCoverPath = `./images/uploads/${covName}`;
+                    recordForm.cover = persistentCoverPath;
+                    setLiveCover(repoPath, persistentCoverPath);
                   } else {
                     setLiveCover(repoPath, prep.coverBase64);
                   }
                 } catch (ce) { setLiveCover(repoPath, prep.coverBase64); }
               }
-              recordForm.image = repoPath;
+              if (recordForm.image === tempPreviewUrl) recordForm.image = repoPath;
+              if (typeof window !== 'undefined') {
+                if (!window.__liveUploadedBlobMap) window.__liveUploadedBlobMap = {};
+                window.__liveUploadedBlobMap[repoPath] = tempPreviewUrl;
+              }
+              let savedListMutated = false;
+              if (Array.isArray(loveRecordsList.value)) {
+                loveRecordsList.value.forEach(r => {
+                  if (r && r.image === tempPreviewUrl) {
+                    r.image = repoPath;
+                    if (persistentCoverPath) r.cover = persistentCoverPath;
+                    savedListMutated = true;
+                  }
+                });
+              }
+              if (savedListMutated) {
+                try { localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value)); } catch(e){}
+                debouncedCloudSync('records', saveLoveRecordsToCloud, 350);
+              }
+              markLocalUploadTimestamp();
               saveMessage.value = prep.isVideo ? '✅ 实况与封面已无损上传至仓库！' : '✅ 原始超清大图已无损上传至仓库！';
             } else {
               saveMessage.value = '✅ 媒体已就绪（本地暂存）！';
@@ -7817,12 +7843,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             const cloudState = await res.json();
 
+            if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
+
             const localTs = Number(localStorage.getItem('couple_site_updated_at') || 0);
+            const localCustomTs = Number(localStorage.getItem('couple_site_custom_ts') || 0);
+            const effectiveLocalTs = Math.max(localTs, localCustomTs);
 
             const cloudTs = Number(cloudState.updatedAt || 0);
 
-            // 【全端章节实时对齐】非编辑模式下且云端时间戳不落后于本地时对齐云端篇章真值
-            if (cloudState.siteData && (!isEditing.value && !isTimelineOnlyEditing.value) && (localTs === 0 || cloudTs >= localTs)) {
+            // 【全端章节实时对齐】非编辑模式下且云端时间戳不落后于本地/site_custom真值时对齐云端篇章
+            if (cloudState.siteData && (!isEditing.value && !isTimelineOnlyEditing.value) && (effectiveLocalTs === 0 || cloudTs >= effectiveLocalTs)) {
               if (Array.isArray(cloudState.siteData.timeline) && cloudState.siteData.timeline.length >= 6) {
                 siteData.timeline = cloudState.siteData.timeline;
               }
@@ -8303,6 +8333,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           const res = await fetch(`./data/love_messages.json?t=${Date.now()}`, { cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
+
+            if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
 
             if (Array.isArray(data) && data.length > 0) {
 
@@ -9108,6 +9140,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             quotes: siteData.quotes || null,
             wishes: siteData.wishes || null
           };
+          try {
+            localStorage.setItem('couple_site_custom_ts', String(payload.updatedAt));
+            localStorage.setItem('couple_site_updated_at', String(payload.updatedAt));
+          } catch(e){}
           const rawJson = JSON.stringify(payload, null, 2);
           const b64 = safeUtf8ToBase64(rawJson);
           for (const regRelPath of ['data/site_custom.json', 'dist/data/site_custom.json']) {
@@ -11119,6 +11155,23 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (recordForm.image === oldUrl) {
           recordForm.image = newUrl;
         }
+        if (Array.isArray(loveRecordsList.value)) {
+          let recChanged = false;
+          loveRecordsList.value.forEach(r => {
+            if (r && r.image === oldUrl) {
+              r.image = newUrl;
+              recChanged = true;
+            }
+          });
+          if (recChanged) {
+            try { localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value)); } catch(e){}
+          }
+        }
+        if (typeof footprintCities !== 'undefined' && Array.isArray(footprintCities)) {
+          footprintCities.forEach(c => {
+            if (c && c.image === oldUrl) c.image = newUrl;
+          });
+        }
       };
 
 
@@ -11247,15 +11300,18 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             saveMessage.value = prep.isAnim ? '✅ 动图已上传云端，永久保持动态播放 ♥' : '✅ 照片已上传云端，永久同步 ♥';
 
-            if (typeof savePoolToCloud === 'function') {
-
-              savePoolToCloud();
-
-            }
-            if (typeof saveSiteCustomToCloud === 'function') {
-
-              saveSiteCustomToCloud();
-
+            const tType = currentTarget && currentTarget.type ? currentTarget.type : '';
+            if (tType === 'record') {
+              if (typeof saveLoveRecordsToCloud === 'function') await saveLoveRecordsToCloud();
+            } else if (tType === 'city') {
+              if (typeof saveFootprintToCloud === 'function') await saveFootprintToCloud();
+            } else {
+              if (typeof savePoolToCloud === 'function' && (!tType || tType === 'pool' || tType === 'sphere')) {
+                await savePoolToCloud();
+              }
+              if (typeof saveSiteCustomToCloud === 'function' && (!tType || ['timeline', 'hero', 'gallery', 'quotes', 'wishes', 'letter', 'pool', 'sphere'].includes(tType))) {
+                await saveSiteCustomToCloud();
+              }
             }
 
           } else {
@@ -11388,7 +11444,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               if (coverSrc) loveRecordsList.value[recIdx].cover = coverSrc;
               replaceMediaUrlInSiteData(oldSrc, newSrc);
               changed = true;
-              if (typeof saveLoveRecordsToCloud === 'function') {
+              if (!SyncGuard.isUploading && typeof saveLoveRecordsToCloud === 'function') {
                 debouncedCloudSync('records', saveLoveRecordsToCloud, 400);
               }
             }
@@ -11444,7 +11500,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           targetCtx.image = newSrc;
           replaceMediaUrlInSiteData(oldSrc, newSrc);
           changed = true;
-          if (typeof saveFootprintToCloud === 'function') {
+          if (!SyncGuard.isUploading && typeof saveFootprintToCloud === 'function') {
             debouncedCloudSync('footprint', saveFootprintToCloud, 400);
           }
         }
@@ -11455,7 +11511,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             localStorage.setItem('couple_site_updated_at', String(nowTs));
             localStorage.setItem(storageKey, JSON.stringify(siteData));
           } catch (e) {}
-          if (typeof debouncedCloudSync === 'function') {
+          if (!SyncGuard.isUploading && typeof debouncedCloudSync === 'function') {
             if (['timeline', 'hero', 'gallery', 'quotes', 'wishes', 'letter'].includes(targetType) && typeof saveSiteCustomToCloud === 'function') {
               debouncedCloudSync('siteCustom', saveSiteCustomToCloud, 400);
             } else if (['pool', 'sphere'].includes(targetType) && typeof savePoolToCloud === 'function') {
@@ -11678,7 +11734,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             done: false,
 
-            image: './images/wish_dali_romantic.jpg'
+            image: './images/wish_drive.jpg'
 
           });
 
@@ -12115,6 +12171,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             const cloudPool = await res.json();
 
+            if ((typeof isSyncingPool !== 'undefined' && isSyncingPool.value) || (typeof isUploadingIosLive !== 'undefined' && isUploadingIosLive.value) || SyncGuard.isBusy() || isWithinLocalUploadGrace()) {
+              return;
+            }
+
             if (Array.isArray(cloudPool) && cloudPool.length > 0) {
 
               if (!siteData.photoPool || siteData.photoPool.length === 0) {
@@ -12184,15 +12244,21 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             }
             if (customRes && customRes.ok) {
               const customData = await customRes.json();
+              if (SyncGuard.isBusy() || isWithinLocalUploadGrace() || isEditing.value || isTimelineOnlyEditing.value) {
+                return;
+              }
               if (customData && customData.updatedAt) {
                 const localUpdated = Number(localStorage.getItem('couple_site_custom_ts') || 0);
-                if (customData.updatedAt > localUpdated) {
+                const localStateUpdated = Number(localStorage.getItem('couple_site_updated_at') || 0);
+                if (customData.updatedAt > localUpdated && customData.updatedAt >= localStateUpdated) {
                   if (customData.hero) siteData.hero = { ...siteData.hero, ...customData.hero };
                   if (Array.isArray(customData.timeline) && customData.timeline.length > 0) siteData.timeline = customData.timeline;
                   if (Array.isArray(customData.quotes) && customData.quotes.length > 0) siteData.quotes = customData.quotes;
                   if (Array.isArray(customData.wishes) && customData.wishes.length > 0) siteData.wishes = customData.wishes;
                   localStorage.setItem('couple_site_custom_ts', String(customData.updatedAt));
+                  try { localStorage.setItem(storageKey, JSON.stringify(siteData)); } catch(e){}
                   console.log('[Cloud Sync] Custom site data merged successfully.');
+                  nextTick(() => { if (typeof observeLiveVideos === 'function') observeLiveVideos(); });
                 }
               }
             }
@@ -12448,8 +12514,6 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             if (typeof window !== 'undefined' && window.__liveUploadedBlobMap) {
 
               window.__liveUploadedBlobMap[`./images/pool/${safeName}`] = localPreviewUrl;
-
-              window.__liveUploadedBlobMap[`https://love.jharden.ccwu.cc/__raw__/${GITHUB_REPO}/main/images/pool/${safeName}`] = localPreviewUrl;
 
             }
 
@@ -13189,7 +13253,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v28').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
@@ -14053,7 +14117,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         tag: '甜蜜足迹 · 已点亮 ♥',
 
         story: '',
-        image: './images/wish_dali_romantic.jpg'
+        image: './images/wish_drive.jpg'
       });
 
 
@@ -14782,7 +14846,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           story: isChina ? ('想和全世界仅此一个的悦悦大王，漫步在' + item.name + '的街头巷尾，看尽人间烟火。') : (item.story || '留下一生一次的浪漫印记。'),
 
-          image: './images/hero_cover.jpg'
+          image: './images/wish_drive.jpg'
 
         };
 
@@ -14984,7 +15048,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           story: newCityForm.story.trim() || '想和全世界仅此一个的你，踏遍这里的每一寸土地。',
 
-image: newCityForm.image || './images/wish_dali_romantic.jpg'
+image: newCityForm.image || './images/wish_drive.jpg'
 
         };
 
@@ -15087,6 +15151,8 @@ image: newCityForm.image || './images/wish_dali_romantic.jpg'
           if (res.ok) {
 
             const data = await res.json();
+
+            if (isWithinLocalUploadGrace() || SyncGuard.isBusy()) return;
 
             if (Array.isArray(data) && data.length > 0) {
 

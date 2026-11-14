@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v27-compressed-images';
+const CACHE_NAME = 'yb-love-v28-fast-mp4-sync-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
