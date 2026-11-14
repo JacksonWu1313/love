@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261107_03').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v25').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -124,7 +124,7 @@
 
   <link rel="icon" type="image/svg+xml" href="./images/icon.svg">
 
-<link rel="preload" as="image" href="./images/uploads/slot_1793090427258_811.jpeg" fetchpriority="high">
+<link rel="preload" as="image" href="./images/uploads/slot_1793090427258_811.jpeg?v=2" fetchpriority="high">
 
   <title>Our Love Story | YB & 悦悦大王 数字纪念馆 (CMS 可持续编辑版)</title>
 
@@ -2531,7 +2531,7 @@
                     <img :src="getFastCoverOrImg(photo)"
                          :alt="photo.title || '照片'"
                          class="w-full h-full object-cover pointer-events-none"
-                         loading="eager" fetchpriority="high" decoding="async"
+                         loading="lazy" fetchpriority="low" decoding="async"
                          style="aspect-ratio: 1/1.15;"
                          @error="onImgError($event, photo.image)">
                     <!-- 顶层循环实况动图：就绪后平滑淡入呈现 -->
@@ -6997,6 +6997,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (!root) return;
         const vid = (root.tagName && root.tagName.toLowerCase() === 'video') ? root : (root.querySelector ? root.querySelector('video') : null);
         if (!vid) return;
+        if (vid.preload === 'none') vid.preload = 'auto';
         vid.dataset.loopCount = '1';
         vid.dataset.loopDone = '0';
         vid.loop = false;
@@ -7810,7 +7811,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             } catch(e){}
           }
 
-          if (res.ok) {
+          if (res && res.ok) {
 
             const cloudState = await res.json();
 
@@ -9510,7 +9511,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (shouldCheckCulling) lastCullCheckTs = now;
         const sphereHost = shouldCheckCulling ? (sphereWorldDomEl || document.getElementById('photo-sphere-world-el')) : null;
         const sphereRect = sphereHost ? sphereHost.getBoundingClientRect() : null;
-        const sphereInViewport = !!(sphereRect && sphereRect.bottom > -250 && sphereRect.top < (window.innerHeight || 900) + 250);
+        const sphereInViewport = !!(sphereRect && sphereRect.bottom > -40 && sphereRect.top < (window.innerHeight || 900) + 40);
+        let spherePlayingCount = 0;
 
         const radX = (rxDeg || 0) * Math.PI / 180;
         const radY = (ryDeg || 0) * Math.PI / 180;
@@ -9543,11 +9545,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const vid = el.querySelector('video');
             if (vid) {
               vid.loop = false;
-              if (sphereInViewport && isFrontFacing) {
+              if (sphereInViewport && isFrontFacing && spherePlayingCount < 2) {
+                spherePlayingCount += 1;
                 if (vid.preload === 'none') vid.preload = 'auto';
                 if (vid.paused && vid.dataset.loopDone !== 'true') vid.play().catch(() => {});
               } else {
                 if (!vid.paused) vid.pause();
+                if (!sphereInViewport && vid.readyState === 0 && vid.preload !== 'none') vid.preload = 'none';
               }
             }
           }
@@ -9989,7 +9993,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
       onMounted(() => {
-        if (typeof dismissSitePreloader === "function") dismissSitePreloader(); try { if (localStorage.getItem('yb_love_purge_v3') !== '1') { localStorage.removeItem('yb_love_records'); localStorage.removeItem('couple_site_updated_at'); localStorage.setItem('yb_love_purge_v3', '1'); } } catch (e) {}
+        if (typeof dismissSitePreloader === "function") dismissSitePreloader();
+        try {
+          if (localStorage.getItem('yb_love_purge_v3') !== '1') localStorage.setItem('yb_love_purge_v3', '1');
+          if (!localStorage.getItem('yb_love_records') && Array.isArray(loveRecordsList.value) && loveRecordsList.value.length > 0) {
+            localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value));
+          }
+          if (!localStorage.getItem('yb_love_messages') && Array.isArray(loveMessagesList.value) && loveMessagesList.value.length > 0) {
+            localStorage.setItem('yb_love_messages', JSON.stringify(loveMessagesList.value));
+          }
+        } catch (e) {}
 
         window.__appMounted = true;
 
@@ -10004,6 +10017,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         // 【核心修复 2】视口动态流控：仅当实况滑入可见视口时激活 GPU 解码播放
         // 滑出视口时立即 pause() 释放硬件解码通道，彻底杜绝 15+ 视频同时抢占 GPU 导致的抽搐、卡顿与变灰
         let liveVideoObserver = null;
+        const activeLiveVideos = new Set();
         const observeLiveVideos = () => {
           if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
           if (!liveVideoObserver) {
@@ -10012,21 +10026,46 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 const v = entry.target;
                 const isLightbox = v.closest && v.closest('#lightbox-modal');
                 if (entry.isIntersecting) {
-                  if (v.preload === 'none') v.preload = 'auto';
-                  v.muted = !isLightbox;
-                  v.playsInline = true;
-                  v.loop = !!isLightbox;
-                  if (isLightbox || v.dataset.loopDone !== 'true') {
-                    v.play().catch(() => {});
+                  v.dataset.inView = '1';
+                  if (v.__liveEnterTimer) clearTimeout(v.__liveEnterTimer);
+                  const activate = () => {
+                    if (v.dataset.inView !== '1') return;
+                    if (!isLightbox && !activeLiveVideos.has(v) && activeLiveVideos.size >= 2) {
+                      const oldest = activeLiveVideos.values().next().value;
+                      if (oldest && oldest !== v) {
+                        activeLiveVideos.delete(oldest);
+                        if (!oldest.paused) oldest.pause();
+                        if (oldest.readyState === 0 && oldest.preload !== 'none') oldest.preload = 'none';
+                      }
+                    }
+                    if (!isLightbox) activeLiveVideos.add(v);
+                    if (v.preload === 'none') v.preload = 'auto';
+                    v.muted = !isLightbox;
+                    v.playsInline = true;
+                    v.loop = !!isLightbox;
+                    if (isLightbox || v.dataset.loopDone !== 'true') {
+                      v.play().catch(() => {});
+                    }
+                  };
+                  if (isLightbox) {
+                    activate();
+                  } else {
+                    v.__liveEnterTimer = setTimeout(activate, 220);
                   }
                 } else {
+                  v.dataset.inView = '0';
+                  if (v.__liveEnterTimer) { clearTimeout(v.__liveEnterTimer); v.__liveEnterTimer = null; }
+                  activeLiveVideos.delete(v);
                   if (!v.paused && !isLightbox) {
                     v.pause();
+                  }
+                  if (!isLightbox && v.readyState === 0 && v.preload !== 'none') {
+                    v.preload = 'none';
                   }
                 }
               });
             }, {
-              rootMargin: '300px 0px',
+              rootMargin: '60px 0px',
               threshold: 0.05
             });
           }
@@ -10415,7 +10454,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               if (covUrl) existingVid.poster = covUrl;
               existingVid.src = rawSrc;
               const r = existingVid.getBoundingClientRect();
-              if (r.width > 0 && r.bottom > -250 && r.top < (window.innerHeight || 900) + 250) {
+              if (r.width > 0 && r.bottom > -40 && r.top < (window.innerHeight || 900) + 40) {
                 existingVid.preload = 'auto';
                 existingVid.play().catch(() => {});
               }

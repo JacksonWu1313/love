@@ -1,10 +1,10 @@
-const CACHE_NAME = 'yb-love-v24-sphere-lazy-fix';
+const CACHE_NAME = 'yb-love-v25-network-throttle-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './images/icon.svg',
-  './images/uploads/slot_1793090427258_811.jpeg'
+  './images/uploads/slot_1793090427258_811.jpeg?v=2'
 ];
 
 self.addEventListener('install', (e) => {
