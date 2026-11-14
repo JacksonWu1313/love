@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v28').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v29').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -10072,21 +10072,25 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             if (oldest && oldest !== v) {
               activeLiveVideos.delete(oldest);
               if (!oldest.paused) oldest.pause();
-              if (oldest.readyState === 0 && oldest.preload !== 'none') oldest.preload = 'none';
             }
           }
           if (!isLightbox) activeLiveVideos.add(v);
           if (v.dataset && v.dataset.poster && !v.getAttribute('poster')) v.setAttribute('poster', v.dataset.poster);
-          if (v.preload === 'none') v.preload = 'auto';
+          const wasNone = (v.preload === 'none');
+          if (wasNone) v.preload = 'auto';
           v.muted = !isLightbox;
           v.playsInline = true;
           v.loop = !!isLightbox;
+          if (v.readyState === 0 && (v.error || v.networkState === 3 || v.dataset.needReload === '1')) {
+            delete v.dataset.needReload;
+            try { v.load(); } catch(e){}
+          }
           if (isLightbox || v.dataset.loopDone !== 'true') {
             v.play().catch(() => {});
           }
         };
         const drainLiveQueue = () => {
-          if (currentFetchingVideo && (!document.contains(currentFetchingVideo) || currentFetchingVideo.readyState >= 2 || currentFetchingVideo.dataset.inView !== '1')) {
+          if (currentFetchingVideo && (!document.contains(currentFetchingVideo) || currentFetchingVideo.readyState >= 2)) {
             releaseFetchSlot(currentFetchingVideo);
           }
           if (currentFetchingVideo) return;
@@ -10106,8 +10110,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             };
             nextVid.addEventListener('loadeddata', done, { once: true });
             nextVid.addEventListener('canplay', done, { once: true });
-            nextVid.addEventListener('error', done, { once: true });
-            currentFetchTimer = setTimeout(done, 6000);
+            nextVid.addEventListener('error', () => { nextVid.dataset.needReload = '1'; done(); }, { once: true });
+            currentFetchTimer = setTimeout(done, 12000);
             startLiveVideo(nextVid, false);
             break;
           }
@@ -10134,20 +10138,17 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
                   if (isLightbox) {
                     activate();
                   } else {
-                    v.__liveEnterTimer = setTimeout(activate, 220);
+                    v.__liveEnterTimer = setTimeout(activate, 320);
                   }
                 } else {
                   v.dataset.inView = '0';
                   if (v.__liveEnterTimer) { clearTimeout(v.__liveEnterTimer); v.__liveEnterTimer = null; }
                   const qi = pendingLiveQueue.indexOf(v);
                   if (qi >= 0) pendingLiveQueue.splice(qi, 1);
-                  if (currentFetchingVideo === v) { releaseFetchSlot(v); drainLiveQueue(); }
+                  if (currentFetchingVideo === v && v.networkState !== 2) { releaseFetchSlot(v); drainLiveQueue(); }
                   activeLiveVideos.delete(v);
                   if (!v.paused && !isLightbox) {
                     v.pause();
-                  }
-                  if (!isLightbox && v.readyState === 0 && v.preload !== 'none') {
-                    v.preload = 'none';
                   }
                 }
               });
@@ -13253,7 +13254,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v28').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v29').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
