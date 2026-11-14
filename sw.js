@@ -1,10 +1,10 @@
-const CACHE_NAME = 'yb-love-v26-poster-audio-queue-fix';
+const CACHE_NAME = 'yb-love-v27-compressed-images';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './images/icon.svg',
-  './images/uploads/slot_1793090427258_811.jpeg?v=2'
+  './images/uploads/slot_1793090427258_811.jpeg?v=3'
 ];
 
 self.addEventListener('install', (e) => {
