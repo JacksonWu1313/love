@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v36').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v37').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -2551,7 +2551,7 @@
 
                 <div class="sphere-card-inner w-full h-full p-1 sm:p-1.5 bg-white rounded-xl sm:rounded-2xl shadow-md flex flex-col border border-sand/80 relative">
 
-<div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/40 bg-gradient-to-br from-sand/30 via-rose-50/25 to-sand/20" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+<div class="relative w-full flex-1 rounded-lg sm:rounded-xl overflow-hidden bg-sand/40 bg-gradient-to-br from-sand/30 via-rose-50/25 to-sand/20" @mouseenter="replayLiveVideo($event)">
 
                     <!-- 永不灰屏：底置静态封面图 -->
                     <img :src="sIdx < sphereUnlockedLimit ? getFastCoverOrImg(photo) : SPHERE_PLACEHOLDER_SVG"
@@ -2564,7 +2564,7 @@
                     <canvas v-if="isVideoMedia(photo.image)"
                             :id="'sphere-live-canvas-' + sIdx"
                             :data-sphere-idx="sIdx"
-                            width="180" height="207"
+                            width="360" height="414"
                             class="sphere-live-canvas absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300"
                             style="aspect-ratio: 1/1.15; opacity: 0; object-fit: cover;"></canvas>
 
@@ -10625,7 +10625,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             if (v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
               const pr = parent.getBoundingClientRect();
               if (pr.width > 4 && pr.height > 4 && pr.bottom > -40 && pr.top < vhWin + 40) {
-                const scaleCap = Math.min(window.devicePixelRatio || 1, 1.5, 480 / Math.max(pr.width, pr.height));
+                const scaleCap = Math.min(window.devicePixelRatio || 1, 2.0, 1280 / Math.max(pr.width, pr.height));
                 const tw = Math.max(2, Math.round(pr.width * scaleCap));
                 const th = Math.max(2, Math.round(pr.height * scaleCap));
                 if (Math.abs(c.width - tw) > 2 || Math.abs(c.height - th) > 2) {
@@ -13859,7 +13859,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v36').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v37').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 

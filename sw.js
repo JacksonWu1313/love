@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v36-canvas-live-dblclick';
+const CACHE_NAME = 'yb-love-v37-hd-media';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
