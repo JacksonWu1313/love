@@ -9508,6 +9508,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         const now = Date.now();
         const shouldCheckCulling = (now - lastCullCheckTs > 80);
         if (shouldCheckCulling) lastCullCheckTs = now;
+        const sphereHost = shouldCheckCulling ? (sphereWorldDomEl || document.getElementById('photo-sphere-world-el')) : null;
+        const sphereRect = sphereHost ? sphereHost.getBoundingClientRect() : null;
+        const sphereInViewport = !!(sphereRect && sphereRect.bottom > -250 && sphereRect.top < (window.innerHeight || 900) + 250);
 
         const radX = (rxDeg || 0) * Math.PI / 180;
         const radY = (ryDeg || 0) * Math.PI / 180;
@@ -9540,7 +9543,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             const vid = el.querySelector('video');
             if (vid) {
               vid.loop = false;
-              if (isFrontFacing) {
+              if (sphereInViewport && isFrontFacing) {
+                if (vid.preload === 'none') vid.preload = 'auto';
                 if (vid.paused && vid.dataset.loopDone !== 'true') vid.play().catch(() => {});
               } else {
                 if (!vid.paused) vid.pause();
@@ -10381,7 +10385,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             if (!existingVid) {
               existingVid = document.createElement('video');
               existingVid.setAttribute('data-live-motion', 'true');
-              existingVid.autoplay = true;
+              existingVid.autoplay = false;
+              existingVid.preload = 'none';
               existingVid.loop = false;
               existingVid.muted = true;
               existingVid.playsInline = true;
@@ -10409,7 +10414,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               const covUrl = getFastCover(rawSrc);
               if (covUrl) existingVid.poster = covUrl;
               existingVid.src = rawSrc;
-              existingVid.play().catch(() => {});
+              const r = existingVid.getBoundingClientRect();
+              if (r.width > 0 && r.bottom > -250 && r.top < (window.innerHeight || 900) + 250) {
+                existingVid.preload = 'auto';
+                existingVid.play().catch(() => {});
+              }
             }
             imgEl.style.display = 'none';
           } else if (existingVid) {
@@ -10421,6 +10430,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
 
         });
+
+        if (typeof observeLiveVideos === 'function') observeLiveVideos();
 
       };
 
@@ -14265,6 +14276,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
 
+        let autonaviTileErrs = 0;
+        if (tileLayers.autonavi && typeof tileLayers.autonavi.on === 'function') {
+          tileLayers.autonavi.on('tileerror', () => {
+            autonaviTileErrs++;
+            if (autonaviTileErrs >= 3 && currentMapTile.value === 'autonavi') {
+              console.warn('[Map] AutoNavi tile TLS/load degraded, falling back to esriStreet');
+              switchMapTile('esriStreet');
+            }
+          });
+        }
         tileLayers[currentMapTile.value].addTo(worldMap);
 
 

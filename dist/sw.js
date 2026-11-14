@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v23-perf-sync-fix';
+const CACHE_NAME = 'yb-love-v24-sphere-lazy-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
