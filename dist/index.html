@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v35').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v36').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -319,6 +319,22 @@
     }
 
     /* [动图与3D防闪烁] 严禁对全局 img 强制施加 backface-visibility: hidden，避免与 3D 星球容器产生深度缓冲区冲突 (Z-fighting) */
+    video.live-hidden-decoder {
+      position: absolute !important;
+      width: 2px !important;
+      height: 2px !important;
+      top: 0 !important;
+      left: 0 !important;
+      opacity: 0.001 !important;
+      pointer-events: none !important;
+      z-index: -1 !important;
+    }
+    video:not([controls])::-webkit-media-controls,
+    video:not([controls])::-webkit-media-controls-enclosure,
+    video:not([controls])::-webkit-media-controls-panel {
+      display: none !important;
+      -webkit-appearance: none !important;
+    }
 
     .polaroid-frame {
 
@@ -1148,9 +1164,9 @@
 
     <div class="relative group my-4 max-w-xs md:max-w-md w-full">
 
-      <div class="polaroid-frame rounded-2xl cursor-pointer" @click="openLightbox(siteData.hero.coverImage)">
+      <div class="polaroid-frame rounded-2xl cursor-pointer" @click="handleMediaCardClick($event, siteData.hero.coverImage)">
 
-        <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+        <div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)">
           <img :src="getFastCoverOrImg(siteData.hero.coverImage)" alt="Hero Cover" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="eager" decoding="async" fetchpriority="high" @error="onImgError($event, siteData.hero.coverImage)">
           <video v-if="isVideoMedia(siteData.hero.coverImage)" :src="getFastImg(siteData.hero.coverImage)" :poster="getFastCover(siteData.hero.coverImage) || ''" autoplay preload="auto" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover group-hover:scale-105 transition duration-500 pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
         </div>
@@ -1463,9 +1479,9 @@
 
             <div v-for="(imgSrc, imgIdx) in item.images" :key="imgIdx" class="relative group/img">
 
-              <div class="polaroid-frame rounded-2xl cursor-pointer" @click="openLightbox(imgSrc)">
+              <div class="polaroid-frame rounded-2xl cursor-pointer" @click="handleMediaCardClick($event, imgSrc)">
 
-<div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+<div class="overflow-hidden rounded-xl aspect-[4/3] bg-sand/40 relative" @mouseenter="replayLiveVideo($event)">
 
                   <!-- 永不灰屏：底置静态封面图 -->
                   <img :src="getFastCoverOrImg(imgSrc)"
@@ -1573,7 +1589,7 @@
 
             <!-- Associated Photo -->
 
-<div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="openLightbox(q.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+<div class="relative overflow-hidden rounded-2xl aspect-[16/10] mb-4 bg-sand/40 cursor-pointer" @click="handleMediaCardClick($event, q.image)" @mouseenter="replayLiveVideo($event)">
 
               <!-- 永不灰屏：底置静态封面图 -->
               <img :src="getFastCoverOrImg(q.image)" :alt="q.author"
@@ -2856,7 +2872,7 @@
 
       <div v-for="(photo, pIdx) in filteredAndSortedPhotos.slice(0, 10)" :key="photo.id || pIdx" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
         <!-- Photo Container -->
-        <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+        <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="handleMediaCardClick($event, photo.image)" @mouseenter="replayLiveVideo($event)">
 
           <!-- 永不灰屏：底置静态封面图 -->
           <img :src="getFastCoverOrImg(photo)"
@@ -3044,7 +3060,7 @@
 
           <div class="flex items-center space-x-2">
 
-            <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="openLightbox(w.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+            <div class="w-16 h-12 rounded-xl overflow-hidden bg-sand/40 border border-sand shadow-sm cursor-pointer relative group/wish" @click="handleMediaCardClick($event, w.image)" @mouseenter="replayLiveVideo($event)">
               <img :src="getFastCoverOrImg(w.image)" :alt="w.text" class="w-full h-full object-cover" loading="lazy" decoding="async" @error="onImgError($event, w.image)">
               <video v-if="isVideoMedia(w.image)" :src="getFastImg(w.image)" :data-poster="getFastCover(w.image) || ''" preload="none" muted playsinline webkit-playsinline @ended="handleLiveVideoEnded($event)" class="absolute inset-0 z-[1] w-full h-full object-cover pointer-events-none transition-opacity duration-300" style="opacity: 0;" @loadeddata="$event.target.style.opacity = '1'" @canplay="$event.target.style.opacity = '1'" @playing="$event.target.style.opacity = '1'" @error="handleVideoError($event)"></video>
 
@@ -3448,7 +3464,7 @@
 
             <div v-for="photo in group.photos" :key="photo.id || photo.image" class="polaroid-frame rounded-2xl group relative overflow-hidden bg-white shadow-soft hover:shadow-float transition duration-300 flex flex-col">
               <!-- Photo Container -->
-              <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="openLightbox(photo.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+              <div class="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-sand/20 cursor-pointer" @click="handleMediaCardClick($event, photo.image)" @mouseenter="replayLiveVideo($event)">
 
                 <!-- 永不灰屏：底置静态封面图 -->
                 <img :src="getFastCoverOrImg(photo)"
@@ -3549,7 +3565,7 @@
 
   <!-- Fullscreen Lightbox Modal (支持超清原图、GIF 动图与 LivePhoto 原声原生视频播放) -->
 
-  <div v-if="activeLightboxImg || activeLightboxVideo" class="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center p-4 cursor-zoom-out select-none" @click="closeLightbox">
+  <div id="lightbox-modal" v-if="activeLightboxImg || activeLightboxVideo" class="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center p-4 cursor-zoom-out select-none" @click="closeLightbox">
 
     <div class="max-w-4xl max-h-[90vh] relative flex flex-col items-center justify-center" @click.stop>
 
@@ -4689,7 +4705,7 @@
 
           <!-- Fixed Aspect-Ratio Container (防抖动 + 100% 原始超清大图点击预览) -->
 
-          <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+          <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="handleMediaCardClick($event, item.rec.image)" @mouseenter="replayLiveVideo($event)">
 
             <!-- 永不灰屏：底置静态封面图 -->
             <img :src="getFastCoverOrImg(item.rec.image)"
@@ -4953,7 +4969,7 @@
 
 
 
-        <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="openLightbox(item.rec.image)" @mouseenter="replayLiveVideo($event)" @touchstart.passive="replayLiveVideo($event)">
+        <div v-if="item.rec.image" class="mb-4 rounded-2xl overflow-hidden aspect-[16/10] w-full bg-sand/40 border border-sand/60 relative cursor-pointer" @click="handleMediaCardClick($event, item.rec.image)" @mouseenter="replayLiveVideo($event)">
 
           <!-- 永不灰屏：底置静态封面图 -->
           <img :src="getFastCoverOrImg(item.rec.image)"
@@ -7043,27 +7059,54 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           vid.loop = false;
           vid.pause();
           try { vid.currentTime = 0; } catch(e){}
+          const c = vid.parentElement && vid.parentElement.querySelector ? vid.parentElement.querySelector('canvas[data-live-canvas="true"]') : null;
+          if (c) c.style.opacity = '0';
         }
       };
 
-      const replayLiveVideo = (event) => {
+      const replayLiveVideo = (event, loopsToPlay = 5) => {
         const root = event && (event.currentTarget || event.target);
         if (!root) return;
         const canvasEl = root.querySelector ? root.querySelector('.sphere-live-canvas') : null;
         if (canvasEl && typeof window !== 'undefined' && typeof window.__replaySphereCardLive === 'function') {
           const sIdxAttr = canvasEl.getAttribute('data-sphere-idx');
-          if (sIdxAttr !== null) window.__replaySphereCardLive(Number(sIdxAttr));
+          if (sIdxAttr !== null) window.__replaySphereCardLive(Number(sIdxAttr), loopsToPlay);
           return;
         }
         const vid = (root.tagName && root.tagName.toLowerCase() === 'video') ? root : (root.querySelector ? root.querySelector('video') : null);
         if (!vid) return;
         if (vid.dataset && vid.dataset.poster && !vid.getAttribute('poster')) vid.setAttribute('poster', vid.dataset.poster);
         if (vid.preload === 'none') vid.preload = 'auto';
-        vid.dataset.loopCount = '1';
+        vid.dataset.loopCount = (loopsToPlay === 1) ? '5' : '1';
         vid.dataset.loopDone = '0';
         vid.loop = false;
         try { vid.currentTime = 0; } catch(e){}
         vid.play().catch(() => {});
+        if (typeof window !== 'undefined' && typeof window.__registerInlineLiveCanvas === 'function') {
+          window.__registerInlineLiveCanvas(vid);
+        }
+      };
+
+      const handleMediaCardClick = (event, item) => {
+        if (!item) return;
+        const target = (typeof item === 'object') ? (item.video || item.image || item.cover || '') : String(item);
+        const host = (event && (event.currentTarget || event.target)) || null;
+        const hasInlineVid = !!(host && host.querySelector && host.querySelector('video'));
+        const isMotion = isVideoMedia(target) || (typeof item === 'object' && !!item.isVideo) || hasInlineVid;
+        if (!isMotion || !host) {
+          openLightbox(item);
+          return;
+        }
+        if (host.__liveClickTimer) {
+          clearTimeout(host.__liveClickTimer);
+          host.__liveClickTimer = null;
+          openLightbox(item);
+          return;
+        }
+        host.__liveClickTimer = setTimeout(() => {
+          host.__liveClickTimer = null;
+          replayLiveVideo({ currentTarget: host, target: host }, 1);
+        }, 260);
       };
 
       const onImgError = (event, fallbackSrc) => {
@@ -9688,7 +9731,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (cache && (cache[fast] || cache[rawUrl])) return Promise.resolve(cache[fast] || cache[rawUrl]);
         if (sphereFetchPromises.has(fast)) return sphereFetchPromises.get(fast);
         const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-        const timer = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch(e){} }, 8000) : null;
+        const timer = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch(e){} }, 20000) : null;
         const p = fetch(fast, ctrl ? { headers: { 'x-live-prewarm': '1' }, signal: ctrl.signal } : { headers: { 'x-live-prewarm': '1' } })
           .then((res) => (res && res.ok ? res.blob() : null))
           .then((blob) => {
@@ -9791,14 +9834,15 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         }
       };
       if (typeof window !== 'undefined') {
-        window.__replaySphereCardLive = (sIdx) => {
+        window.__replaySphereCardLive = (sIdx, loopsToPlay = 5) => {
           if (isNaN(sIdx)) return;
           sphereCardLoopDone.delete(sIdx);
+          const targetLoops = (loopsToPlay === 1) ? 5 : 1;
           for (let s = 0; s < 2; s++) {
             const slot = sphereSlotStates[s];
             const vid = getSphereDecoder(s);
             if (slot && slot.idx === sIdx && vid) {
-              slot.loops = 1;
+              slot.loops = targetLoops;
               vid.loop = false;
               try { vid.currentTime = 0; } catch(e){}
               vid.play().catch(() => {});
@@ -9808,6 +9852,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           const list = spherePhotosList.value || [];
           if (list[sIdx] && isVideoMedia(list[sIdx].image)) {
             bindDecoderToCard(0, sIdx, list[sIdx], true);
+            sphereSlotStates[0].loops = targetLoops;
           }
         };
       }
@@ -10212,11 +10257,27 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
 
-      // 单击卡片特写推进与全屏大图预览
-
+      // 单击动图循环一遍，双击进入全屏/视频预览；静态图单击直接预览
+      let sphereCardClickTimer = null;
       const handleSpherePhotoClick = (photo, idx) => {
 
         if (hasSphereMoved) return;
+
+        const isMotion = !!(photo && (isVideoMedia(photo.image) || photo.isVideo));
+        if (isMotion) {
+          if (sphereCardClickTimer) {
+            clearTimeout(sphereCardClickTimer);
+            sphereCardClickTimer = null;
+          } else {
+            sphereCardClickTimer = setTimeout(() => {
+              sphereCardClickTimer = null;
+              if (typeof window !== 'undefined' && typeof window.__replaySphereCardLive === 'function') {
+                window.__replaySphereCardLive(idx, 1);
+              }
+            }, 260);
+            return;
+          }
+        }
 
         const coords = sphereCoordinates.value;
 
@@ -10541,6 +10602,94 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             break;
           }
         };
+        const inlineLiveCanvasVideos = new Set();
+        let inlineLiveRafId = 0;
+        const drawInlineLiveCanvases = () => {
+          inlineLiveRafId = 0;
+          if (inlineLiveCanvasVideos.size === 0 || typeof document === 'undefined') return;
+          const vhWin = window.innerHeight || 900;
+          inlineLiveCanvasVideos.forEach(v => {
+            const c = v.__liveMirrorCanvas;
+            const parent = v.parentElement;
+            if (!c || !parent || !document.contains(v)) {
+              inlineLiveCanvasVideos.delete(v);
+              return;
+            }
+            if (v.paused || v.ended || v.dataset.loopDone === 'true') {
+              if (v.dataset.loopDone === 'true' || v.dataset.inView !== '1') {
+                c.style.opacity = '0';
+              }
+              inlineLiveCanvasVideos.delete(v);
+              return;
+            }
+            if (v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
+              const pr = parent.getBoundingClientRect();
+              if (pr.width > 4 && pr.height > 4 && pr.bottom > -40 && pr.top < vhWin + 40) {
+                const scaleCap = Math.min(window.devicePixelRatio || 1, 1.5, 480 / Math.max(pr.width, pr.height));
+                const tw = Math.max(2, Math.round(pr.width * scaleCap));
+                const th = Math.max(2, Math.round(pr.height * scaleCap));
+                if (Math.abs(c.width - tw) > 2 || Math.abs(c.height - th) > 2) {
+                  c.width = tw;
+                  c.height = th;
+                }
+                const ctx = c.getContext('2d');
+                if (ctx) {
+                  const vw = v.videoWidth, vh = v.videoHeight;
+                  const sc = Math.max(tw / vw, th / vh);
+                  const dw = vw * sc, dh = vh * sc;
+                  ctx.drawImage(v, (tw - dw) * 0.5, (th - dh) * 0.5, dw, dh);
+                  if (c.style.opacity !== '1') c.style.opacity = '1';
+                }
+              }
+            }
+          });
+          if (inlineLiveCanvasVideos.size > 0) {
+            inlineLiveRafId = requestAnimationFrame(drawInlineLiveCanvases);
+          }
+        };
+        const registerInlineLiveCanvas = (v) => {
+          if (!v || !v.__liveMirrorCanvas) return;
+          inlineLiveCanvasVideos.add(v);
+          if (!inlineLiveRafId && typeof requestAnimationFrame === 'function') {
+            inlineLiveRafId = requestAnimationFrame(drawInlineLiveCanvases);
+          }
+        };
+        if (typeof window !== 'undefined') {
+          window.__registerInlineLiveCanvas = registerInlineLiveCanvas;
+        }
+        const mountLiveCanvasMirror = (v) => {
+          if (!v || !v.parentElement) return;
+          v.controls = false;
+          try { v.removeAttribute('controls'); } catch(e){}
+          v.muted = true;
+          v.playsInline = true;
+          v.loop = false;
+          v.setAttribute('playsinline', '');
+          v.setAttribute('webkit-playsinline', '');
+          v.setAttribute('x5-video-player-type', 'h5-page');
+          v.setAttribute('x5-playsinline', 'true');
+          v.setAttribute('disablePictureInPicture', '');
+          v.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback noplaybackrate');
+          v.classList.add('live-hidden-decoder');
+          if (!v.__liveMirrorCanvas) {
+            let c = v.parentElement.querySelector('canvas[data-live-canvas="true"]');
+            if (!c) {
+              c = document.createElement('canvas');
+              c.setAttribute('data-live-canvas', 'true');
+              c.className = 'absolute inset-0 z-[1] w-full h-full pointer-events-none transition-opacity duration-300';
+              c.style.opacity = '0';
+              v.parentElement.insertBefore(c, v);
+            }
+            v.__liveMirrorCanvas = c;
+            v.addEventListener('play', () => registerInlineLiveCanvas(v));
+            v.addEventListener('playing', () => registerInlineLiveCanvas(v));
+            v.addEventListener('loadeddata', () => registerInlineLiveCanvas(v));
+          }
+          if (!v.paused && !v.ended && v.readyState >= 2) {
+            registerInlineLiveCanvas(v);
+          }
+        };
+
         const observeLiveVideos = () => {
           if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
           if (!liveVideoObserver) {
@@ -10597,14 +10746,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           }
           document.querySelectorAll('video').forEach(v => {
             const isLightbox = v.closest && v.closest('#lightbox-modal');
-            if (isLightbox || (v.id && v.id.startsWith('sphere-decoder-')) || (v.closest && (v.closest('.photo-sphere-stage') || v.closest('#sphere-decoder-host'))) || v.dataset.liveObserved === '1') return;
+            if (isLightbox || (v.id && v.id.startsWith('sphere-decoder-')) || (v.closest && (v.closest('.photo-sphere-stage') || v.closest('#sphere-decoder-host')))) return;
+            mountLiveCanvasMirror(v);
+            if (v.dataset.liveObserved === '1') return;
             v.dataset.liveObserved = '1';
             if (v.dataset && v.dataset.poster && !v.getAttribute('poster')) {
               v.setAttribute('poster', v.dataset.poster);
             }
-            v.muted = true;
-            v.playsInline = true;
-            v.loop = false;
             liveVideoObserver.observe(v);
           });
         };
@@ -13711,7 +13859,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v35').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v36').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
@@ -15778,6 +15926,7 @@ image: newCityForm.image || './images/wish_drive.jpg'
         getFastCoverOrImg,
         handleLiveVideoEnded,
         replayLiveVideo,
+        handleMediaCardClick,
         triggerIosLiveDirectFile,
         handleVideoError,
         onLightboxVideoError,
