@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v30').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261114_v31').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -10132,38 +10132,47 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
           if (!liveVideoObserver) {
             liveVideoObserver = new IntersectionObserver((entries) => {
+              // Pass 1: update all visibility states & timers before draining queue (prevents same-batch exit cascade)
+              let needDrain = false;
+              const entered = [];
               entries.forEach(entry => {
                 const v = entry.target;
                 const isLightbox = v.closest && v.closest('#lightbox-modal');
                 if (entry.isIntersecting) {
                   v.dataset.inView = '1';
-                  if (v.__liveEnterTimer) clearTimeout(v.__liveEnterTimer);
-                  const activate = () => {
-                    if (v.dataset.inView !== '1') return;
-                    if (isLightbox || v.readyState >= 2) {
-                      startLiveVideo(v, isLightbox);
-                      return;
-                    }
-                    if (!pendingLiveQueue.includes(v)) pendingLiveQueue.push(v);
-                    drainLiveQueue();
-                  };
-                  if (isLightbox) {
-                    activate();
-                  } else {
-                    v.__liveEnterTimer = setTimeout(activate, 300);
-                  }
+                  entered.push({ v, isLightbox });
                 } else {
                   v.dataset.inView = '0';
                   if (v.__liveEnterTimer) { clearTimeout(v.__liveEnterTimer); v.__liveEnterTimer = null; }
                   const qi = pendingLiveQueue.indexOf(v);
                   if (qi >= 0) pendingLiveQueue.splice(qi, 1);
-                  if (currentFetchingVideo === v) { releaseFetchSlot(v); drainLiveQueue(); }
+                  if (currentFetchingVideo === v) { releaseFetchSlot(v); needDrain = true; }
                   activeLiveVideos.delete(v);
                   if (!v.paused && !isLightbox) {
                     v.pause();
                   }
                 }
               });
+              // Pass 2: schedule dwell activations after all exits in this frame are settled
+              entered.forEach(({ v, isLightbox }) => {
+                if (v.dataset.inView !== '1') return;
+                if (v.__liveEnterTimer) clearTimeout(v.__liveEnterTimer);
+                const activate = () => {
+                  if (v.dataset.inView !== '1') return;
+                  if (isLightbox || v.readyState >= 2) {
+                    startLiveVideo(v, isLightbox);
+                    return;
+                  }
+                  if (!pendingLiveQueue.includes(v)) pendingLiveQueue.push(v);
+                  drainLiveQueue();
+                };
+                if (isLightbox) {
+                  activate();
+                } else {
+                  v.__liveEnterTimer = setTimeout(activate, 500);
+                }
+              });
+              if (needDrain) drainLiveQueue();
             }, {
               rootMargin: '60px 0px',
               threshold: 0.05
@@ -13266,7 +13275,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v30').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261114_v31').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
