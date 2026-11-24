@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yb-love-v37-hd-media';
+const CACHE_NAME = 'yb-love-v38-atomic-sync';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -83,7 +83,22 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Network-First for HTML & JSON data
+  // Normalized Network-First for /data/*.json so ?t= polls don't bloat SW cache
+  if (url.pathname.includes('/data/') && url.pathname.endsWith('.json')) {
+    const cleanJsonKey = url.origin + url.pathname;
+    e.respondWith(
+      fetch(e.request).then((networkResp) => {
+        if (networkResp && networkResp.status === 200) {
+          const clone = networkResp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(cleanJsonKey, clone));
+        }
+        return networkResp;
+      }).catch(() => caches.match(cleanJsonKey))
+    );
+    return;
+  }
+
+  // Network-First for HTML & other data
   e.respondWith(
     fetch(e.request).then((networkResp) => {
       if (networkResp && networkResp.status === 200) {

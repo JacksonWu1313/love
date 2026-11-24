@@ -87,7 +87,7 @@
     // Service Worker 跨浏览器智能自愈看门狗（防止在 Safari/夸克/微信中由于旧缓存锁死）
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js?v=20261114_v37').then(function(reg) {
+        navigator.serviceWorker.register('./sw.js?v=20261124_v38').then(function(reg) {
           reg.update().catch(function() {});
         }).catch(function() {});
       });
@@ -6714,6 +6714,279 @@
         throw lastResp || new Error('Network error calling GitHub API');
       };
 
+      const LIVE_SW_CACHE_NAME = 'yb-love-v38-atomic-sync';
+      const liveMediaRev = ref(0);
+
+      const base64ToBlob = (b64, mime = 'application/octet-stream') => {
+        const clean = String(b64 || '').replace(/^data:[^,]+,/, '');
+        const bin = atob(clean);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new Blob([bytes], { type: mime });
+      };
+
+      const LiveMediaIDB = (() => {
+        const DB_NAME = 'yb_love_media_cache_v1';
+        const STORE = 'blobs';
+        const openDb = () => new Promise((resolve, reject) => {
+          if (typeof indexedDB === 'undefined') return reject(new Error('no indexedDB'));
+          const req = indexedDB.open(DB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE)) {
+              db.createObjectStore(STORE, { keyPath: 'path' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error || new Error('idb open error'));
+        });
+        return {
+          async put(path, blob) {
+            if (!path || !blob) return;
+            try {
+              const db = await openDb();
+              await new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE, 'readwrite');
+                tx.objectStore(STORE).put({ path, blob, ts: Date.now() });
+                tx.oncomplete = resolve;
+                tx.onerror = () => reject(tx.error);
+              });
+              db.close();
+            } catch (e) {}
+          },
+          async getRecent(maxAgeMs = 900000) {
+            try {
+              const db = await openDb();
+              const all = await new Promise((resolve) => {
+                const tx = db.transaction(STORE, 'readonly');
+                const req = tx.objectStore(STORE).getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => resolve([]);
+              });
+              const now = Date.now();
+              const valid = [];
+              const expired = [];
+              for (const row of all) {
+                if (row && row.path && row.blob && (now - (row.ts || 0) < maxAgeMs)) {
+                  valid.push(row);
+                } else if (row && row.path) {
+                  expired.push(row.path);
+                }
+              }
+              valid.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+              const toDelete = expired.concat(valid.slice(12).map(x => x.path));
+              if (toDelete.length > 0) {
+                try {
+                  const txW = db.transaction(STORE, 'readwrite');
+                  const st = txW.objectStore(STORE);
+                  toDelete.forEach(k => st.delete(k));
+                } catch (e) {}
+              }
+              db.close();
+              return valid.slice(0, 12);
+            } catch (e) {
+              return [];
+            }
+          }
+        };
+      })();
+
+      const cacheUploadedMediaLocally = async (relPath, blobOrDataUrl, isVidHint = false) => {
+        if (!relPath || !blobOrDataUrl || typeof window === 'undefined') return null;
+        try {
+          let blob = blobOrDataUrl;
+          if (typeof blobOrDataUrl === 'string' && blobOrDataUrl.startsWith('data:')) {
+            const m = blobOrDataUrl.match(/^data:([^;]+);base64,/);
+            blob = base64ToBlob(blobOrDataUrl, m ? m[1] : 'image/jpeg');
+          }
+          if (!(blob instanceof Blob)) return null;
+          const clean = String(relPath).replace(/^\.?\//, '').split('?')[0];
+          const normPath = './' + clean;
+          const blobUrl = URL.createObjectURL(blob);
+          registerLiveBlobVariants(normPath, blobUrl);
+          const isVid = !!isVidHint || (blob.type && blob.type.startsWith('video/')) || /\.(mp4|mov|webm|m4v)$/i.test(clean);
+          if (isVid) {
+            if (!window.__liveVideoBlobSet) window.__liveVideoBlobSet = new Set();
+            window.__liveVideoBlobSet.add(blobUrl);
+          }
+          LiveMediaIDB.put(normPath, blob).catch(() => {});
+          if (!isVid && typeof caches !== 'undefined') {
+            try {
+              const cache = await caches.open(LIVE_SW_CACHE_NAME);
+              const headers = { 'Content-Type': blob.type || 'image/jpeg' };
+              await cache.put(new URL(normPath, window.location.href).href, new Response(blob, { status: 200, headers }));
+              if (clean.startsWith('images/uploads/')) {
+                await cache.put(new URL(normPath + '?v=4', window.location.href).href, new Response(blob, { status: 200, headers }));
+              }
+            } catch (cErr) {}
+          }
+          liveMediaRev.value++;
+          return blobUrl;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const hydrateRecentUploadsFromIDB = async () => {
+        if (typeof window === 'undefined') return;
+        try {
+          const rows = await LiveMediaIDB.getRecent(900000);
+          if (!rows || rows.length === 0) return;
+          for (const row of rows) {
+            if (!row || !row.path || !(row.blob instanceof Blob)) continue;
+            const norm = './' + String(row.path).replace(/^\.?\//, '').split('?')[0];
+            const blobUrl = URL.createObjectURL(row.blob);
+            registerLiveBlobVariants(norm, blobUrl);
+            const isVid = (row.blob.type && row.blob.type.startsWith('video/')) || /\.(mp4|mov|webm|m4v)$/i.test(norm);
+            if (isVid) {
+              if (!window.__liveVideoBlobSet) window.__liveVideoBlobSet = new Set();
+              window.__liveVideoBlobSet.add(blobUrl);
+            }
+            if (norm.endsWith('_cover.jpg')) {
+              const stem = norm.replace(/_cover\.jpg$/i, '');
+              setLiveCover(norm, blobUrl);
+              for (const ext of ['.mp4', '.mov', '.webm', '.m4v']) {
+                setLiveCover(stem + ext, blobUrl);
+                setLiveCover(stem + ext + '?v=4', blobUrl);
+              }
+            }
+          }
+          liveMediaRev.value++;
+          nextTick(() => {
+            if (typeof document !== 'undefined') {
+              document.querySelectorAll('img').forEach(im => { if (im.dataset && im.dataset.fallbackDone) delete im.dataset.fallbackDone; });
+              document.querySelectorAll('video').forEach(v => {
+                const s = v.getAttribute('src') || '';
+                if (v.style.display === 'none' && s.startsWith('blob:')) {
+                  v.style.display = '';
+                  v.style.opacity = '1';
+                  try { v.load(); v.play().catch(() => {}); } catch (e) {}
+                }
+              });
+            }
+            if (typeof hydrateMotionVideoSlots === 'function') hydrateMotionVideoSlots();
+            if (typeof observeLiveVideos === 'function') observeLiveVideos();
+          });
+        } catch (e) {
+          console.warn('[IDB Hydrate] non-fatal:', e);
+        }
+      };
+
+      const sanitizePoolForPersistence = (pool) => {
+        if (!Array.isArray(pool)) return [];
+        const seen = new Set();
+        const out = [];
+        for (const p of pool) {
+          if (!p || !p.image || typeof p.image !== 'string') continue;
+          const img = p.image.trim();
+          if (!img || img.startsWith('blob:') || img.startsWith('data:')) continue;
+          if (seen.has(img)) continue;
+          seen.add(img);
+          const clone = { ...p, image: img };
+          if (typeof clone.cover === 'string' && (clone.cover.startsWith('data:') || clone.cover.startsWith('blob:'))) {
+            clone.cover = null;
+          }
+          out.push(clone);
+        }
+        return out;
+      };
+
+      const sanitizeSiteDataForLocalStorage = (data) => {
+        if (!data || typeof data !== 'object') return data;
+        const copy = { ...data };
+        if (Array.isArray(data.photoPool)) {
+          copy.photoPool = sanitizePoolForPersistence(data.photoPool);
+        }
+        return copy;
+      };
+
+      const commitFilesToGitHubAtomic = async (fileSpecs, commitMessage) => {
+        const ghHeaders = {
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        };
+        const ghJson = async (rel, method = 'GET', bodyObj = null) => {
+          const url = `https://api.github.com/repos/${GITHUB_REPO}/${rel}`;
+          const opts = { method, headers: ghHeaders, cache: 'no-store' };
+          if (bodyObj !== null) opts.body = JSON.stringify(bodyObj);
+          const resp = await fetch(url, opts);
+          const parsed = await resp.json().catch(() => ({}));
+          return { resp, data: parsed };
+        };
+        const createBlobWithRetry = async (spec) => {
+          const b64Content = (spec.encoding === 'base64') ? spec.content : safeUtf8ToBase64(spec.content);
+          let lastErr = null;
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const { resp, data } = await ghJson('git/blobs', 'POST', { content: b64Content, encoding: 'base64' });
+              if (resp.ok && data && data.sha) return data.sha;
+              lastErr = new Error(`git/blobs HTTP ${resp.status}: ${data.message || ''}`);
+            } catch (e) {
+              lastErr = e;
+            }
+            await new Promise(r => setTimeout(r, 300));
+          }
+          throw lastErr || new Error('Blob upload failed');
+        };
+
+        const headPromise = ghJson(`commits/main?t=${Date.now()}`);
+        const blobShasPromise = Promise.all(fileSpecs.map(spec => createBlobWithRetry(spec)));
+        const [headRes, blobShas] = await Promise.all([headPromise, blobShasPromise]);
+        if (!headRes.resp.ok || !headRes.data || !headRes.data.sha || !headRes.data.commit || !headRes.data.commit.tree) {
+          throw new Error(`commits/main HTTP ${headRes.resp.status}`);
+        }
+
+        const treeMap = new Map();
+        fileSpecs.forEach((spec, idx) => {
+          const sha = blobShas[idx];
+          (spec.paths || []).forEach((p) => {
+            const cleanP = String(p).replace(/^\/+/, '');
+            if (cleanP) treeMap.set(cleanP, sha);
+          });
+        });
+        const treeEntries = Array.from(treeMap.entries()).map(([path, sha]) => ({
+          path,
+          mode: '100644',
+          type: 'blob',
+          sha
+        }));
+
+        let headSha = headRes.data.sha;
+        let baseTreeSha = headRes.data.commit.tree.sha;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const treeRes = await ghJson('git/trees', 'POST', { base_tree: baseTreeSha, tree: treeEntries });
+          if (!treeRes.resp.ok || !treeRes.data || !treeRes.data.sha) {
+            throw new Error(`git/trees HTTP ${treeRes.resp.status}`);
+          }
+          const commitRes = await ghJson('git/commits', 'POST', {
+            message: commitMessage,
+            tree: treeRes.data.sha,
+            parents: [headSha]
+          });
+          if (!commitRes.resp.ok || !commitRes.data || !commitRes.data.sha) {
+            throw new Error(`git/commits HTTP ${commitRes.resp.status}`);
+          }
+          const patchRes = await ghJson('git/refs/heads/main', 'PATCH', {
+            sha: commitRes.data.sha,
+            force: false
+          });
+          if (patchRes.resp.ok) {
+            return { ok: true, sha: commitRes.data.sha };
+          }
+          if ((patchRes.resp.status === 422 || patchRes.resp.status === 409) && attempt < 2) {
+            const latestHead = await ghJson(`commits/main?t=${Date.now()}`);
+            if (latestHead.resp.ok && latestHead.data && latestHead.data.sha && latestHead.data.commit) {
+              headSha = latestHead.data.sha;
+              baseTreeSha = latestHead.data.commit.tree.sha;
+              continue;
+            }
+          }
+          throw new Error(`git/refs PATCH HTTP ${patchRes.resp.status}: ${patchRes.data.message || ''}`);
+        }
+        throw new Error('Atomic commit exhausted retries');
+      };
+
 
 
 
@@ -6926,6 +7199,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const getFastCover = (item) => {
+        const _rev = liveMediaRev.value;
         if (!item) return '';
         if (typeof item === 'object') {
           if (item.cover && !String(item.cover).includes('hero_cover.jpg') && !String(item.cover).includes('opt_30249c4f0cb3')) {
@@ -6986,7 +7260,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       };
 
       const getFastImg = (src) => {
-
+        const _rev = liveMediaRev.value;
         if (!src) return '';
 
         if (typeof src !== 'string') return src;
@@ -7347,22 +7621,56 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
               './images/pool/pool_sphere_0.jpg': './images/uploads/opt_5dc44aa52cd1.jpg'
             };
             if (Array.isArray(merged.photoPool)) {
+              const origLen = merged.photoPool.length;
+              const nowLoad = Date.now();
+              let recentDeletesSet = new Set();
+              try {
+                const rawDel = localStorage.getItem('couple_recent_pool_deletes');
+                const delArr = rawDel ? JSON.parse(rawDel) : [];
+                if (Array.isArray(delArr)) {
+                  const activeDels = delArr.filter(d => d && d.image && (nowLoad - (d.ts || 0) < 300000));
+                  recentDeletesSet = new Set(activeDels.map(d => d.image));
+                }
+              } catch (de) {}
               const seenPoolImgs = new Set();
               merged.photoPool = merged.photoPool.map(p => {
                 if (p && p.image && movNormMap[p.image]) p.image = movNormMap[p.image];
+                if (p && typeof p.cover === 'string' && (p.cover.startsWith('data:') || p.cover.startsWith('blob:'))) p.cover = null;
                 return p;
               }).filter(p => {
                 if (!p || !p.image || typeof p.image !== 'string' || p.image.startsWith('blob:') || p.image.startsWith('data:')) return false;
+                if (recentDeletesSet.has(p.image)) return false;
                 if (seenPoolImgs.has(p.image)) return false;
                 seenPoolImgs.add(p.image);
                 return true;
               });
+              try {
+                const rawRecent = localStorage.getItem('couple_recent_pool_uploads');
+                const recentArr = rawRecent ? JSON.parse(rawRecent) : [];
+                if (Array.isArray(recentArr)) {
+                  for (let rIdx = recentArr.length - 1; rIdx >= 0; rIdx--) {
+                    const entry = recentArr[rIdx];
+                    const it = entry && entry.item;
+                    if (it && it.image && typeof it.image === 'string' && !it.image.startsWith('blob:') && !it.image.startsWith('data:') && (nowLoad - (entry.ts || 0) < 600000)) {
+                      if (!recentDeletesSet.has(it.image) && !seenPoolImgs.has(it.image)) {
+                        seenPoolImgs.add(it.image);
+                        const safeIt = { ...it };
+                        if (typeof safeIt.cover === 'string' && (safeIt.cover.startsWith('data:') || safeIt.cover.startsWith('blob:'))) safeIt.cover = null;
+                        merged.photoPool.unshift(safeIt);
+                      }
+                    }
+                  }
+                }
+              } catch (re) {}
+              if (merged.photoPool.length !== origLen) {
+                try { localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(merged))); } catch (se) {}
+              }
             }
             if (!Array.isArray(merged.timeline) || merged.timeline.length < 6) {
               merged.timeline = JSON.parse(JSON.stringify(defaultSiteData.timeline));
             }
 
-            localStorage.setItem(versionKey, CURRENT_VERSION);
+            try { localStorage.setItem(versionKey, CURRENT_VERSION); } catch (ve) {}
 
             return merged;
 
@@ -7424,27 +7732,37 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
 
 
-      // Deep Watch and Auto-Save to LocalStorage
+      // Deep Watch and Auto-Save to LocalStorage (debounced & sanitized)
 
       let saveTimeout = null;
 
       watch(siteData, (newVal) => {
 
-        try {
+        clearTimeout(saveTimeout);
 
-          localStorage.setItem(storageKey, JSON.stringify(newVal)); nextTick(() => { hydrateMotionVideoSlots(); });
+        saveTimeout = setTimeout(() => {
 
-          saveMessage.value = '已自动同步至本地';
+          try {
 
-          clearTimeout(saveTimeout);
+            localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(newVal)));
 
-          saveTimeout = setTimeout(() => { saveMessage.value = ''; }, 2000);
+            nextTick(() => { hydrateMotionVideoSlots(); });
 
-        } catch (e) {
+            if (!SyncGuard.isBusy() && !isSyncingPool.value && !isUploadingIosLive.value && !saveMessage.value) {
 
-          console.error('LocalStorage save error', e);
+              saveMessage.value = '已自动同步至本地';
 
-        }
+              setTimeout(() => { if (saveMessage.value === '已自动同步至本地') saveMessage.value = ''; }, 2000);
+
+            }
+
+          } catch (e) {
+
+            console.error('LocalStorage save error', e);
+
+          }
+
+        }, 300);
 
       }, { deep: true });
 
@@ -7899,6 +8217,35 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         } catch(e){}
         return false;
       };
+      const getRecentPoolDeletes = () => {
+        const now = Date.now();
+        try {
+          const raw = localStorage.getItem('couple_recent_pool_deletes');
+          const arr = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(arr)) return new Set();
+          const valid = arr.filter(x => x && x.image && (now - (x.ts || 0) < 300000));
+          return new Set(valid.map(x => x.image));
+        } catch (e) { return new Set(); }
+      };
+      const recordRecentPoolDelete = (imageUrl) => {
+        if (!imageUrl || typeof imageUrl !== 'string') return;
+        const now = Date.now();
+        try {
+          const raw = localStorage.getItem('couple_recent_pool_deletes');
+          const prev = raw ? JSON.parse(raw) : [];
+          const valid = Array.isArray(prev) ? prev.filter(x => x && x.image && (now - (x.ts || 0) < 300000) && x.image !== imageUrl) : [];
+          valid.unshift({ ts: now, image: imageUrl });
+          localStorage.setItem('couple_recent_pool_deletes', JSON.stringify(valid.slice(0, 30)));
+          const rawUp = localStorage.getItem('couple_recent_pool_uploads');
+          if (rawUp) {
+            const upArr = JSON.parse(rawUp);
+            if (Array.isArray(upArr)) {
+              const filteredUp = upArr.filter(x => x && x.item && x.item.image !== imageUrl);
+              localStorage.setItem('couple_recent_pool_uploads', JSON.stringify(filteredUp));
+            }
+          }
+        } catch (e) {}
+      };
       const markLocalUploadTimestamp = (newPoolItems = null) => {
         const now = Date.now();
         if (typeof window !== 'undefined') window.__lastLocalUploadTs = now;
@@ -7909,11 +8256,25 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (Array.isArray(newPoolItems) && newPoolItems.length > 0) {
             const raw = localStorage.getItem('couple_recent_pool_uploads');
             const prev = raw ? JSON.parse(raw) : [];
-            const validPrev = Array.isArray(prev) ? prev.filter(x => x && x.item && (now - (x.ts || 0) < 600000)) : [];
+            const deletesSet = getRecentPoolDeletes();
+            const mergedMap = new Map();
             for (const it of newPoolItems) {
-              if (it && it.image) validPrev.unshift({ ts: now, item: it });
+              if (!it || !it.image || typeof it.image !== 'string') continue;
+              if (it.image.startsWith('data:') || it.image.startsWith('blob:') || deletesSet.has(it.image)) continue;
+              const safeIt = { ...it };
+              if (typeof safeIt.cover === 'string' && (safeIt.cover.startsWith('data:') || safeIt.cover.startsWith('blob:'))) {
+                safeIt.cover = null;
+              }
+              mergedMap.set(safeIt.image, { ts: now, item: safeIt });
             }
-            localStorage.setItem('couple_recent_pool_uploads', JSON.stringify(validPrev.slice(0, 30)));
+            if (Array.isArray(prev)) {
+              for (const x of prev) {
+                if (!x || !x.item || !x.item.image || (now - (x.ts || 0) >= 600000)) continue;
+                if (x.item.image.startsWith('data:') || x.item.image.startsWith('blob:') || deletesSet.has(x.item.image)) continue;
+                if (!mergedMap.has(x.item.image)) mergedMap.set(x.item.image, x);
+              }
+            }
+            localStorage.setItem('couple_recent_pool_uploads', JSON.stringify(Array.from(mergedMap.values()).slice(0, 30)));
           }
         } catch(e){}
       };
@@ -9243,29 +9604,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             localStorage.setItem('couple_site_updated_at', String(payload.updatedAt));
           } catch(e){}
           const rawJson = JSON.stringify(payload, null, 2);
-          const b64 = safeUtf8ToBase64(rawJson);
-          for (const regRelPath of ['data/site_custom.json', 'dist/data/site_custom.json']) {
-            try {
-              const checkUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${regRelPath}`;
-              let sha = null;
-              const checkRes = await fetch(checkUrl, {
-                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' }
-              });
-              if (checkRes.ok) {
-                const info = await checkRes.json();
-                sha = info.sha;
-              }
-              await fetch(checkUrl, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  message: `data: update custom site data (${regRelPath})`,
-                  content: b64,
-                  sha: sha
-                })
-              });
-            } catch(subErr){}
-          }
+          await commitFilesToGitHubAtomic(
+            [{ paths: ['data/site_custom.json', 'dist/data/site_custom.json'], content: rawJson, encoding: 'utf-8' }],
+            'data: update custom site data'
+          );
         } catch(e) {
           console.warn('[Custom Cloud Save] Non-fatal error:', e);
         }
@@ -9277,34 +9619,26 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if (!siteData.photoPool) siteData.photoPool = [];
 
-          const cleanPool = siteData.photoPool.filter(p => p && p.image && (typeof p.image !== 'string' || !p.image.startsWith('blob:')));
+          const cleanPool = sanitizePoolForPersistence(siteData.photoPool);
 
-          const b64 = safeUtf8ToBase64(JSON.stringify(cleanPool, null, 2));
-          for (const pPath of ['data/photo_pool.json', 'dist/data/photo_pool.json']) {
-            try {
-              let sha = null;
-              const getReg = await fetchGithubApi(`contents/${pPath}`, { headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}` } });
-              if (getReg && getReg.ok) { sha = (await getReg.json()).sha; }
-              const payload = {
-                message: `feat: Cloud sync 3D memory sphere photo pool (${cleanPool.length} photos)`,
-                content: b64,
-                branch: 'main'
-              };
-              if (sha) payload.sha = sha;
-              await fetchGithubApi(`contents/${pPath}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              });
-            } catch(subE){}
-          }
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+          } catch (le) {}
 
+          const poolJsonStr = JSON.stringify(cleanPool, null, 2);
+
+          await commitFilesToGitHubAtomic(
+            [{ paths: ['data/photo_pool.json', 'dist/data/photo_pool.json'], content: poolJsonStr, encoding: 'utf-8' }],
+            `feat: Cloud sync 3D memory sphere photo pool (${cleanPool.length} photos)`
+          );
 
           saveMessage.value = '☁️ 记忆星球已同步至云端 ♥';
 
         } catch (e) {
 
-          saveMessage.value = '已在本地保存记忆星球';
+          console.warn('[Cloud Pool Save] error:', e);
+
+          saveMessage.value = '⚠️ 云端同步失败，已保存在本地';
 
         }
 
@@ -10309,7 +10643,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const pickLocalImageForNewSpherePhoto = () => {
 
-        openLocalAlbumPicker((newSrc, file) => {
+        openLocalAlbumPicker((newSrc, file, cov, isVid) => {
+
+          if (!siteData.photoPool) siteData.photoPool = [];
+
+          if (siteData.photoPool.some(p => p && p.image === newSrc)) return;
 
           const copy = generateRomanticCopy(file, 'sphere');
 
@@ -10318,6 +10656,10 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             id: 'sphere_' + Date.now(),
 
             image: newSrc,
+
+            cover: cov || null,
+
+            isVideo: !!(isVid || isVideoMedia(newSrc)),
 
             title: copy.title,
 
@@ -10329,17 +10671,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           };
 
-          if (!siteData.photoPool) siteData.photoPool = [];
-
           siteData.photoPool.unshift(newPhoto);
 
           sphereCardCount.value = Math.max(sphereCardCount.value + 1, siteData.photoPool.length);
 
           triggerConfetti();
 
-          savePoolToCloud();
-
-        });
+        }, { type: 'sphere_add' });
 
       };
 
@@ -10777,6 +11115,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           window.addEventListener('scroll', observeLiveVideos, { passive: true });
         }
 
+        hydrateRecentUploadsFromIDB();
+
         setTimeout(() => {
           syncSiteStateFromCloud();
           syncLoveRecordsFromCloud();
@@ -10948,18 +11288,23 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           if (!file || file.type.startsWith('video/')) return file;
           const buf = await file.arrayBuffer();
           const bytes = new Uint8Array(buf);
-          // 扫描 ISO Base Media ftyp 签名: 'ftypmp4', 'ftypisom', 'ftypqt  ', 'ftypM4V'
-          for (let i = 4; i < bytes.length - 12; i++) {
-            if (bytes[i] === 0x66 && bytes[i+1] === 0x74 && bytes[i+2] === 0x79 && bytes[i+3] === 0x70) {
-              const brand = String.fromCharCode(bytes[i+4], bytes[i+5], bytes[i+6], bytes[i+7]);
+          // 快速扫描 ISO Base Media ftyp 签名: 'ftypmp4', 'ftypisom', 'ftypqt  ', 'ftypM4V'
+          let pos = 4;
+          const limit = bytes.length - 12;
+          while (pos < limit) {
+            const idx = bytes.indexOf(0x66, pos);
+            if (idx === -1 || idx >= limit) break;
+            if (bytes[idx + 1] === 0x74 && bytes[idx + 2] === 0x79 && bytes[idx + 3] === 0x70) {
+              const brand = String.fromCharCode(bytes[idx + 4], bytes[idx + 5], bytes[idx + 6], bytes[idx + 7]);
               if (['mp41', 'mp42', 'isom', 'qt  ', 'M4V ', 'avc1', 'msnv'].includes(brand)) {
-                const boxStart = i - 4;
+                const boxStart = idx - 4;
                 if (boxStart > 1024) {
                   const vidBlob = new Blob([bytes.slice(boxStart)], { type: 'video/mp4' });
                   return new File([vidBlob], file.name.replace(/\.[^.]+$/, '') + '_live.mp4', { type: 'video/mp4', lastModified: file.lastModified });
                 }
               }
             }
+            pos = idx + 1;
           }
         } catch (e) { console.warn('Embedded video scan skip:', e); }
         return null;
@@ -11525,7 +11870,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         const capturedTarget = explicitTarget || (activeMediaTarget ? { ...activeMediaTarget } : null);
         const tempInput = document.createElement('input');
         tempInput.type = 'file';
-        tempInput.accept = 'image/*,video/mp4,video/quicktime,video/webm,.mov,.mp4,.gif,.webp';
+        tempInput.accept = 'image/*,video/*';
         tempInput.style.position = 'fixed';
         tempInput.style.left = '-9999px';
         tempInput.style.top = '-9999px';
@@ -11721,6 +12066,16 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         }
 
+        if (siteData.gallery) {
+
+          siteData.gallery.forEach(g => {
+
+            if (g && g.image === oldUrl) g.image = newUrl;
+
+          });
+
+        }
+
         if (siteData.quotes) {
 
           siteData.quotes.forEach(q => {
@@ -11764,11 +12119,18 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             if (c && c.image === oldUrl) c.image = newUrl;
           });
         }
+        if (typeof newCityForm !== 'undefined' && newCityForm && newCityForm.image === oldUrl) {
+          newCityForm.image = newUrl;
+        }
+        if (typeof sphereEditForm !== 'undefined' && sphereEditForm && sphereEditForm.image === oldUrl) {
+          sphereEditForm.image = newUrl;
+        }
       };
 
 
 
       const handleUniversalAlbumPicked = async (event, pickedTarget = null) => {
+        if (SyncGuard.isUploading) return;
         const file = event && event.target && event.target.files && event.target.files[0];
         const callback = (typeof pendingAlbumPickCallback === 'function') ? pendingAlbumPickCallback : (typeof universalAlbumCallback === 'function' ? universalAlbumCallback : null);
         if (!file || typeof callback !== 'function') return;
@@ -11778,148 +12140,145 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         activeMediaTarget = null;
         SyncGuard.beginUpload();
         saveMessage.value = '⏳ 正在处理照片/实况画质...';
-        const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file);
-        const prep = await compressImageForUpload(liveExtracted || file);
-        if (!prep || !prep.dataUrl) {
-          SyncGuard.endUpload();
-          saveMessage.value = '❌ 读取照片失败，请重试';
-          setTimeout(() => { saveMessage.value = ''; }, 2500);
-          return;
-        }
-        markLocalUploadTimestamp();
-        const initialUrl = prep.dataUrl;
-        if (prep.coverBase64) {
-          setLiveCover(initialUrl, prep.coverBase64);
-        }
-        callback(initialUrl, file, prep.coverBase64);
-
-        saveMessage.value = prep.isAnim ? '🎞️ 动图已即时生效，正在同步至云端...' : '📷 照片已即时生效，正在同步至云端...';
-
-        nextTick(() => { hydrateMotionVideoSlots(); });
-
-
-
-        // 2. 异步上传至 GitHub 仓库 images/uploads/
-
         try {
-
-          const safeExt = prep.ext || 'jpg';
-
-          const fileName = `slot_${Date.now()}_${Math.floor(Math.random() * 1000)}.${safeExt}`;
-
-          const repoRelPath = `./images/uploads/${fileName}`;
-
-
-
-          const upUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${fileName}`;
-
-          const upRes = await fetch(upUrl, {
-
-            method: 'PUT',
-
-            headers: {
-
-              'Authorization': `Bearer ${GITHUB_TOKEN}`,
-
-              'Accept': 'application/vnd.github.v3+json',
-
-              'Content-Type': 'application/json'
-
-            },
-
-            body: JSON.stringify({
-
-              message: `feat(media): upload ${prep.isAnim ? 'animated ' : ''}media ${fileName}`,
-
-              content: prep.b64
-
-            })
-
-          });
-
-
-
-          if (upRes.ok) {
-
-            // 云端上传成功后，就地静默将 initialUrl 替换为 repoRelPath
-
-            replaceMediaUrlInSiteData(initialUrl, repoRelPath);
-            if (typeof window !== 'undefined') {
-              registerLiveBlobVariants(repoRelPath, initialUrl);
-            }
-            let persistentCover = prep.coverBase64 || null;
-            if (prep.isVideo && prep.coverBase64) {
-              try {
-                const covName = fileName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
-                const covRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/images/uploads/${covName}`, {
-                  method: 'PUT',
-                  headers: {
-                    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    message: `feat(media): upload cover for ${fileName}`,
-                    content: prep.coverBase64.replace(/^data:[^,]+,/, '')
-                  })
-                });
-                if (covRes.ok) {
-                  persistentCover = `./images/uploads/${covName}`;
-                }
-              } catch (covErr) {
-                console.warn('[Universal Cover Upload] non-fatal:', covErr);
-              }
-            }
-            if (persistentCover) {
-              setLiveCover(repoRelPath, persistentCover);
-              setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), persistentCover);
-            }
-            if (currentTarget && currentTarget.type) {
-              applyMediaReplacement(currentTarget.type, currentTarget.ctx, repoRelPath, persistentCover, prep.isVideo, file);
-            } else {
-              callback(repoRelPath, file, persistentCover);
-            }
-
-            try {
-
-              localStorage.setItem('couple_site_updated_at', String(Date.now()));
-
-              localStorage.setItem(storageKey, JSON.stringify(siteData));
-
-            } catch(e){}
-
-            saveMessage.value = prep.isAnim ? '✅ 动图已上传云端，永久保持动态播放 ♥' : '✅ 照片已上传云端，永久同步 ♥';
-
-            const tType = currentTarget && currentTarget.type ? currentTarget.type : '';
-            if (tType === 'record') {
-              if (typeof saveLoveRecordsToCloud === 'function') await saveLoveRecordsToCloud();
-            } else if (tType === 'city') {
-              if (typeof saveFootprintToCloud === 'function') await saveFootprintToCloud();
-            } else {
-              if (typeof savePoolToCloud === 'function' && (!tType || tType === 'pool' || tType === 'sphere')) {
-                await savePoolToCloud();
-              }
-              if (typeof saveSiteCustomToCloud === 'function' && (!tType || ['timeline', 'hero', 'gallery', 'quotes', 'wishes', 'letter', 'pool', 'sphere'].includes(tType))) {
-                await saveSiteCustomToCloud();
-              }
-            }
-
-          } else {
-
-            try {
-
-              localStorage.setItem(storageKey, JSON.stringify(siteData));
-
-            } catch(e){}
-
-            saveMessage.value = '✅ 已保存在本地与当前页面 ♥';
-
+          const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file);
+          const targetFile = liveExtracted || file;
+          const prep = await compressImageForUpload(targetFile);
+          if (!prep || !prep.b64) {
+            saveMessage.value = '❌ 读取照片失败，请重试';
+            setTimeout(() => { saveMessage.value = ''; }, 2500);
+            return;
           }
 
+          const safeExt = prep.ext || 'jpg';
+          const uploadMime = prep.isVideo
+            ? (safeExt === 'mov' ? 'video/quicktime' : (safeExt === 'webm' ? 'video/webm' : 'video/mp4'))
+            : (prep.isAnim ? ('image/' + (safeExt || 'gif')) : 'image/jpeg');
+          const uploadBlob = prep.isVideo && (targetFile instanceof Blob) ? targetFile : base64ToBlob(prep.b64, uploadMime);
+          const initialUrl = URL.createObjectURL(uploadBlob);
+          if (prep.isVideo && typeof window !== 'undefined') {
+            if (!window.__liveVideoBlobSet) window.__liveVideoBlobSet = new Set();
+            window.__liveVideoBlobSet.add(initialUrl);
+          }
+          if (prep.coverBase64) {
+            setLiveCover(initialUrl, prep.coverBase64);
+          }
+
+          markLocalUploadTimestamp();
+          callback(initialUrl, targetFile, prep.coverBase64, !!prep.isVideo);
+
+          saveMessage.value = prep.isAnim ? '🎞️ 动图已即时生效，正在原子同步至云端...' : '📷 照片已即时生效，正在原子同步至云端...';
+          nextTick(() => { hydrateMotionVideoSlots(); });
+
+          const fileName = `slot_${Date.now()}_${Math.floor(Math.random() * 1000)}.${safeExt}`;
+          const repoRelPath = `./images/uploads/${fileName}`;
+          await cacheUploadedMediaLocally(repoRelPath, uploadBlob, !!prep.isVideo);
+
+          const fileSpecs = [
+            {
+              paths: [`images/uploads/${fileName}`, `dist/images/uploads/${fileName}`],
+              content: prep.b64,
+              encoding: 'base64'
+            }
+          ];
+
+          let persistentCoverPath = null;
+          if (prep.isVideo && prep.coverBase64) {
+            const covName = fileName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
+            const covRel = `./images/uploads/${covName}`;
+            const covRawB64 = prep.coverBase64.replace(/^data:[^,]+,/, '');
+            const covBlobUrl = await cacheUploadedMediaLocally(covRel, base64ToBlob(covRawB64, 'image/jpeg'), false);
+            persistentCoverPath = covRel;
+            if (covBlobUrl) {
+              setLiveCover(repoRelPath, covBlobUrl);
+              setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), covBlobUrl);
+            }
+            fileSpecs.push({
+              paths: [`images/uploads/${covName}`, `dist/images/uploads/${covName}`],
+              content: covRawB64,
+              encoding: 'base64'
+            });
+          } else if (prep.coverBase64) {
+            setLiveCover(repoRelPath, prep.coverBase64);
+            setLiveCover('./' + repoRelPath.replace(/^\.?\//, ''), prep.coverBase64);
+          }
+
+          replaceMediaUrlInSiteData(initialUrl, repoRelPath);
+          const tType = currentTarget && currentTarget.type ? currentTarget.type : '';
+          if (tType === 'sphere_add' && Array.isArray(siteData.photoPool)) {
+            const addedItem = siteData.photoPool.find(p => p && p.image === repoRelPath);
+            if (addedItem) {
+              if (persistentCoverPath) addedItem.cover = persistentCoverPath;
+              addedItem.isVideo = !!prep.isVideo;
+            }
+          } else if (currentTarget && currentTarget.type) {
+            const ctx = currentTarget.ctx;
+            if ((tType === 'pool' || tType === 'sphere') && ctx) {
+              ctx.image = repoRelPath;
+              if (persistentCoverPath) ctx.cover = persistentCoverPath;
+              ctx.isVideo = !!prep.isVideo;
+              if (Array.isArray(siteData.photoPool)) {
+                const pItem = siteData.photoPool.find(p => p && ((ctx.id && p.id === ctx.id) || p.image === repoRelPath));
+                if (pItem) {
+                  pItem.image = repoRelPath;
+                  if (persistentCoverPath) pItem.cover = persistentCoverPath;
+                  pItem.isVideo = !!prep.isVideo;
+                }
+              }
+            }
+          }
+
+          let poolItemForTimestamp = null;
+          if (!tType || ['pool', 'sphere', 'sphere_add'].includes(tType)) {
+            const cleanPool = sanitizePoolForPersistence(siteData.photoPool);
+            poolItemForTimestamp = cleanPool.find(p => p && p.image === repoRelPath) || null;
+            fileSpecs.push({
+              paths: ['data/photo_pool.json', 'dist/data/photo_pool.json'],
+              content: JSON.stringify(cleanPool, null, 2),
+              encoding: 'utf-8'
+            });
+          } else if (tType === 'record' && Array.isArray(loveRecordsList.value)) {
+            try { localStorage.setItem('yb_love_records', JSON.stringify(loveRecordsList.value)); } catch (e) {}
+            fileSpecs.push({
+              paths: ['data/love_records.json', 'dist/data/love_records.json'],
+              content: JSON.stringify(loveRecordsList.value, null, 2),
+              encoding: 'utf-8'
+            });
+          } else if (tType === 'city' && Array.isArray(footprintCities)) {
+            fileSpecs.push({
+              paths: ['data/footprint_cities.json', 'dist/data/footprint_cities.json'],
+              content: JSON.stringify(footprintCities, null, 2),
+              encoding: 'utf-8'
+            });
+          } else if (['timeline', 'hero', 'gallery', 'quotes', 'wishes', 'letter'].includes(tType)) {
+            const customPayload = {
+              updatedAt: Date.now(),
+              hero: siteData.hero || null,
+              timeline: siteData.timeline || null,
+              quotes: siteData.quotes || null,
+              wishes: siteData.wishes || null
+            };
+            fileSpecs.push({
+              paths: ['data/site_custom.json', 'dist/data/site_custom.json'],
+              content: JSON.stringify(customPayload, null, 2),
+              encoding: 'utf-8'
+            });
+          }
+
+          await commitFilesToGitHubAtomic(fileSpecs, `feat(media): upload ${prep.isAnim ? 'animated ' : ''}media ${fileName}`);
+
+          markLocalUploadTimestamp(poolItemForTimestamp ? [poolItemForTimestamp] : null);
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+          } catch (e) {}
+          saveMessage.value = prep.isAnim ? '✅ 动图已上传云端，永久保持动态播放 ♥' : '✅ 照片已上传云端，永久同步 ♥';
         } catch (err) {
           console.warn('[Universal Album Upload]', err);
-          saveMessage.value = '✅ 已在当前页面生效 ♥';
+          saveMessage.value = '⚠️ 云端同步失败，已暂存在当前页面';
         } finally {
+          if (event && event.target && typeof event.target.value === 'string') {
+            try { event.target.value = ''; } catch (e) {}
+          }
           SyncGuard.endUpload();
         }
         nextTick(() => { hydrateMotionVideoSlots(); });
@@ -11931,7 +12290,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const promptChangeImage = (section, field) => {
         openLocalAlbumPicker((newSrc, file) => {
           siteData[section][field] = newSrc;
-          if (section === 'hero' && String(newSrc).startsWith('data:')) {
+          if (section === 'hero' && (String(newSrc).startsWith('data:') || String(newSrc).startsWith('blob:'))) {
             const copy = generateRomanticCopy(file, 'hero');
             if (copy.coverCaption) siteData.hero.coverCaption = copy.coverCaption;
             if (copy.quote) siteData.hero.quote = copy.quote;
@@ -11943,7 +12302,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         openLocalAlbumPicker((newSrc, file) => {
           if (siteData[arrName] && siteData[arrName][idx]) {
             siteData[arrName][idx][field] = newSrc;
-            if (String(newSrc).startsWith('data:')) {
+            if (String(newSrc).startsWith('data:') || String(newSrc).startsWith('blob:')) {
               const copy = generateRomanticCopy(file, arrName);
               if (arrName === 'gallery') {
                 siteData.gallery[idx].title = copy.title;
@@ -12149,8 +12508,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           } else if (target.type === 'record') {
             const recIdx = (target.ctx && typeof target.ctx.recIdx === 'number') ? target.ctx.recIdx : ((target.ctx && typeof target.ctx.origIdx === 'number') ? target.ctx.origIdx : null);
             if (recIdx !== null) {
-              openLocalAlbumPicker((newSrc, file, cov) => {
-                applyMediaReplacement('record', { recIdx }, newSrc, cov || null, isVideoMedia(newSrc), file);
+              openLocalAlbumPicker((newSrc, file, cov, isVid) => {
+                applyMediaReplacement('record', { recIdx }, newSrc, cov || null, isVid !== undefined ? isVid : isVideoMedia(newSrc), file);
               }, { type: 'record', ctx: { recIdx } });
             } else {
               triggerRecordImageUpload();
@@ -12162,13 +12521,13 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           } else if (target.type === 'quotes') {
             promptChangeArrayImage('quotes', target.ctx.idx, target.ctx.field || 'image');
           } else if (target.type === 'sphere') {
-            openLocalAlbumPicker((newSrc, file, cov) => {
-              applyMediaReplacement('sphere', target.ctx, newSrc, cov || null, isVideoMedia(newSrc), file);
+            openLocalAlbumPicker((newSrc, file, cov, isVid) => {
+              applyMediaReplacement('sphere', target.ctx, newSrc, cov || null, isVid !== undefined ? isVid : isVideoMedia(newSrc), file);
             }, target);
           } else if (target.type === 'pool') {
             if (target.ctx) {
-              openLocalAlbumPicker((newSrc, file, cov) => {
-                applyMediaReplacement('pool', target.ctx, newSrc, cov || null, isVideoMedia(newSrc), file);
+              openLocalAlbumPicker((newSrc, file, cov, isVid) => {
+                applyMediaReplacement('pool', target.ctx, newSrc, cov || null, isVid !== undefined ? isVid : isVideoMedia(newSrc), file);
               }, target);
             } else {
               triggerPoolUpload();
@@ -12178,8 +12537,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           } else if (target.type === 'letter') {
             promptChangeImage('letter', target.ctx ? target.ctx.field : 'bgImage');
           } else if (target.type === 'city') {
-            openLocalAlbumPicker((newSrc, file, cov) => {
-              applyMediaReplacement('city', target.ctx, newSrc, cov || null, isVideoMedia(newSrc), file);
+            openLocalAlbumPicker((newSrc, file, cov, isVid) => {
+              applyMediaReplacement('city', target.ctx, newSrc, cov || null, isVid !== undefined ? isVid : isVideoMedia(newSrc), file);
             }, target);
           }
         } else if (actionMethod === 'ios-live') {
@@ -12230,9 +12589,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if (copy.tag) city.tag = copy.tag;
 
-          debouncedCloudSync('footprint', saveFootprintToCloud, 600);
-
-        });
+        }, { type: 'city', ctx: city });
 
       };
 
@@ -12773,7 +13130,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
             } catch(e){}
           }
 
-          if (res.ok) {
+          if (res && res.ok) {
 
             const cloudPool = await res.json();
 
@@ -12783,53 +13140,53 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
             if (Array.isArray(cloudPool) && cloudPool.length > 0) {
 
-              if (!siteData.photoPool || siteData.photoPool.length === 0) {
-
-                siteData.photoPool = cloudPool;
-
-              } else {
-
-                // 【全端统一真值】以云端注册表为唯一准绳，杜绝旧设备本地脏数据膨胀
-                const movNormMap = {
-                  './images/pool/pool_1793720679376_0.mov': './images/pool/pool_1793720679376_0.mp4',
-                  './images/pool/pool_1793719988825_0.mov': './images/pool/pool_1793719988825_0.mp4',
-                  './images/pool/pool_1793719657469_0.mov': './images/pool/pool_1793719657469_0.mp4',
-                  './images/pool/pool_1793719562445_0.mov': './images/pool/pool_1793719562445_0.mp4',
-                  './images/pool/pool_1793719509586_0.mov': './images/pool/pool_1793719509586_0.mp4',
-                  './images/pool/pool_sphere_0.jpg': './images/uploads/opt_5dc44aa52cd1.jpg'
-                };
-                const seenImgs = new Set();
-                const cleanUnified = cloudPool.map(p => {
-                  if (p && p.image && movNormMap[p.image]) p.image = movNormMap[p.image];
-                  return p;
-                }).filter(p => {
-                  if (!p || !p.image || typeof p.image !== 'string' || p.image.startsWith('blob:') || p.image.startsWith('data:')) return false;
-                  if (seenImgs.has(p.image)) return false;
-                  seenImgs.add(p.image);
-                  return true;
-                });
-                try {
-                  const rawRecent = localStorage.getItem('couple_recent_pool_uploads');
-                  if (rawRecent) {
-                    const recentArr = JSON.parse(rawRecent);
-                    const now = Date.now();
-                    if (Array.isArray(recentArr)) {
-                      for (let rIdx = recentArr.length - 1; rIdx >= 0; rIdx--) {
-                        const entry = recentArr[rIdx];
-                        if (entry && entry.item && entry.item.image && (now - (entry.ts || 0) < 600000)) {
-                          if (!seenImgs.has(entry.item.image)) {
-                            seenImgs.add(entry.item.image);
-                            cleanUnified.unshift(entry.item);
-                          }
+              const movNormMap = {
+                './images/pool/pool_1793720679376_0.mov': './images/pool/pool_1793720679376_0.mp4',
+                './images/pool/pool_1793719988825_0.mov': './images/pool/pool_1793719988825_0.mp4',
+                './images/pool/pool_1793719657469_0.mov': './images/pool/pool_1793719657469_0.mp4',
+                './images/pool/pool_1793719562445_0.mov': './images/pool/pool_1793719562445_0.mp4',
+                './images/pool/pool_1793719509586_0.mov': './images/pool/pool_1793719509586_0.mp4',
+                './images/pool/pool_sphere_0.jpg': './images/uploads/opt_5dc44aa52cd1.jpg'
+              };
+              const deletesSet = getRecentPoolDeletes();
+              const seenImgs = new Set();
+              const cleanUnified = cloudPool.map(p => {
+                if (!p) return p;
+                const cp = { ...p };
+                if (cp.image && movNormMap[cp.image]) cp.image = movNormMap[cp.image];
+                if (typeof cp.cover === 'string' && (cp.cover.startsWith('data:') || cp.cover.startsWith('blob:'))) cp.cover = null;
+                return cp;
+              }).filter(p => {
+                if (!p || !p.image || typeof p.image !== 'string' || p.image.startsWith('blob:') || p.image.startsWith('data:')) return false;
+                if (deletesSet.has(p.image)) return false;
+                if (seenImgs.has(p.image)) return false;
+                seenImgs.add(p.image);
+                return true;
+              });
+              try {
+                const rawRecent = localStorage.getItem('couple_recent_pool_uploads');
+                if (rawRecent) {
+                  const recentArr = JSON.parse(rawRecent);
+                  const now = Date.now();
+                  if (Array.isArray(recentArr)) {
+                    for (let rIdx = recentArr.length - 1; rIdx >= 0; rIdx--) {
+                      const entry = recentArr[rIdx];
+                      const it = entry && entry.item;
+                      if (it && it.image && typeof it.image === 'string' && !it.image.startsWith('blob:') && !it.image.startsWith('data:') && (now - (entry.ts || 0) < 600000)) {
+                        if (!deletesSet.has(it.image) && !seenImgs.has(it.image)) {
+                          seenImgs.add(it.image);
+                          const safeIt = { ...it };
+                          if (typeof safeIt.cover === 'string' && (safeIt.cover.startsWith('data:') || safeIt.cover.startsWith('blob:'))) safeIt.cover = null;
+                          cleanUnified.unshift(safeIt);
                         }
                       }
                     }
                   }
-                } catch(reErr){}
-                siteData.photoPool = cleanUnified;
-              }
+                }
+              } catch(reErr){}
+              siteData.photoPool = cleanUnified;
               try {
-                localStorage.setItem(storageKey, JSON.stringify(siteData));
+                localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
               } catch(e){}
               console.log(`[Cloud Sync] Photo pool unified strictly to ${siteData.photoPool.length} photos.`);
 
@@ -12896,39 +13253,49 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           video.playsInline = true;
 
-          const url = URL.createObjectURL(videoFile); setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} resolve({ coverBase64: null, durationStr: '00:03' }); }, 4500); video.src = url; try { video.load(); } catch(e){}
+          const url = URL.createObjectURL(videoFile);
 
-          video.onloadedmetadata = () => {
+          let settled = false;
 
-            const dur = Math.round(video.duration) || 0;
+          let tid = null;
 
-            const m = Math.floor(dur / 60);
+          const finish = (val) => {
 
-            const s = dur % 60;
+            if (settled) return;
 
-            const durationStr = (m < 10 ? '0' + m : '' + m) + ':' + (s < 10 ? '0' + s : '' + s);
+            settled = true;
 
-            video.currentTime = Math.min(1.0, dur > 1 ? 1.0 : dur * 0.5);
+            if (tid) clearTimeout(tid);
+
+            try { URL.revokeObjectURL(url); } catch (e) {}
+
+            resolve(val);
 
           };
 
-          video.onseeked = () => {
+          const captureFrame = () => {
 
             try {
 
+              const vw = video.videoWidth || 640;
+
+              const vh = video.videoHeight || 360;
+
+              if (!vw || !vh) { finish({ coverBase64: null, durationStr: '00:03' }); return; }
+
               const canvas = document.createElement('canvas');
 
-              canvas.width = video.videoWidth || 640;
+              canvas.width = vw;
 
-              canvas.height = video.videoHeight || 360;
+              canvas.height = vh;
 
               const ctx = canvas.getContext('2d');
 
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              ctx.drawImage(video, 0, 0, vw, vh);
 
               const coverBase64 = canvas.toDataURL('image/jpeg', 0.85);
 
-              const dur = Math.round(video.duration) || 0;
+              const dur = Math.round(video.duration) || 3;
 
               const m = Math.floor(dur / 60);
 
@@ -12936,21 +13303,45 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
               const durationStr = (m < 10 ? '0' + m : '' + m) + ':' + (s < 10 ? '0' + s : '' + s);
 
-              URL.revokeObjectURL(url);
-
-              resolve({ coverBase64, durationStr });
+              finish({ coverBase64, durationStr });
 
             } catch (err) {
 
-              URL.revokeObjectURL(url);
-
-              resolve({ coverBase64: null, durationStr: '' });
+              finish({ coverBase64: null, durationStr: '00:03' });
 
             }
 
           };
 
-          video.onerror = () => { URL.revokeObjectURL(url); resolve({ coverBase64: null, durationStr: '' }); };
+          tid = setTimeout(() => {
+
+            if (!settled && (video.videoWidth || 0) > 0) captureFrame();
+
+            else finish({ coverBase64: null, durationStr: '00:03' });
+
+          }, 1500);
+
+          video.src = url;
+
+          try { video.load(); } catch (e) {}
+
+          video.onloadedmetadata = () => {
+
+            const dur = Number(video.duration) || 0;
+
+            try { video.currentTime = Math.min(0.1, dur > 0 ? dur * 0.1 : 0.05); } catch (e) {}
+
+          };
+
+          video.onseeked = captureFrame;
+
+          video.onloadeddata = () => {
+
+            setTimeout(() => { if (!settled && (video.videoWidth || 0) > 0) captureFrame(); }, 180);
+
+          };
+
+          video.onerror = () => finish({ coverBase64: null, durationStr: '' });
 
         });
 
@@ -12959,6 +13350,8 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
       const isVideoMedia = (u) => {
 
         if (!u || typeof u !== 'string') return false;
+
+        if (typeof window !== 'undefined' && window.__liveVideoBlobSet && window.__liveVideoBlobSet.has(u)) return true;
 
         const c = u.split('?')[0].toLowerCase();
 
@@ -13076,221 +13469,138 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const handlePoolFilesSelected = async (event) => {
         SyncGuard.endPick();
-        const files = event.target.files;
+        if (isSyncingPool.value) return;
+        const files = event && event.target && event.target.files;
         if (!files || files.length === 0) return;
         SyncGuard.beginUpload();
         isSyncingPool.value = true;
 
-        saveMessage.value = `准备上传 ${files.length} 张照片...`;
-
+        saveMessage.value = `准备处理并上传 ${files.length} 张照片...`;
         if (!siteData.photoPool) siteData.photoPool = [];
 
-
-
-        let successCount = 0;
-
         const today = new Date().toISOString().slice(0, 10);
-
         const newlyAddedPoolItems = [];
+        const fileSpecs = [];
 
-
-
-        for (let i = 0; i < files.length; i++) {
-
-          try {
-
-            const file = files[i];
-
-            saveMessage.value = `正在处理第 ${i + 1}/${files.length} 张照片...`;
-
-            // 主线程让渡：给浏览器 35ms 刷新 UI 与触摸响应，杜绝移动端假死
-
-            await new Promise(r => setTimeout(r, 35));
-
-
-
-            const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file); const processed = await processImageForUpload(liveExtracted || file);
-
-            const { base64, ext, isGif, isVideo } = processed;
-
-            const safeName = `pool_${Date.now()}_${i}.${ext}`;
-
-            const localPreviewUrl = URL.createObjectURL(file);
-
-            if (typeof window !== 'undefined') {
-
-              registerLiveBlobVariants(`./images/pool/${safeName}`, localPreviewUrl);
-
-            }
-
-            
-
-            // 1. Upload to GitHub images/pool/
-
-            const uploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/pool/${safeName}`;
-
-            let uploadOk = false;
-
+        try {
+          for (let i = 0; i < files.length; i++) {
             try {
+              const file = files[i];
+              saveMessage.value = `正在处理第 ${i + 1}/${files.length} 张照片...`;
+              await new Promise(r => setTimeout(r, 20));
 
-              const uploadRes = await fetch(uploadUrl, {
-
-                method: "PUT",
-
-                headers: {
-
-                  "Authorization": `Bearer ${GITHUB_TOKEN}`,
-
-                  "Accept": "application/vnd.github.v3+json",
-
-                  "Content-Type": "application/json"
-
-                },
-
-                body: JSON.stringify({
-
-                  message: `feat(pool): upload ${safeName}`,
-
-                  content: base64
-
-                })
-
-              });
-
-              uploadOk = uploadRes.ok;
-
-            } catch (netErr) {
-
-              console.warn('[Pool Upload] Net error, using local fallback', netErr);
-
-            }
-
-
-
-            if (uploadOk) {
-
+              const liveExtracted = await tryExtractEmbeddedVideoFromPhoto(file);
+              const targetFile = liveExtracted || file;
+              const processed = await processImageForUpload(targetFile);
+              const { base64, ext, isGif, isVideo } = processed;
+              const safeName = `pool_${Date.now()}_${i}.${ext}`;
               const cloudImgUrl = `./images/pool/${safeName}`;
 
-              // 为实况视频同步上传独立轻量封面海报文件，彻底杜绝内联超大 Base64 膨胀
+              const mediaBlob = isVideo
+                ? (targetFile instanceof Blob ? targetFile : base64ToBlob(base64, ext === 'mov' ? 'video/quicktime' : 'video/mp4'))
+                : base64ToBlob(base64, isGif ? 'image/gif' : 'image/jpeg');
+              await cacheUploadedMediaLocally(cloudImgUrl, mediaBlob, !!isVideo);
+
+              fileSpecs.push({
+                paths: [`images/pool/${safeName}`, `dist/images/pool/${safeName}`],
+                content: base64,
+                encoding: 'base64'
+              });
+
               let cleanCoverUrl = null;
               if (isVideo && processed.coverBase64) {
-                try {
-                  const coverSafeName = safeName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
-                  const coverRawB64 = processed.coverBase64.replace(/^data:[^,]+,/, '');
-                  const coverUploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/images/pool/${coverSafeName}`;
-                  const covRes = await fetch(coverUploadUrl, {
-                    method: "PUT",
-                    headers: {
-                      "Authorization": `Bearer ${GITHUB_TOKEN}`,
-                      "Accept": "application/vnd.github.v3+json",
-                      "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                      message: `feat(pool): upload cover for ${safeName}`,
-                      content: coverRawB64
-                    })
-                  });
-                  if (covRes.ok) {
-                    cleanCoverUrl = `./images/pool/${coverSafeName}`;
-                  }
-                } catch (covErr) {
-                  console.warn('[Cover Upload] Non-fatal, using fast cover cache', covErr);
+                const coverSafeName = safeName.replace(/\.[^/.]+$/, '') + '_cover.jpg';
+                cleanCoverUrl = `./images/pool/${coverSafeName}`;
+                const coverRawB64 = processed.coverBase64.replace(/^data:[^,]+,/, '');
+                const coverBlobUrl = await cacheUploadedMediaLocally(cleanCoverUrl, base64ToBlob(coverRawB64, 'image/jpeg'), false);
+                if (coverBlobUrl) {
+                  setLiveCover(cloudImgUrl, coverBlobUrl);
+                  setLiveCover('./images/pool/' + safeName, coverBlobUrl);
                 }
+                fileSpecs.push({
+                  paths: [`images/pool/${coverSafeName}`, `dist/images/pool/${coverSafeName}`],
+                  content: coverRawB64,
+                  encoding: 'base64'
+                });
               }
 
               const titleName = file.name.replace(/\.[^/.]+$/, '') || (isGif ? '精选动图' : (isVideo ? '视频' : '相册精彩'));
-
               newlyAddedPoolItems.push({
-
                 id: Date.now() + Math.random(),
-
                 image: cloudImgUrl,
-
-                cover: cleanCoverUrl || processed.coverBase64 || null,
-
+                cover: cleanCoverUrl || null,
                 duration: processed.durationStr || '',
-
                 isVideo: !!isVideo,
-
                 title: titleName,
-
                 date: (file.lastModified ? new Date(file.lastModified).toISOString().slice(0, 10) : today),
-
                 uploader: '伍彦博'
-
               });
-
-              successCount++;
-
-            } else {
-
-              newlyAddedPoolItems.push({
-
-                id: Date.now() + Math.random(),
-
-                image: processed.dataUrl || ((isVideo ? 'data:video/mp4;base64,' : `data:${file.type || 'image/jpeg'};base64,`) + base64),
-
-                cover: processed.coverBase64 || null,
-
-                duration: processed.durationStr || '',
-
-                isVideo: !!isVideo,
-
-                title: file.name.replace(/\.[^/.]+$/, '') || '本地精彩照片',
-
-                date: today,
-
-                uploader: '伍彦博'
-
-              });
-
-              successCount++;
-
+            } catch (err) {
+              console.error('Process error on file ' + i, err);
             }
-
-          } catch (err) {
-
-            console.error('Upload error on file ' + i, err);
-
           }
 
-        }
-
-
-
-        // 一次性批量合并入 Vue 响应式状态，避免循环多次触发深度 Watch 序列化卡死
-
-        if (newlyAddedPoolItems.length > 0) {
-          markLocalUploadTimestamp(newlyAddedPoolItems);
-          siteData.photoPool.unshift(...newlyAddedPoolItems);
-          try { localStorage.setItem(storageKey, JSON.stringify(siteData)); } catch(e){}
-        }
-
-
-
-        // 2. Update cloud registry data/photo_pool.json on GitHub
-
-        try {
-          if (typeof savePoolToCloud === 'function') {
-            await savePoolToCloud();
+          if (newlyAddedPoolItems.length === 0) {
+            saveMessage.value = '❌ 未能读取到有效照片，请重试';
+            setTimeout(() => { saveMessage.value = ''; }, 3000);
+            return;
           }
-          console.log('[Cloud Sync] Registry updated on GitHub successfully.');
-        } catch (regErr) {
-          console.warn('[Cloud Sync] Registry update failed:', regErr);
+
+          const existingImgs = new Set((siteData.photoPool || []).map(p => p && p.image).filter(Boolean));
+          const uniqueNewItems = [];
+          for (const it of newlyAddedPoolItems) {
+            if (it && it.image && !existingImgs.has(it.image)) {
+              existingImgs.add(it.image);
+              uniqueNewItems.push(it);
+            }
+          }
+
+          if (uniqueNewItems.length > 0) {
+            markLocalUploadTimestamp(uniqueNewItems);
+            siteData.photoPool.unshift(...uniqueNewItems);
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+            } catch (le) {}
+          }
+
+          saveMessage.value = `☁️ 正在原子上传 ${uniqueNewItems.length} 张至云端...`;
+          const cleanPool = sanitizePoolForPersistence(siteData.photoPool);
+          fileSpecs.push({
+            paths: ['data/photo_pool.json', 'dist/data/photo_pool.json'],
+            content: JSON.stringify(cleanPool, null, 2),
+            encoding: 'utf-8'
+          });
+
+          try {
+            await commitFilesToGitHubAtomic(fileSpecs, `feat(pool): upload ${uniqueNewItems.length} photo(s) & sync registry (${cleanPool.length} photos)`);
+            markLocalUploadTimestamp(uniqueNewItems);
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+            } catch (le2) {}
+            saveMessage.value = `✨ 成功上传 ${uniqueNewItems.length} 张照片，双端可见！`;
+            triggerConfetti();
+          } catch (commitErr) {
+            console.error('[Cloud Sync] Atomic upload failed:', commitErr);
+            const failedSet = new Set(uniqueNewItems.map(x => x.image));
+            siteData.photoPool = (siteData.photoPool || []).filter(p => p && !failedSet.has(p.image));
+            uniqueNewItems.forEach(x => recordRecentPoolDelete(x.image));
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+            } catch (le3) {}
+            saveMessage.value = '❌ 上传至云端失败，请检查网络后重试';
+          }
         } finally {
+          if (event && event.target && typeof event.target.value === 'string') {
+            try { event.target.value = ''; } catch (e) {}
+          }
           SyncGuard.endUpload();
+          isSyncingPool.value = false;
+          nextTick(() => {
+            if (window.lucide) lucide.createIcons();
+            hydrateMotionVideoSlots();
+          });
+          setTimeout(() => { saveMessage.value = ''; }, 3500);
         }
-        event.target.value = '';
-        isSyncingPool.value = false;
-
-        saveMessage.value = `✨ 成功上传 ${successCount} 张照片，双端可见！`;
-
-        triggerConfetti();
-
-        nextTick(() => { if (window.lucide) lucide.createIcons(); });
-
-        setTimeout(() => { saveMessage.value = ''; }, 3500);
-
       };
 
 
@@ -13421,7 +13731,17 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         if (confirm('确定要从双方共享的照片池中移除这张照片吗？')) {
 
+          const removed = siteData.photoPool[pIdx];
+
           siteData.photoPool.splice(pIdx, 1);
+
+          if (removed && removed.image) {
+            recordRecentPoolDelete(removed.image);
+          }
+          markLocalUploadTimestamp();
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+          } catch (le) {}
 
           saveMessage.value = '正在从云端同步移除...';
           try {
@@ -13528,7 +13848,17 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const filteredAndSortedPhotos = computed(() => {
 
-        let list = (siteData.photoPool || []).slice();
+        const seenImgs = new Set();
+
+        let list = (siteData.photoPool || []).filter(p => {
+
+          if (!p || !p.image || seenImgs.has(p.image)) return false;
+
+          seenImgs.add(p.image);
+
+          return true;
+
+        });
 
 
 
@@ -13664,6 +13994,9 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
         if (iosLiveDirectFileInput.value) iosLiveDirectFileInput.value.click();
       };
 
+      let lastIosUploadSig = '';
+      let lastIosUploadAt = 0;
+
       // 统一实况分发上传管线：无论是快捷指令剪贴板一键导入、相册直接选 MOV 视频还是手动粘贴，统一进入此管线
       const executeIosLiveUpload = async (file) => {
         const isReplaceMode = !!iosLiveContext;
@@ -13675,58 +14008,68 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           await handlePoolFilesSelected({ target: { files: [file], value: '' } });
         } else {
           // 精准原子覆盖原图模式（无论目标是 pool, sphere, timeline, record, gallery, quotes, hero, wishes, letter）
-          activeMediaTarget = { type: curTarget, ctx: curCtx };
+          const targetSpec = { type: curTarget, ctx: curCtx };
+          activeMediaTarget = targetSpec;
           const callback = (newSrc, f, coverB64) => {
             applyMediaReplacement(curTarget, curCtx, newSrc, coverB64, true, f);
           };
           pendingAlbumPickCallback = callback;
           universalAlbumCallback = callback;
-          await handleUniversalAlbumPicked({ target: { files: [file] } });
+          await handleUniversalAlbumPicked({ target: { files: [file] } }, targetSpec);
         }
       };
 
       const processBase64AndUpload = async (rawText) => {
+        if (isUploadingIosLive.value || isSyncingPool.value) return false;
         const cleanB64 = (rawText || '').replace(/^data:[^,]+,/, '').replace(/[\r\n\s]+/g, '');
         if (!cleanB64 || cleanB64.length < 1000) {
           iosLiveStatusMsg.value = '⚠️ 数据不完整或未复制实况数据，请重新选图~';
           return false;
         }
+        const sig = cleanB64.length + ':' + cleanB64.slice(0, 64) + ':' + cleanB64.slice(-64);
+        if (sig === lastIosUploadSig && (Date.now() - lastIosUploadAt < 10000)) {
+          return false;
+        }
+        lastIosUploadSig = sig;
+        lastIosUploadAt = Date.now();
+        isUploadingIosLive.value = true;
         try {
-          isUploadingIosLive.value = true;
           iosLiveStatusMsg.value = '⏳ 正在解析实况视频流...';
           const binStr = atob(cleanB64);
           const bytes = new Uint8Array(binStr.length);
           for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
           if (bytes[0] === 0xFF && bytes[1] === 0xD8) {
             iosLiveStatusMsg.value = '⚠️ 检测到静态图：请确保快捷指令提取了 3 秒视频！';
-            isUploadingIosLive.value = false;
             return false;
           }
           const file = new File([bytes], 'iPhone_Live_' + Date.now() + '.mov', { type: 'video/quicktime', lastModified: Date.now() });
-          iosLiveStatusMsg.value = '✨ 已提取 3 秒实况 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传并覆盖原图...';
+          iosLiveStatusMsg.value = '✨ 已提取 3 秒实况 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传...';
 
           await executeIosLiveUpload(file);
 
-          isUploadingIosLive.value = false;
           iosManualB64.value = '';
           showIosLiveModal.value = false;
           return true;
         } catch (e) {
           console.error(e);
           iosLiveStatusMsg.value = '❌ 解析实况失败：' + (e.message || '请重试');
-          isUploadingIosLive.value = false;
           return false;
+        } finally {
+          isUploadingIosLive.value = false;
         }
       };
 
       const handleIosManualPaste = (e) => {
         const text = (e.clipboardData || window.clipboardData).getData('text');
         if (text && text.length > 500) {
-          setTimeout(() => processBase64AndUpload(text), 100);
+          if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          iosManualB64.value = '';
+          processBase64AndUpload(text);
         }
       };
 
       const handleIosManualInput = () => {
+        if (isUploadingIosLive.value || isSyncingPool.value) return;
         if (iosManualB64.value && iosManualB64.value.length > 500) {
           processBase64AndUpload(iosManualB64.value);
         }
@@ -13734,27 +14077,30 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
       const handleIosLiveDirectFileSelected = async (event) => {
         SyncGuard.endPick();
-        const file = event.target.files && event.target.files[0];
+        if (isUploadingIosLive.value || isSyncingPool.value) return;
+        const file = event && event.target && event.target.files && event.target.files[0];
         if (!file) return;
-        SyncGuard.beginUpload();
+        isUploadingIosLive.value = true;
         try {
-          isUploadingIosLive.value = true;
-          iosLiveStatusMsg.value = '✨ 正在处理相册 3 秒视频 (' + Math.round(file.size / 1024) + ' KB)，正在覆盖原图...';
+          iosLiveStatusMsg.value = '✨ 正在处理相册 3 秒视频 (' + Math.round(file.size / 1024) + ' KB)，正在上传...';
           await executeIosLiveUpload(file);
-          isUploadingIosLive.value = false;
           showIosLiveModal.value = false;
         } catch (e) {
           console.error(e);
           iosLiveStatusMsg.value = '❌ 上传视频失败：' + (e.message || '请重试');
-          isUploadingIosLive.value = false;
         } finally {
+          if (event && event.target && typeof event.target.value === 'string') {
+            try { event.target.value = ''; } catch (e) {}
+          }
+          isUploadingIosLive.value = false;
           SyncGuard.endUpload();
         }
       };
 
       const pasteAndUploadIosLive = async () => {
+        if (isUploadingIosLive.value || isSyncingPool.value) return;
+        isUploadingIosLive.value = true;
         try {
-          isUploadingIosLive.value = true;
           iosLiveStatusMsg.value = '⏳ 正在智能分析剪贴板实况内容...';
 
           // 优先尝试读取系统剪贴板原生二进制对象 (直接在相册点拷贝照片的情形)
@@ -13815,11 +14161,11 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
           const file = new File([bytes], 'iPhone_Live_' + Date.now() + '.mov', { type: 'video/quicktime', lastModified: Date.now() });
           iosLiveStatusMsg.value = '✨ 已成功提取 3 秒实况视频 (' + Math.round(bytes.length / 1024) + ' KB)，正在上传云端...';
           await executeIosLiveUpload(file);
-          isUploadingIosLive.value = false;
           showIosLiveModal.value = false;
         } catch (err) {
           console.error(err);
           iosLiveStatusMsg.value = '❌ 读取剪贴板失败，请在弹窗中点击「允许粘贴」';
+        } finally {
           isUploadingIosLive.value = false;
         }
       };
@@ -13859,7 +14205,7 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
           if ('serviceWorker' in navigator) {
 
-            navigator.serviceWorker.register('./sw.js?v=20261114_v37').then((reg) => {
+            navigator.serviceWorker.register('./sw.js?v=20261124_v38').then((reg) => {
 
               console.log('[PWA] Service Worker registered:', reg.scope);
 
@@ -13961,35 +14307,17 @@ nextTick(() => { if (window.lucide) lucide.createIcons(); });
 
         activeStoryPhoto.value.story = editingStoryText.value.trim();
 
+        markLocalUploadTimestamp([activeStoryPhoto.value]);
+
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(sanitizeSiteDataForLocalStorage(siteData)));
+        } catch (le) {}
+
         saveMessage.value = '正在将故事便签同步至云端...';
 
         try {
 
-          const regUrl = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/data/photo_pool.json';
-
-          const getReg = await fetch(regUrl, { headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN } });
-
-          let sha = null;
-
-          if (getReg.ok) sha = (await getReg.json()).sha;
-
-          await fetch(regUrl, {
-
-            method: 'PUT',
-
-            headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-
-            body: JSON.stringify({
-
-              message: 'feat: Update story note for photo ' + (activeStoryPhoto.value.title || ''),
-
-              content: safeUtf8ToBase64(JSON.stringify(siteData.photoPool, null, 2)),
-
-              sha: sha
-
-            })
-
-          });
+          await savePoolToCloud();
 
           saveMessage.value = '📖 回忆故事已珍藏并同步 ♥';
 
